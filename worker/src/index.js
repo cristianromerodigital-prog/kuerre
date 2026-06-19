@@ -140,6 +140,57 @@ export default {
       return json(results);
     }
 
+    // ── POST /api/auth ─ login ────────────────────────────────────
+    if (req.method === 'POST' && path === '/api/auth') {
+      const body = await req.json().catch(() => null);
+      if (!body?.user || !body?.pass) return json({ ok: false, error: 'credenciales requeridas' }, 400);
+
+      const storedUser = await env.KV.get('servital_admin_user');
+      const storedPass = await env.KV.get('servital_admin_pass');
+
+      const validUser = storedUser || 'admin';
+      const validPass = storedPass || 'servital2026';
+
+      if (body.user !== validUser || body.pass !== validPass) {
+        return json({ ok: false, error: 'credenciales incorrectas' }, 401);
+      }
+
+      const token = crypto.randomUUID();
+      await env.KV.put(`servital_session_${token}`, '1', { expirationTtl: 86400 });
+      return json({ ok: true, token });
+    }
+
+    // ── POST /api/auth/verify ─ verificar token ───────────────────
+    if (req.method === 'POST' && path === '/api/auth/verify') {
+      const body = await req.json().catch(() => null);
+      if (!body?.token) return json({ ok: false }, 401);
+      const valid = await env.KV.get(`servital_session_${body.token}`);
+      return json({ ok: !!valid });
+    }
+
+    // ── POST /api/auth/change-pass ─ cambiar contraseña ──────────
+    if (req.method === 'POST' && path === '/api/auth/change-pass') {
+      const auth = req.headers.get('Authorization') || '';
+      const token = auth.replace('Bearer ', '');
+      const valid = token && await env.KV.get(`servital_session_${token}`);
+      if (!valid) return json({ ok: false, error: 'no autorizado' }, 401);
+
+      const body = await req.json().catch(() => null);
+      if (!body?.newUser || !body?.newPass) return json({ ok: false, error: 'datos incompletos' }, 400);
+      if (body.newPass.length < 6) return json({ ok: false, error: 'contraseña mínimo 6 caracteres' }, 400);
+
+      await env.KV.put('servital_admin_user', body.newUser);
+      await env.KV.put('servital_admin_pass', body.newPass);
+      return json({ ok: true });
+    }
+
+    // ── POST /api/auth/logout ─ cerrar sesión ─────────────────────
+    if (req.method === 'POST' && path === '/api/auth/logout') {
+      const body = await req.json().catch(() => null);
+      if (body?.token) await env.KV.delete(`servital_session_${body.token}`);
+      return json({ ok: true });
+    }
+
     // ── Health check ──────────────────────────────────────────────
     if (path === '/api/health') {
       return json({ ok: true, worker: 'servital-worker', ts: new Date().toISOString() });
