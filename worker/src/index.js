@@ -197,8 +197,10 @@ export default {
       const token = auth.replace('Bearer ', '');
       const valid = token && await env.KV.get(`servital_session_${token}`);
       if (!valid) return json({ error: 'no autorizado' }, 401);
-      const apiToken = await env.KV.get('servital_api_token') || '';
-      return json({ apiToken });
+      const apiToken         = await env.KV.get('servital_api_token') || '';
+      const cloudinaryCloud  = await env.KV.get('servital_cloudinary_cloud') || '';
+      const cloudinaryPreset = await env.KV.get('servital_cloudinary_preset') || '';
+      return json({ apiToken, cloudinaryCloud, cloudinaryPreset });
     }
 
     // ── Health check ──────────────────────────────────────────────
