@@ -1,0 +1,693 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generador de Contratos</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      padding: 20px 30px;
+      border-bottom: 2px solid #1565C0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .header h1 { font-size: 1.3rem; color: #90caf9; font-weight: 600; }
+    .header p  { font-size: 0.8rem; color: #607d8b; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+
+    /* Selector de tipo */
+    .tipo-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+    .tipo-btn {
+      padding: 20px 10px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      background: #1a1a1a;
+      color: #aaa;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .tipo-btn:hover { border-color: #1565C0; color: #90caf9; }
+    .tipo-btn.active { border-color: #1565C0; background: #0d2a4d; color: #fff; }
+    .tipo-btn .icon { font-size: 2rem; margin-bottom: 6px; }
+    .tipo-btn .label { font-size: 0.9rem; font-weight: 600; }
+
+    /* Cards de sección */
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #90caf9;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    /* Grid de campos */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .full    { grid-column: 1 / -1; }
+
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+    .field input, .field select, .field textarea {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 9px 12px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .field input:focus, .field select:focus { border-color: #1565C0; }
+    .field input[type="date"] { color-scheme: dark; }
+
+    /* Servicios */
+    .servicios-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .servicio-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px;
+      background: #111;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .servicio-item:hover { border-color: #1565C0; }
+    .servicio-item input[type="checkbox"] { margin-top: 2px; accent-color: #1565C0; }
+    .servicio-item .desc { font-size: 0.8rem; color: #ccc; line-height: 1.3; }
+    .servicio-item .precio { font-size: 0.75rem; color: #4CAF50; margin-top: 2px; }
+
+    /* Total */
+    .total-box {
+      background: #0d2a4d;
+      border: 1px solid #1565C0;
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .total-box .label { font-size: 0.85rem; color: #90caf9; }
+    .total-box .value { font-size: 1.4rem; font-weight: 700; color: #fff; }
+
+    /* Secciones condicionales */
+    .section-boda   { display: none; }
+    .section-xv     { display: none; }
+    .section-cumple { display: none; }
+    .section-comun  { display: none; }
+
+    /* Sub-evento card */
+    .sub-evento {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .sub-evento h4 { font-size: 0.8rem; color: #607d8b; margin-bottom: 10px; text-transform: uppercase; }
+
+    /* Toggle para eventos opcionales */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .toggle-row input[type="checkbox"] { accent-color: #1565C0; width: 16px; height: 16px; }
+    .toggle-row label { font-size: 0.85rem; color: #aaa; cursor: pointer; }
+
+    /* Botón principal */
+    .btn-generar {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #1565C0, #1976D2);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 10px;
+    }
+    .btn-generar:hover:not(:disabled) { opacity: 0.9; }
+    .btn-generar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Resultado */
+    #resultado {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: #0a2e0a;
+      border: 1px solid #2e7d32;
+      border-radius: 10px;
+    }
+    #resultado h3 { color: #66bb6a; margin-bottom: 12px; }
+    #resultado .numero { font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    #resultado a {
+      display: inline-block;
+      margin: 4px 8px 4px 0;
+      padding: 8px 16px;
+      background: #1565C0;
+      border-radius: 6px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    #resultado a.pdf { background: #c62828; }
+
+    #error-box {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      background: #2e0a0a;
+      border: 1px solid #c62828;
+      border-radius: 10px;
+      color: #ef9a9a;
+      font-size: 0.85rem;
+    }
+
+    .spinner {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #607d8b;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Generador de Contratos</h1>
+    <p>Servital</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SELECTOR TIPO -->
+  <div class="tipo-selector">
+    <div class="tipo-btn" data-tipo="BODA" onclick="seleccionarTipo('BODA')">
+      <div class="icon">💍</div>
+      <div class="label">Boda</div>
+    </div>
+    <div class="tipo-btn" data-tipo="XV" onclick="seleccionarTipo('XV')">
+      <div class="icon">🌟</div>
+      <div class="label">XV Años</div>
+    </div>
+    <div class="tipo-btn" data-tipo="CUMPLE" onclick="seleccionarTipo('CUMPLE')">
+      <div class="icon">🎂</div>
+      <div class="label">Cumpleaños</div>
+    </div>
+  </div>
+
+  <!-- NÚMERO PREVIEW -->
+  <div id="numero-preview" style="display:none; text-align:center; margin-bottom:20px; color:#607d8b; font-size:0.85rem;">
+    Próximo número de contrato: <strong id="num-display" style="color:#90caf9;"></strong>
+  </div>
+
+  <!-- CAMPOS COMUNES (datos de firma) -->
+  <div class="section-comun" id="sec-comun">
+    <div class="card">
+      <h3>Datos de la firma</h3>
+      <div class="grid-3">
+        <div class="field">
+          <label>Ciudad de firma</label>
+          <input type="text" id="ciudad" value="Morón, Provincia de Buenos Aires">
+        </div>
+        <div class="field">
+          <label>Fecha del documento</label>
+          <input type="date" id="diaFirma">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SECCIÓN BODA ════ -->
+  <div class="section-boda" id="sec-boda">
+
+    <div class="card">
+      <h3>Novia</h3>
+      <div class="grid-2">
+        <div class="field"><label>Nombre y Apellido</label><input type="text" id="b-novia-nombre"></div>
+        <div class="field"><label>DNI</label><input type="text" id="b-novia-dni"></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="b-novia-tel"></div>
+        <div class="field"><label>Email</label><input type="text" id="b-novia-email"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Novio</h3>
+      <div class="grid-2">
+        <div class="field"><label>Nombre y Apellido</label><input type="text" id="b-novio-nombre"></div>
+        <div class="field"><label>DNI</label><input type="text" id="b-novio-dni"></div>
+        <div class="field"><label>Domicilio</label><input type="text" id="b-novio-domicilio"></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="b-novio-tel"></div>
+        <div class="field full"><label>Email</label><input type="text" id="b-novio-email"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Datos del evento</h3>
+
+      <div class="toggle-row">
+        <input type="checkbox" id="b-tiene-civil" onchange="toggleSubEvento('civil', this.checked)">
+        <label for="b-tiene-civil">Incluir Ceremonia Civil</label>
+      </div>
+      <div class="sub-evento" id="sub-civil" style="display:none;">
+        <h4>Ceremonia Civil</h4>
+        <div class="grid-3">
+          <div class="field"><label>Fecha</label><input type="date" id="b-civil-fecha"></div>
+          <div class="field"><label>Horario</label><input type="text" id="b-civil-horario" placeholder="10:50"></div>
+          <div class="field"><label>Dirección</label><input type="text" id="b-civil-dir"></div>
+        </div>
+      </div>
+
+      <div class="toggle-row" style="margin-top:10px;">
+        <input type="checkbox" id="b-tiene-reli" onchange="toggleSubEvento('religiosa', this.checked)">
+        <label for="b-tiene-reli">Incluir Ceremonia Religiosa</label>
+      </div>
+      <div class="sub-evento" id="sub-religiosa" style="display:none;">
+        <h4>Ceremonia Religiosa</h4>
+        <div class="grid-3">
+          <div class="field"><label>Fecha</label><input type="date" id="b-reli-fecha"></div>
+          <div class="field"><label>Horario</label><input type="text" id="b-reli-horario" placeholder="17:30"></div>
+          <div class="field"><label>Dirección</label><input type="text" id="b-reli-dir"></div>
+        </div>
+      </div>
+
+      <div class="sub-evento" style="margin-top:10px; border-color:#1565C0;">
+        <h4>Fiesta (requerido)</h4>
+        <div class="grid-3">
+          <div class="field"><label>Fecha</label><input type="date" id="b-fiesta-fecha"></div>
+          <div class="field"><label>Hora inicio estimada</label><input type="text" id="b-fiesta-hora" placeholder="19:30"></div>
+          <div class="field"><label>Nombre del Salón</label><input type="text" id="b-fiesta-salon"></div>
+          <div class="field full"><label>Dirección del Salón</label><input type="text" id="b-fiesta-dir"></div>
+        </div>
+      </div>
+
+      <div class="sub-evento" style="margin-top:10px;">
+        <h4>Contacto familiar / amigo responsable</h4>
+        <div class="grid-3">
+          <div class="field"><label>Nombre y Apellido</label><input type="text" id="b-contacto-nombre"></div>
+          <div class="field"><label>Relación (ej: hermana de la novia)</label><input type="text" id="b-contacto-rel"></div>
+          <div class="field"><label>Teléfono</label><input type="text" id="b-contacto-tel"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Paquete</h3>
+      <div class="field">
+        <label>Nombre del paquete</label>
+        <input type="text" id="b-paquete" placeholder="EXPERIENCIA BASE">
+      </div>
+    </div>
+
+  </div><!-- /sec-boda -->
+
+  <!-- ════ SECCIÓN XV ════ -->
+  <div class="section-xv" id="sec-xv">
+
+    <div class="card">
+      <h3>Quinceañera</h3>
+      <div class="grid-2">
+        <div class="field"><label>Nombre completo</label><input type="text" id="x-quince-nombre"></div>
+        <div class="field"><label>Fecha de nacimiento</label><input type="date" id="x-quince-nac"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Cliente (quien contrata)</h3>
+      <div class="grid-2">
+        <div class="field"><label>Nombre y Apellido</label><input type="text" id="x-cliente-nombre"></div>
+        <div class="field"><label>DNI</label><input type="text" id="x-cliente-dni"></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="x-cliente-tel"></div>
+        <div class="field"><label>Email</label><input type="text" id="x-cliente-email"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Datos del evento</h3>
+      <div class="grid-3">
+        <div class="field"><label>Fecha del evento</label><input type="date" id="x-fecha"></div>
+        <div class="field"><label>Hora inicio</label><input type="text" id="x-hora-inicio" placeholder="21:30"></div>
+        <div class="field"><label>Hora fin</label><input type="text" id="x-hora-fin" placeholder="5:30"></div>
+        <div class="field"><label>Nombre del Salón</label><input type="text" id="x-salon"></div>
+        <div class="field full"><label>Dirección del Salón</label><input type="text" id="x-dir"></div>
+        <div class="field"><label>Invitados aproximados</label><input type="number" id="x-invitados" placeholder="100"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Plan de pago</h3>
+      <div class="grid-2">
+        <div class="field">
+          <label>Cantidad de cuotas</label>
+          <input type="number" id="x-cuotas" value="1" min="1" max="36" oninput="calcularTotal()">
+        </div>
+        <div class="field" id="cuota-valor-box" style="display:none;">
+          <label>Valor por cuota</label>
+          <input type="text" id="x-cuota-valor" readonly style="color:#4CAF50;">
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sec-xv -->
+
+  <!-- ════ SECCIÓN CUMPLEAÑOS ════ -->
+  <div class="section-cumple" id="sec-cumple">
+
+    <div class="card">
+      <h3>Cliente / Festejado</h3>
+      <div class="grid-2">
+        <div class="field"><label>Nombre y Apellido</label><input type="text" id="c-cliente-nombre"></div>
+        <div class="field"><label>DNI</label><input type="text" id="c-cliente-dni"></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="c-cliente-tel"></div>
+        <div class="field"><label>Email</label><input type="text" id="c-cliente-email"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Datos del evento</h3>
+      <div class="grid-3">
+        <div class="field"><label>Fecha del evento</label><input type="date" id="c-fecha"></div>
+        <div class="field"><label>Hora inicio</label><input type="text" id="c-hora-inicio" placeholder="20:00"></div>
+        <div class="field"><label>Hora fin</label><input type="text" id="c-hora-fin" placeholder="4:00"></div>
+        <div class="field"><label>Nombre del Salón</label><input type="text" id="c-salon"></div>
+        <div class="field full"><label>Dirección del Salón</label><input type="text" id="c-dir"></div>
+        <div class="field"><label>Invitados aproximados</label><input type="number" id="c-invitados"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Plan de pago</h3>
+      <div class="grid-2">
+        <div class="field">
+          <label>Cantidad de cuotas</label>
+          <input type="number" id="c-cuotas" value="1" min="1" max="36" oninput="calcularTotal()">
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sec-cumple -->
+
+  <!-- ════ SERVICIOS (común a todos los tipos) ════ -->
+  <div class="section-comun" id="sec-servicios">
+    <div class="card">
+      <h3>Servicios contratados</h3>
+      <div id="servicios-grid" class="servicios-grid">
+        <div style="color:#607d8b; font-size:0.85rem; grid-column:1/-1;">Cargando servicios...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ TOTAL ════ -->
+  <div class="section-comun" id="sec-total">
+    <div class="card">
+      <h3>Precio total</h3>
+      <div class="field" style="margin-bottom:12px;">
+        <label>Monto total (podés modificarlo)</label>
+        <input type="number" id="precio-total" placeholder="0" oninput="calcularTotal()">
+      </div>
+      <div class="total-box">
+        <span class="label">Total del contrato</span>
+        <span class="value" id="total-display">$0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ BOTÓN GENERAR ════ -->
+  <div class="section-comun" id="sec-boton">
+    <button class="btn-generar" id="btn-generar" onclick="generarContrato()" disabled>
+      Generar contrato
+    </button>
+  </div>
+
+  <div class="spinner" id="spinner">
+    ⏳ Generando contrato, esto puede tardar 15-30 segundos...
+  </div>
+
+  <div id="resultado">
+    <h3>✅ Contrato generado</h3>
+    <div class="numero" id="res-numero"></div>
+    <div id="res-links"></div>
+  </div>
+
+  <div id="error-box" id="error-msg"></div>
+
+</div><!-- /container -->
+
+<script>
+  let tipoActual = null;
+  let serviciosData = [];
+
+  // ── Inicialización ──
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('diaFirma').valueAsDate = new Date();
+    cargarServicios();
+  });
+
+  function cargarServicios() {
+    google.script.run
+      .withSuccessHandler(renderServicios)
+      .withFailureHandler(err => console.error(err))
+      .serverGetServicios();
+  }
+
+  function renderServicios(data) {
+    serviciosData = data;
+    const grid = document.getElementById('servicios-grid');
+    grid.innerHTML = '';
+    data.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'servicio-item';
+      div.innerHTML = `
+        <input type="checkbox" id="svc-${s.id}" value="${s.id}" onchange="calcularTotal()">
+        <div>
+          <div class="desc">[${s.id}] ${s.descripcion}</div>
+          ${s.pesos > 0 ? `<div class="precio">${formatMoney(s.pesos)}</div>` : ''}
+        </div>`;
+      div.onclick = (e) => {
+        if (e.target.tagName !== 'INPUT') {
+          const cb = div.querySelector('input');
+          cb.checked = !cb.checked;
+          calcularTotal();
+        }
+      };
+      grid.appendChild(div);
+    });
+  }
+
+  // ── Selección de tipo ──
+  function seleccionarTipo(tipo) {
+    tipoActual = tipo;
+
+    document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-tipo="${tipo}"]`).classList.add('active');
+
+    // Ocultar todo
+    ['boda','xv','cumple'].forEach(t =>
+      document.getElementById(`sec-${t}`).style.display = 'none'
+    );
+
+    // Mostrar sección del tipo
+    document.getElementById(`sec-${tipo.toLowerCase()}`).style.display = 'block';
+
+    // Mostrar secciones comunes
+    document.querySelectorAll('.section-comun').forEach(el => el.style.display = 'block');
+
+    // Cuotas: mostrar valor por cuota solo para XV y CUMPLE
+    document.getElementById('cuota-valor-box') &&
+      (document.getElementById('cuota-valor-box').style.display =
+        (tipo === 'XV' || tipo === 'CUMPLE') ? 'block' : 'none');
+
+    // Obtener número siguiente
+    google.script.run
+      .withSuccessHandler(n => {
+        document.getElementById('num-display').textContent = n;
+        document.getElementById('numero-preview').style.display = 'block';
+      })
+      .serverGetNextNumber(tipo);
+
+    document.getElementById('btn-generar').disabled = false;
+    calcularTotal();
+  }
+
+  function toggleSubEvento(tipo, visible) {
+    document.getElementById('sub-' + tipo).style.display = visible ? 'block' : 'none';
+  }
+
+  // ── Cálculo de total ──
+  function calcularTotal() {
+    // Sumar servicios seleccionados
+    let sumaServicios = 0;
+    document.querySelectorAll('#servicios-grid input[type="checkbox"]:checked').forEach(cb => {
+      const svc = serviciosData.find(s => s.id === cb.value);
+      if (svc) sumaServicios += Number(svc.pesos);
+    });
+
+    // El campo precio total puede editarse manualmente
+    const manual = document.getElementById('precio-total').value;
+    const total  = manual ? Number(manual) : sumaServicios;
+
+    // Si no hay precio manual, poner la suma
+    if (!manual && sumaServicios > 0) {
+      document.getElementById('precio-total').value = sumaServicios;
+    }
+
+    document.getElementById('total-display').textContent = formatMoney(total || sumaServicios);
+
+    // Valor por cuota (XV y CUMPLE)
+    const cuotasXV = document.getElementById('x-cuotas');
+    const cuotasC  = document.getElementById('c-cuotas');
+    const cuotas   = tipoActual === 'XV' ? Number(cuotasXV?.value || 1)
+                   : tipoActual === 'CUMPLE' ? Number(cuotasC?.value || 1) : 1;
+
+    if (cuotas > 1) {
+      const valCuota = Math.round((total || sumaServicios) / cuotas);
+      const el = document.getElementById('x-cuota-valor');
+      if (el) el.value = formatMoney(valCuota);
+    }
+  }
+
+  function formatMoney(n) {
+    return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  // ── Generación ──
+  function generarContrato() {
+    const data = buildFormData();
+    if (!data) return;
+
+    document.getElementById('btn-generar').disabled = true;
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('resultado').style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(onSuccess)
+      .withFailureHandler(onError)
+      .serverCrearContrato(JSON.stringify(data));
+  }
+
+  function buildFormData() {
+    const precioTotal = Number(document.getElementById('precio-total').value);
+    if (!precioTotal) { alert('Ingresá el precio total.'); return null; }
+
+    const serviciosSeleccionados = [];
+    document.querySelectorAll('#servicios-grid input[type="checkbox"]:checked').forEach(cb => {
+      const svc = serviciosData.find(s => s.id === cb.value);
+      if (svc) serviciosSeleccionados.push({ descripcion: svc.descripcion, pesos: svc.pesos });
+    });
+
+    const base = {
+      tipo:         tipoActual,
+      ciudad:       val('ciudad'),
+      diaFirma:     val('diaFirma'),
+      servicios:    serviciosSeleccionados,
+      precioTotal:  precioTotal
+    };
+
+    if (tipoActual === 'BODA') {
+      return Object.assign(base, {
+        novia:  { nombre: val('b-novia-nombre'), dni: val('b-novia-dni'), telefono: val('b-novia-tel'), email: val('b-novia-email') },
+        novio:  { nombre: val('b-novio-nombre'), dni: val('b-novio-dni'), domicilio: val('b-novio-domicilio'), telefono: val('b-novio-tel'), email: val('b-novio-email') },
+        civil:  doc('b-tiene-civil').checked ? { fecha: val('b-civil-fecha'), horario: val('b-civil-horario'), direccion: val('b-civil-dir') } : null,
+        religiosa: doc('b-tiene-reli').checked ? { fecha: val('b-reli-fecha'), horario: val('b-reli-horario'), direccion: val('b-reli-dir') } : null,
+        fiesta: { fecha: val('b-fiesta-fecha'), horarioInicio: val('b-fiesta-hora'), lugar: val('b-fiesta-salon'), direccion: val('b-fiesta-dir') },
+        contacto: { nombre: val('b-contacto-nombre'), relacion: val('b-contacto-rel'), telefono: val('b-contacto-tel') },
+        nombrePaquete: val('b-paquete') || 'EXPERIENCIA BASE'
+      });
+    }
+
+    if (tipoActual === 'XV') {
+      return Object.assign(base, {
+        quinceanera: { nombre: val('x-quince-nombre'), fechaNacimiento: val('x-quince-nac') },
+        cliente:     { nombre: val('x-cliente-nombre'), dni: val('x-cliente-dni'), telefono: val('x-cliente-tel'), email: val('x-cliente-email') },
+        evento:      { fecha: val('x-fecha'), horaInicio: val('x-hora-inicio'), horaFin: val('x-hora-fin'), salon: val('x-salon'), direccion: val('x-dir'), invitados: val('x-invitados') },
+        cuotas:      Number(val('x-cuotas')) || 1
+      });
+    }
+
+    if (tipoActual === 'CUMPLE') {
+      return Object.assign(base, {
+        cliente: { nombre: val('c-cliente-nombre'), dni: val('c-cliente-dni'), telefono: val('c-cliente-tel'), email: val('c-cliente-email') },
+        evento:  { fecha: val('c-fecha'), horaInicio: val('c-hora-inicio'), horaFin: val('c-hora-fin'), salon: val('c-salon'), direccion: val('c-dir'), invitados: val('c-invitados') },
+        cuotas:  Number(val('c-cuotas')) || 1
+      });
+    }
+
+    return null;
+  }
+
+  function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+  function doc(id) { return document.getElementById(id); }
+
+  function onSuccess(res) {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('btn-generar').disabled = false;
+
+    if (res.ok) {
+      document.getElementById('res-numero').textContent = `Contrato N° ${res.numero}`;
+      let links = `<a href="${res.docUrl}" target="_blank">Abrir en Google Docs</a>`;
+      if (res.pdfUrl) links += `<a href="${res.pdfUrl}" target="_blank" class="pdf">Descargar PDF</a>`;
+      document.getElementById('res-links').innerHTML = links;
+      document.getElementById('resultado').style.display = 'block';
+    } else {
+      document.getElementById('error-box').textContent = '❌ Error: ' + res.error;
+      document.getElementById('error-box').style.display = 'block';
+    }
+  }
+
+  function onError(err) {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('btn-generar').disabled = false;
+    document.getElementById('error-box').textContent = '❌ Error del servidor: ' + err.message;
+    document.getElementById('error-box').style.display = 'block';
+  }
+</script>
+</body>
+</html>
+
