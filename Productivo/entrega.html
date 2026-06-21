@@ -8,10 +8,10 @@
 <style>
 :root {
   --bg:     #0a0a0f;
-  --green:   #fb7185;
+  --green:   #9060b8;
   --violet: #7b2fd4;
   --gold:   #c9a84c;
-  --white:  #ffffff;
+  --white:    #111111;
   --soft:   rgba(255,255,255,0.07);
   --border: rgba(0,212,232,0.25);
   --red:    #e8003d;
@@ -46,10 +46,10 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 .hero-divider::before { content:''; flex:1; max-width:100px; height:1px; background:linear-gradient(to right, transparent, rgba(245,166,35,.6)); }
 .hero-divider::after  { content:''; flex:1; max-width:100px; height:1px; background:linear-gradient(to left,  transparent, rgba(245,166,35,.6)); }
 .hero-divider-star { color:var(--gold); font-size:14px; }
-.hero-date { font-weight:300; font-size:clamp(11px,1.5vw,14px); letter-spacing:.35em; text-transform:uppercase; color:rgba(255,255,255,.7); margin-bottom:8px; }
+.hero-date { font-weight:300; font-size:clamp(11px,1.5vw,14px); letter-spacing:.35em; text-transform:uppercase; color:rgba(0,0,0,.55); margin-bottom:8px; }
 .hero-tipo { font-size:clamp(10px,1.2vw,12px); letter-spacing:.4em; text-transform:uppercase; color:rgba(0,212,232,.6); margin-bottom:10px; }
 .hero-frase { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(14px,2vw,20px); color:rgba(255,255,255,.45); margin-top:12px; }
-.scroll-hint { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; color:rgba(255,255,255,.35); font-size:10px; letter-spacing:.3em; text-transform:uppercase; z-index:2; animation:bounce 2.5s ease-in-out infinite; }
+.scroll-hint { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; color:rgba(0,0,0,.1); font-size:10px; letter-spacing:.3em; text-transform:uppercase; z-index:2; animation:bounce 2.5s ease-in-out infinite; }
 .scroll-arrow { width:20px; height:20px; border-right:1px solid rgba(0,212,232,.5); border-bottom:1px solid rgba(0,212,232,.5); transform:rotate(45deg); }
 @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
 
@@ -75,7 +75,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 .tabs-wrap::-webkit-scrollbar { display:none; }
 .tab-btn { padding:12px 36px; font-size:11px; letter-spacing:.4em; text-transform:uppercase; font-weight:400; background:transparent; color:rgba(255,255,255,.4); border:none; cursor:pointer !important; transition:all .3s; }
 .tab-btn.active { background:rgba(0,212,232,.12); color:var(--green); }
-.tab-btn:hover:not(.active) { color:rgba(255,255,255,.7); }
+.tab-btn:hover:not(.active) { color:rgba(0,0,0,.55); }
 
 /* BARRA DE ACCIONES */
 .action-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px; }
@@ -160,7 +160,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 .album-form h2 { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:28px; margin-bottom:6px; }
 .album-form .subtitle { font-size:10px; letter-spacing:.35em; text-transform:uppercase; color:var(--green); opacity:.7; margin-bottom:24px; }
 .album-form label { display:block; font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.5); margin-bottom:8px; margin-top:16px; }
-.album-form input, .album-form select, .album-form textarea { width:100%; background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--white); padding:10px 14px; font-size:13px; font-family:'Montserrat',sans-serif; outline:none; transition:border-color .2s; }
+.album-form input, .album-form select, .album-form textarea { width:100%; background:rgba(0,0,0,.05); border:1px solid var(--border); color:var(--white); padding:10px 14px; font-size:13px; font-family:'Montserrat',sans-serif; outline:none; transition:border-color .2s; }
 .album-form input:focus, .album-form select:focus, .album-form textarea:focus { border-color:var(--green); }
 .album-form textarea { min-height:70px; resize:vertical; }
 .album-form select option { background:#111; }
@@ -177,16 +177,16 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 
 /* ALBUM TYPE SELECTOR */
 #album-type-selector { margin-bottom:20px; }
-.album-opt { padding:14px 22px; border:1px solid rgba(255,255,255,.15); border-radius:4px; cursor:pointer !important; text-align:center; transition:all .3s; min-width:180px; display:inline-block; }
+.album-opt { padding:14px 22px; border:1px solid rgba(0,0,0,.12); border-radius:4px; cursor:pointer !important; text-align:center; transition:all .3s; min-width:180px; display:inline-block; }
 .album-opt.selected { border-color:var(--gold); background:rgba(245,166,35,.08); }
-.album-opt:hover:not(.selected) { border-color:rgba(255,255,255,.35); }
+.album-opt:hover:not(.selected) { border-color:rgba(0,0,0,.1); }
 .album-opt-label { font-size:12px; font-weight:500; color:rgba(255,255,255,.85); margin-bottom:5px; }
 .album-opt-detail { font-size:10px; color:var(--gold); letter-spacing:.2em; }
 
 /* FOOTER */
 #footer { position:relative; z-index:1; padding:80px 40px; text-align:center; border-top:1px solid var(--soft); }
 .footer-brand { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:30px; margin-bottom:8px; }
-.footer-tagline { font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.35); margin-bottom:36px; }
+.footer-tagline { font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:rgba(0,0,0,.1); margin-bottom:36px; }
 .footer-wsp { display:inline-flex; align-items:center; gap:12px; padding:13px 30px; border:1px solid rgba(37,211,102,.4); border-radius:40px; color:#25d366; font-size:11px; letter-spacing:.25em; text-transform:uppercase; text-decoration:none; transition:all .4s; background:rgba(37,211,102,.06); cursor:pointer !important; }
 .footer-wsp:hover { background:#25d366; color:var(--bg); border-color:#25d366; }
 .footer-copy { margin-top:48px; font-size:10px; letter-spacing:.25em; color:rgba(255,255,255,.18); }
@@ -240,7 +240,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
   </div>
   <div class="loading-spinner"></div>
   <div class="loading-text">Cargando tu entrega...</div>
-  <div id="loading-phrase" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(14px,2vw,18px);color:rgba(255,255,255,.35);margin-top:20px;max-width:480px;text-align:center;padding:0 24px;line-height:1.6;min-height:2.4em;transition:opacity .6s"></div>
+  <div id="loading-phrase" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(14px,2vw,18px);color:rgba(0,0,0,.1);margin-top:20px;max-width:480px;text-align:center;padding:0 24px;line-height:1.6;min-height:2.4em;transition:opacity .6s"></div>
 </div>
 
 <!-- HERO -->
@@ -717,7 +717,7 @@ function renderTabs(tabs) {
   let html = '';
 
   if(fotoTabs.length > 0) {
-    if(hasBoth) html += `<span class="tabs-sep" style="font-size:16px;color:rgba(255,255,255,.35);padding:0 14px;align-self:center;white-space:nowrap">📷</span>`;
+    if(hasBoth) html += `<span class="tabs-sep" style="font-size:16px;color:rgba(0,0,0,.1);padding:0 14px;align-self:center;white-space:nowrap">📷</span>`;
     html += fotoTabs.map((t, i) => {
       const globalIdx = tabs.indexOf(t);
       return `<button class="tab-btn${i===0&&globalIdx===0?' active':''}" onclick="switchTab(tabDefs[${globalIdx}])" id="tab-${t.key}">${t.label}</button>`;
@@ -726,7 +726,7 @@ function renderTabs(tabs) {
 
   if(hasBoth) {
     html += `<span style="width:1px;background:rgba(255,255,255,.12);align-self:stretch;flex-shrink:0"></span>`;
-    html += `<span class="tabs-sep" style="font-size:16px;color:rgba(255,255,255,.35);padding:0 14px;align-self:center;white-space:nowrap">🎬</span>`;
+    html += `<span class="tabs-sep" style="font-size:16px;color:rgba(0,0,0,.1);padding:0 14px;align-self:center;white-space:nowrap">🎬</span>`;
   }
 
   if(videoTabs.length > 0) {

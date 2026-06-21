@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>KUERRE — Metálico Suave · Color</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@1,300&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#e0e0e0; font-family:'Inter',sans-serif; padding:40px 20px; }
+h1 { color:#111; text-align:center; font-size:12px; letter-spacing:.35em; text-transform:uppercase; font-weight:300; margin-bottom:6px; }
+.sub { color:#999; text-align:center; font-size:11px; margin-bottom:16px; }
+.section-title { color:#555; font-size:9px; letter-spacing:.3em; text-transform:uppercase; text-align:center; margin:36px 0 16px; font-weight:400; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:22px; max-width:1100px; margin:0 auto; }
+.card { border-radius:18px; overflow:hidden; box-shadow:0 6px 24px rgba(0,0,0,.1); cursor:pointer; transition:transform .15s; border:1px solid rgba(0,0,0,.07); }
+.card:hover { transform:translateY(-3px); }
+.card.sel { outline:2px solid #333; outline-offset:2px; }
+.lbl { background:#fff; padding:10px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(0,0,0,.05); }
+.num { width:20px; height:20px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; }
+.nm  { color:#111; font-size:12px; font-weight:500; }
+.ds  { color:#ccc; font-size:10px; margin-left:auto; }
+.mock { height:230px; position:relative; overflow:hidden; display:flex; flex-direction:column; background:#fff; }
+.glow { position:absolute; inset:0; pointer-events:none; }
+.nav { height:40px; display:flex; align-items:center; padding:0 16px; gap:10px; flex-shrink:0; position:relative; z-index:2;
+  background:rgba(255,255,255,.72); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid rgba(0,0,0,.04); }
+.nav-k { width:24px; height:24px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; flex-shrink:0; }
+.nav-brand { font-size:11px; font-weight:600; letter-spacing:.1em; color:#111; }
+.nav-links { display:flex; gap:12px; margin-left:auto; }
+.nav-links span { font-size:9px; color:#bbb; }
+.nav-cta { padding:5px 12px; border-radius:20px; font-size:8px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:14px; position:relative; z-index:2; }
+.eye  { font-size:8px; letter-spacing:.4em; text-transform:uppercase; }
+.title { font-family:'Cormorant Garamond',serif; font-size:21px; font-style:italic; font-weight:300; text-align:center; line-height:1.15; color:#111; }
+.tags { font-size:8px; color:#ccc; letter-spacing:.05em; }
+.btns { display:flex; gap:8px; margin-top:4px; }
+.btn  { padding:6px 16px; border-radius:20px; font-size:8px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.badge { position:absolute; bottom:12px; right:12px; border-radius:10px; padding:6px 9px;
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); background:rgba(255,255,255,.68); border:1px solid; display:flex; flex-direction:column; gap:2px; }
+.badge-line { font-size:7px; color:rgba(0,0,0,.4); }
+.sw-row { background:#fff; padding:10px 14px; display:flex; gap:8px; border-top:1px solid rgba(0,0,0,.04); }
+.sw { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.dot { width:26px; height:26px; border-radius:6px; }
+.hx  { font-size:8px; color:#ccc; font-family:monospace; }
+.nl  { font-size:7px; color:#ddd; }
+.chosen { text-align:center; color:#999; font-size:12px; margin-top:40px; padding-bottom:40px; }
+.chosen b { color:#111; }
+</style>
+</head>
+<body>
+<h1>KUERRE — Metálico Suave · Rosa · Violeta · Esmeralda</h1>
+<p class="sub">Aero blanco · gradiente metálico leve · destellos de color</p>
+
+<div id="root"></div>
+<p class="chosen" id="chosen">Ninguna seleccionada</p>
+
+<script>
+// Gradiente metálico SUAVE — solo 3 stops, transición gentil
+// luz → base → brillo — sin contrastes extremos
+const GROUPS = [
+  {
+    label:'— Rosa Metálico —',
+    cards:[
+      {
+        num:1, nm:'Rosa Perlado', ds:'Suave, delicado',
+        grad:'linear-gradient(135deg, #f4c2ce 0%, #d4788e 45%, #f8d8e0 100%)',
+        glow:'rgba(212,120,142,.18)', glowRgb:'212,120,142',
+        navK:'#fff', ctaColor:'#fff',
+        sw:['#f4c2ce','#d4788e','#a84860']
+      },
+      {
+        num:2, nm:'Rosa Cobre', ds:'Cálido, vibrante',
+        grad:'linear-gradient(135deg, #f0b0a0 0%, #c86858 45%, #f8ccc0 100%)',
+        glow:'rgba(200,104,88,.2)', glowRgb:'200,104,88',
+        navK:'#fff', ctaColor:'#fff',
+        sw:['#f0b0a0','#c86858','#904030']
+      },
+      {
+        num:3, nm:'Rosa Champagne', ds:'Pálido, premium',
+        grad:'linear-gradient(135deg, #fce8ec 0%, #e0a8b8 45%, #fdf4f6 100%)',
+        glow:'rgba(224,168,184,.16)', glowRgb:'224,168,184',
+        navK:'#a86070', ctaColor:'#fff',
+        sw:['#fce8ec','#e0a8b8','#c07888']
+      }
+    ]
+  },
+  {
+    label:'— Violeta Metálico —',
+    cards:[
+      {
+        num:4, nm:'Violeta Perlado', ds:'Sofisticado, mágico',
+        grad:'linear-gradient(135deg, #d8c8f4 0%, #9870d0 45%, #ece4fa 100%)',
+        glow:'rgba(152,112,208,.2)', glowRgb:'152,112,208',
+        navK:'#fff', ctaColor:'#fff',
+        sw:['#d8c8f4','#9870d0','#6840a8']
+      },
+      {
+        num:5, nm:'Amatista', ds:'Profundo, nocturno',
+        grad:'linear-gradient(135deg, #c8b0e8 0%, #7848b8 45%, #dcd0f0 100%)',
+        glow:'rgba(120,72,184,.2)', glowRgb:'120,72,184',
+        navK:'#fff', ctaColor:'#fff',
+        sw:['#c8b0e8','#7848b8','#502090']
+      },
+      {
+        num:6, nm:'Lavanda Satinada', ds:'Suave, quinceañeras',
+        grad:'linear-gradient(135deg, #ecddf8 0%, #c090e0 45%, #f6eeff 100%)',
+        glow:'rgba(192,144,224,.18)', glowRgb:'192,144,224',
+        navK:'#a060c0', ctaColor:'#fff',
+        sw:['#ecddf8','#c090e0','#9060b8']
+      }
+    ]
+  },
+  {
+    label:'— Esmeralda Metálico —',
+    cards:[
+      {
+        num:7, nm:'Esmeralda Perlada', ds:'Natural, elegante',
+        grad:'linear-gradient(135deg, #a8e0c8 0%, #2d9870 45%, #c8f0e0 100%)',
+        glow:'rgba(45,152,112,.2)', glowRgb:'45,152,112',
+        navK:'#fff', ctaColor:'#fff',
+        sw:['#a8e0c8','#2d9870','#107050']
+      },
+      {
+        num:8, nm:'Verde Jade', ds:'Profundo, premium',
+        grad:'linear-gradient(135deg, #80c8a8 0%, #1a7858 45%, #a0dcc0 100%)',
+        glow:'rgba(26,120,88,.22)', glowRgb:'26,120,88',
+        navK:'#fff', ctaColor:'#fff',
+        sw:['#80c8a8','#1a7858','#0e5038']
+      },
+      {
+        num:9, nm:'Menta Satinada', ds:'Fresco, luminoso',
+        grad:'linear-gradient(135deg, #c0f0d8 0%, #50c090 45%, #dff8ec 100%)',
+        glow:'rgba(80,192,144,.18)', glowRgb:'80,192,144',
+        navK:'#1a7850', ctaColor:'#fff',
+        sw:['#c0f0d8','#50c090','#208060']
+      }
+    ]
+  }
+];
+
+const root = document.getElementById('root');
+const chosen = document.getElementById('chosen');
+
+GROUPS.forEach(group=>{
+  const sec = document.createElement('p');
+  sec.className='section-title';
+  sec.textContent=group.label;
+  root.appendChild(sec);
+
+  const grid = document.createElement('div');
+  grid.className='grid';
+
+  group.cards.forEach(m=>{
+    const card = document.createElement('div');
+    card.className='card';
+    card.onclick=()=>{
+      document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
+      card.classList.add('sel');
+      chosen.innerHTML=`Seleccionaste: <b>${m.num} — ${m.nm}</b>`;
+    };
+
+    card.innerHTML=`
+      <div class="lbl">
+        <div class="num" style="background:${m.grad};color:${m.navK}">${m.num}</div>
+        <span class="nm">${m.nm}</span>
+        <span class="ds">${m.ds}</span>
+      </div>
+
+      <div class="mock">
+        <div class="glow" style="background:
+          radial-gradient(ellipse 50% 42% at 5% 5%, rgba(${m.glowRgb},.18) 0%, transparent 65%),
+          radial-gradient(ellipse 30% 28% at 92% 88%, rgba(${m.glowRgb},.10) 0%, transparent 55%);">
+        </div>
+
+        <div class="nav">
+          <div class="nav-k" style="background:${m.grad};color:${m.navK};box-shadow:0 2px 8px rgba(${m.glowRgb},.3)">K</div>
+          <span class="nav-brand">KUERRE</span>
+          <div class="nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div>
+          <div class="nav-cta" style="background:${m.grad};color:${m.ctaColor};box-shadow:0 2px 8px rgba(${m.glowRgb},.28)">Contactar</div>
+        </div>
+
+        <div class="body">
+          <span class="eye" style="background:${m.grad};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">— servicios digitales —</span>
+          <div class="title">Experiencias que<br>perduran</div>
+          <div class="tags">QR · PREMIERE · INVITACIONES DIGITALES</div>
+          <div class="btns">
+            <div class="btn" style="background:${m.grad};color:${m.ctaColor};box-shadow:0 3px 14px rgba(${m.glowRgb},.35)">Ver servicios</div>
+            <div class="btn" style="border:1px solid rgba(0,0,0,.09);color:#888">Saber más</div>
+          </div>
+        </div>
+
+        <div class="badge" style="border-color:rgba(${m.glowRgb},.22);box-shadow:0 3px 12px rgba(${m.glowRgb},.14)">
+          <div class="badge-line" style="background:${m.grad};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700">● En vivo</div>
+          <div class="badge-line">QR activo · 128 fotos</div>
+        </div>
+      </div>
+
+      <div class="sw-row">
+        <div class="sw"><div class="dot" style="background:#fff;border:1px solid #e8e8e8"></div><div class="hx">#fff</div><div class="nl">Fondo</div></div>
+        <div class="sw"><div class="dot" style="background:#111"></div><div class="hx">#111</div><div class="nl">Negro</div></div>
+        ${m.sw.map((s,i)=>`<div class="sw"><div class="dot" style="background:${s}"></div><div class="hx">${s}</div><div class="nl">${['Luz','Base','Sombra'][i]}</div></div>`).join('')}
+        <div class="sw"><div class="dot" style="background:${m.grad}"></div><div class="hx">metal</div><div class="nl">Gradiente</div></div>
+      </div>`;
+
+    grid.appendChild(card);
+  });
+
+  root.appendChild(grid);
+});
+</script>
+</body>
+</html>

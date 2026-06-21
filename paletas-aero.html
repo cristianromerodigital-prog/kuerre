@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>KUERRE — Aero · Blanco + Destellos</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@1,300&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#e8e8e8; font-family:'Inter',sans-serif; padding:40px 20px; }
+h1 { color:#111; text-align:center; font-size:12px; letter-spacing:.35em; text-transform:uppercase; font-weight:300; margin-bottom:6px; }
+.sub { color:#aaa; text-align:center; font-size:11px; margin-bottom:48px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:24px; max-width:1200px; margin:0 auto; }
+.card { border-radius:18px; overflow:hidden; border:1px solid rgba(0,0,0,.08); cursor:pointer; transition:transform .15s; box-shadow:0 4px 24px rgba(0,0,0,.08); }
+.card:hover { transform:translateY(-3px); }
+.card.sel { outline:2px solid #111; outline-offset:2px; }
+.lbl { background:#fff; padding:10px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(0,0,0,.06); }
+.num { width:20px; height:20px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; }
+.nm { color:#111; font-size:12px; font-weight:500; }
+.ds { color:#bbb; font-size:10px; margin-left:auto; text-align:right; }
+
+/* MOCK */
+.mock { height:230px; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+.mbg  { position:absolute; inset:0; }
+.mnav { height:40px; display:flex; align-items:center; padding:0 16px; gap:10px; flex-shrink:0; position:relative; z-index:2; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+.mlogo-k { width:24px; height:24px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; flex-shrink:0; }
+.mbrand { font-size:11px; font-weight:600; letter-spacing:.1em; color:#111; }
+.mlinks { display:flex; gap:14px; margin-left:auto; }
+.mlinks span { font-size:9px; color:#888; }
+.mcta { padding:5px 12px; border-radius:20px; font-size:8px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+
+.mbody { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:16px; position:relative; z-index:2; }
+.meye  { font-size:8px; letter-spacing:.4em; text-transform:uppercase; }
+.mtitle { font-family:'Cormorant Garamond',serif; font-size:21px; font-style:italic; font-weight:300; text-align:center; line-height:1.15; color:#111; }
+.msub  { font-size:8px; color:#bbb; letter-spacing:.06em; }
+.mbtns { display:flex; gap:8px; margin-top:6px; }
+.mbtn  { padding:7px 16px; border-radius:20px; font-size:8px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+
+/* glass card inside hero */
+.mglass { position:absolute; bottom:12px; right:14px; border-radius:10px; padding:8px 10px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; flex-direction:column; gap:2px; }
+.mglass-line { font-size:7px; color:rgba(0,0,0,.4); }
+
+.sw-row { background:#fff; padding:10px 14px; display:flex; gap:8px; align-items:center; border-top:1px solid rgba(0,0,0,.05); }
+.sw { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.dot { width:26px; height:26px; border-radius:6px; }
+.hx { font-size:8px; color:#bbb; font-family:monospace; }
+.nl { font-size:7px; color:#ccc; }
+.chosen { text-align:center; color:#aaa; font-size:12px; margin-top:40px; padding-bottom:40px; }
+.chosen b { color:#111; }
+</style>
+</head>
+<body>
+<h1>KUERRE — Aero · Fondo Blanco · Destellos de Color</h1>
+<p class="sub">B&W como base · el color solo donde rompe</p>
+<div class="grid" id="grid"></div>
+<p class="chosen" id="chosen">Ninguna seleccionada</p>
+
+<script>
+const V = [
+  {
+    num:1, nm:'Salmón', ds:'Suave, femenino',
+    ac:'#fb7185', acRgb:'251,113,133',
+    acLight:'#fff0f2', acGlass:'rgba(251,113,133,.08)'
+  },
+  {
+    num:2, nm:'Dorado Metálico', ds:'Premium, lujo, eventos',
+    ac:'#c8940e', acRgb:'200,148,14',
+    acLight:'#fdf8ec', acGlass:'rgba(212,168,67,.08)',
+    metallic:true
+  },
+  {
+    num:3, nm:'Índigo', ds:'Sofisticado, moderno',
+    ac:'#6366f1', acRgb:'99,102,241',
+    acLight:'#f0f0ff', acGlass:'rgba(99,102,241,.08)'
+  },
+  {
+    num:4, nm:'Teal', ds:'Fresco, digital, confianza',
+    ac:'#0d9488', acRgb:'13,148,136',
+    acLight:'#f0fafa', acGlass:'rgba(13,148,136,.08)'
+  },
+  {
+    num:5, nm:'Ámbar', ds:'Cálido, enérgico',
+    ac:'#f59e0b', acRgb:'245,158,11',
+    acLight:'#fffbeb', acGlass:'rgba(245,158,11,.08)'
+  },
+  {
+    num:6, nm:'Violeta', ds:'Mágico, quinceañeras',
+    ac:'#a855f7', acRgb:'168,85,247',
+    acLight:'#faf5ff', acGlass:'rgba(168,85,247,.08)'
+  },
+  {
+    num:7, nm:'Esmeralda', ds:'Natural, orgánico',
+    ac:'#10b981', acRgb:'16,185,129',
+    acLight:'#f0fdf8', acGlass:'rgba(16,185,129,.08)'
+  },
+  {
+    num:8, nm:'Coral', ds:'Dinámico, bodas jóvenes',
+    ac:'#f97316', acRgb:'249,115,22',
+    acLight:'#fff7f0', acGlass:'rgba(249,115,22,.08)'
+  },
+  {
+    num:9, nm:'Azul Cielo', ds:'Limpio, claro, aéreo',
+    ac:'#0ea5e9', acRgb:'14,165,233',
+    acLight:'#f0f9ff', acGlass:'rgba(14,165,233,.08)'
+  },
+  {
+    num:10, nm:'Rosa Fucsia', ds:'Festivo, impacto, joven',
+    ac:'#e879f9', acRgb:'232,121,249',
+    acLight:'#fdf4ff', acGlass:'rgba(232,121,249,.08)'
+  }
+];
+
+const grid = document.getElementById('grid');
+const chosen = document.getElementById('chosen');
+
+V.forEach(v=>{
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.onclick = ()=>{
+    document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
+    card.classList.add('sel');
+    chosen.innerHTML = `Seleccionaste: <b>${v.num} — ${v.nm}</b>`;
+  };
+
+  card.innerHTML = `
+    <div class="lbl">
+      <div class="num" style="background:${v.ac}18;color:${v.ac}">${v.num}</div>
+      <span class="nm">${v.nm}</span>
+      <span class="ds">${v.ds}</span>
+    </div>
+
+    <div class="mock">
+
+      <!-- fondo blanco con destellos de color muy suaves -->
+      <div class="mbg" style="background:#ffffff;"></div>
+      <!-- glow de color superior izquierdo -->
+      <div class="mbg" style="background:
+        radial-gradient(ellipse 55% 45% at 0% 0%, rgba(${v.acRgb},.18) 0%, transparent 65%),
+        radial-gradient(ellipse 35% 30% at 100% 100%, rgba(${v.acRgb},.10) 0%, transparent 60%);
+        pointer-events:none;"></div>
+
+      <!-- nav glass -->
+      <div class="mnav" style="background:rgba(255,255,255,.72);border-bottom:1px solid rgba(0,0,0,.05);">
+        <div class="mlogo-k" style="background:${v.ac};color:#fff">K</div>
+        <span class="mbrand">KUERRE</span>
+        <div class="mlinks">
+          <span>QR</span><span>Premiere</span><span>Invitaciones</span>
+        </div>
+        <div class="mcta" style="background:${v.ac};color:#fff;">Contactar</div>
+      </div>
+
+      <!-- hero body -->
+      <div class="mbody">
+        <span class="meye" style="color:${v.ac}">— servicios digitales —</span>
+        <div class="mtitle">Experiencias que<br>perduran</div>
+        <div class="msub">QR · PREMIERE · INVITACIONES DIGITALES</div>
+        <div class="mbtns">
+          <div class="mbtn" style="background:#111;color:#fff;">Ver servicios</div>
+          <div class="mbtn" style="border:1px solid rgba(0,0,0,.12);color:#555;">Saber más</div>
+        </div>
+      </div>
+
+      <!-- glass card flotante (detalle aero) -->
+      <div class="mglass" style="background:rgba(255,255,255,.6);border:1px solid rgba(${v.acRgb},.2);box-shadow:0 2px 12px rgba(${v.acRgb},.12);">
+        <div class="mglass-line" style="color:${v.ac};font-weight:600;font-size:7px;">● En vivo</div>
+        <div class="mglass-line">QR activo · 128 fotos</div>
+      </div>
+
+    </div>
+
+    <div class="sw-row">
+      <div class="sw">
+        <div class="dot" style="background:#ffffff;border:1px solid #e5e5e5"></div>
+        <div class="hx">#ffffff</div><div class="nl">Fondo</div>
+      </div>
+      <div class="sw">
+        <div class="dot" style="background:#111111"></div>
+        <div class="hx">#111111</div><div class="nl">Texto</div>
+      </div>
+      <div class="sw">
+        <div class="dot" style="background:#888888"></div>
+        <div class="hx">#888888</div><div class="nl">Secundario</div>
+      </div>
+      <div class="sw">
+        <div class="dot" style="background:${v.ac}"></div>
+        <div class="hx">${v.ac}</div><div class="nl">Acento</div>
+      </div>
+      <div class="sw">
+        <div class="dot" style="background:${v.acLight};border:1px solid rgba(${v.acRgb},.2)"></div>
+        <div class="hx">${v.acLight}</div><div class="nl">Glow bg</div>
+      </div>
+    </div>`;
+
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

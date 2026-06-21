@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>KUERRE — Rose Gold Metálico</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@1,300&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#ddd; font-family:'Inter',sans-serif; padding:40px 20px; }
+h1 { color:#111; text-align:center; font-size:12px; letter-spacing:.35em; text-transform:uppercase; font-weight:300; margin-bottom:6px; }
+.sub { color:#999; text-align:center; font-size:11px; margin-bottom:48px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:28px; max-width:1100px; margin:0 auto; }
+.card { border-radius:18px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,.12); cursor:pointer; transition:transform .15s; border:1px solid rgba(0,0,0,.07); }
+.card:hover { transform:translateY(-4px); }
+.card.sel { outline:3px solid #c07878; outline-offset:2px; }
+.lbl { background:#fff; padding:11px 15px; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(0,0,0,.06); }
+.num { width:22px; height:22px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; }
+.nm  { color:#111; font-size:12px; font-weight:500; }
+.ds  { color:#bbb; font-size:10px; margin-left:auto; }
+.mock { height:240px; position:relative; overflow:hidden; display:flex; flex-direction:column; background:#fff; }
+.glow { position:absolute; inset:0; pointer-events:none; }
+.nav { height:42px; display:flex; align-items:center; padding:0 18px; gap:10px; flex-shrink:0; position:relative; z-index:2; background:rgba(255,255,255,.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid rgba(0,0,0,.05); }
+.nav-k { width:26px; height:26px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; color:#fff; flex-shrink:0; }
+.nav-brand { font-size:11px; font-weight:600; letter-spacing:.1em; color:#111; }
+.nav-links { display:flex; gap:14px; margin-left:auto; }
+.nav-links span { font-size:9px; color:#aaa; }
+.nav-cta { padding:6px 13px; border-radius:20px; font-size:8px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#fff; }
+.body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; padding:16px; position:relative; z-index:2; }
+.eye  { font-size:8px; letter-spacing:.45em; text-transform:uppercase; }
+.title { font-family:'Cormorant Garamond',serif; font-size:22px; font-style:italic; font-weight:300; text-align:center; line-height:1.15; color:#111; }
+.tags { font-size:8px; color:#bbb; letter-spacing:.06em; }
+.btns { display:flex; gap:8px; margin-top:4px; }
+.btn  { padding:7px 18px; border-radius:20px; font-size:8px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.badge { position:absolute; bottom:14px; right:14px; border-radius:10px; padding:7px 10px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; flex-direction:column; gap:2px; background:rgba(255,255,255,.65); border:1px solid; }
+.badge-line { font-size:7px; color:rgba(0,0,0,.4); }
+.sw-row { background:#fff; padding:11px 15px; display:flex; gap:10px; border-top:1px solid rgba(0,0,0,.05); }
+.sw { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.dot { width:28px; height:28px; border-radius:7px; }
+.hx  { font-size:8px; color:#bbb; font-family:monospace; }
+.nl  { font-size:7px; color:#ccc; }
+.chosen { text-align:center; color:#999; font-size:12px; margin-top:48px; padding-bottom:48px; }
+.chosen b { color:#c07878; }
+</style>
+</head>
+<body>
+<h1>KUERRE — Rose Gold Metálico · Aero Blanco</h1>
+<p class="sub">6 tonos de oro rosado sobre fondo blanco</p>
+<div class="grid" id="grid"></div>
+<p class="chosen" id="chosen">Ninguna seleccionada</p>
+
+<script>
+const METALS = [
+  {
+    num:1, nm:'Rose Gold Clásico', ds:'Icónico, equilibrado',
+    grad:'linear-gradient(135deg, #f5c8b8 0%, #c07868 22%, #f0d0c0 42%, #a05840 62%, #e0b0a0 80%, #b87060 100%)',
+    glow:'rgba(192,120,104,.2)', glowRgb:'192,120,104',
+    sw:['#c07868','#f5c8b8','#a05840']
+  },
+  {
+    num:2, nm:'Rose Gold Pálido', ds:'Delicado, champagne rosado',
+    grad:'linear-gradient(135deg, #fae8e0 0%, #d4a898 22%, #fff0ea 42%, #b88878 62%, #f0d8d0 80%, #c89888 100%)',
+    glow:'rgba(212,168,152,.18)', glowRgb:'212,168,152',
+    sw:['#d4a898','#fae8e0','#b88878']
+  },
+  {
+    num:3, nm:'Rose Gold Intenso', ds:'Audaz, festivo, impacto',
+    grad:'linear-gradient(135deg, #e8a090 0%, #a04838 22%, #f8c0b0 42%, #782818 62%, #d08070 80%, #904030 100%)',
+    glow:'rgba(200,96,80,.22)', glowRgb:'200,96,80',
+    sw:['#a04838','#e8a090','#782818']
+  },
+  {
+    num:4, nm:'Rose Gold Frío', ds:'Moderno, platino rosado',
+    grad:'linear-gradient(135deg, #f0d8e8 0%, #c0a0b8 22%, #faeaf5 42%, #a08098 62%, #e8d0e0 80%, #b0909c 100%)',
+    glow:'rgba(192,160,184,.18)', glowRgb:'192,160,184',
+    sw:['#c0a0b8','#f0d8e8','#a08098']
+  },
+  {
+    num:5, nm:'Cobre Rosado', ds:'Cálido, orgánico, tierra',
+    grad:'linear-gradient(135deg, #e0a870 0%, #904818 22%, #f8c888 42%, #702800 62%, #d09060 80%, #804020 100%)',
+    glow:'rgba(176,88,40,.22)', glowRgb:'176,88,40',
+    sw:['#904818','#e0a870','#702800']
+  },
+  {
+    num:6, nm:'Rose Gold Líquido', ds:'Brillante, premium máximo',
+    grad:'linear-gradient(135deg, #ffd0c0 0%, #d08060 15%, #ffe8d8 30%, #b05838 45%, #ffc8b0 60%, #e09070 75%, #ffd8c8 88%, #c07050 100%)',
+    glow:'rgba(208,128,96,.24)', glowRgb:'208,128,96',
+    sw:['#d08060','#ffd0c0','#b05838']
+  }
+];
+
+const grid = document.getElementById('grid');
+const chosen = document.getElementById('chosen');
+
+METALS.forEach(m=>{
+  const card = document.createElement('div');
+  card.className='card';
+  card.onclick=()=>{
+    document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
+    card.classList.add('sel');
+    chosen.innerHTML=`Seleccionaste: <b>${m.num} — ${m.nm}</b>`;
+  };
+
+  card.innerHTML=`
+    <div class="lbl">
+      <div class="num" style="background:${m.grad};color:#fff">${m.num}</div>
+      <span class="nm">${m.nm}</span>
+      <span class="ds">${m.ds}</span>
+    </div>
+
+    <div class="mock">
+      <div class="glow" style="background:
+        radial-gradient(ellipse 55% 45% at 5% 5%, rgba(${m.glowRgb},.22) 0%, transparent 60%),
+        radial-gradient(ellipse 35% 30% at 95% 90%, rgba(${m.glowRgb},.12) 0%, transparent 55%);">
+      </div>
+
+      <div class="nav">
+        <div class="nav-k" style="background:${m.grad};box-shadow:0 2px 10px rgba(${m.glowRgb},.4)">K</div>
+        <span class="nav-brand">KUERRE</span>
+        <div class="nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div>
+        <div class="nav-cta" style="background:${m.grad};box-shadow:0 2px 10px rgba(${m.glowRgb},.35)">Contactar</div>
+      </div>
+
+      <div class="body">
+        <span class="eye" style="background:${m.grad};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">— servicios digitales —</span>
+        <div class="title">Experiencias que<br>perduran</div>
+        <div class="tags">QR · PREMIERE · INVITACIONES DIGITALES</div>
+        <div class="btns">
+          <div class="btn" style="background:${m.grad};color:#fff;box-shadow:0 4px 18px rgba(${m.glowRgb},.4)">Ver servicios</div>
+          <div class="btn" style="border:1px solid rgba(0,0,0,.1);color:#777">Saber más</div>
+        </div>
+      </div>
+
+      <div class="badge" style="border-color:rgba(${m.glowRgb},.28);box-shadow:0 4px 14px rgba(${m.glowRgb},.18)">
+        <div class="badge-line" style="background:${m.grad};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700">● En vivo</div>
+        <div class="badge-line">QR activo · 128 fotos</div>
+      </div>
+    </div>
+
+    <div class="sw-row">
+      <div class="sw">
+        <div class="dot" style="background:#fff;border:1px solid #e5e5e5"></div>
+        <div class="hx">#ffffff</div><div class="nl">Fondo</div>
+      </div>
+      <div class="sw">
+        <div class="dot" style="background:#111"></div>
+        <div class="hx">#111111</div><div class="nl">Negro</div>
+      </div>
+      ${m.sw.map((s,i)=>`
+      <div class="sw">
+        <div class="dot" style="background:${s}"></div>
+        <div class="hx">${s}</div><div class="nl">${['Base','Luz','Sombra'][i]}</div>
+      </div>`).join('')}
+      <div class="sw">
+        <div class="dot" style="background:${m.grad}"></div>
+        <div class="hx">gradiente</div><div class="nl">Metal</div>
+      </div>
+    </div>`;
+
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

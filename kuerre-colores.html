@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>KUERRE — Opciones de Color</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#111; font-family:'Inter',sans-serif; padding:48px 20px; }
+h1 { color:#fff; text-align:center; font-size:12px; letter-spacing:.35em; text-transform:uppercase; font-weight:300; margin-bottom:6px; }
+.sub { color:#3a3a3a; text-align:center; font-size:11px; margin-bottom:48px; letter-spacing:.12em; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:20px; max-width:1200px; margin:0 auto; }
+.card { border-radius:14px; overflow:hidden; border:1px solid #1c1c1c; cursor:pointer; transition:transform .15s, outline .1s; }
+.card:hover { transform:translateY(-3px); }
+.card.sel { outline:2px solid #fff; outline-offset:2px; }
+.lbl { background:#161616; padding:10px 14px; display:flex; align-items:center; gap:8px; }
+.num { width:20px; height:20px; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; }
+.nm { color:#ddd; font-size:12px; font-weight:400; }
+.ds { color:#3a3a3a; font-size:10px; margin-left:auto; text-align:right; max-width:100px; line-height:1.3; }
+.wrap { display:flex; justify-content:center; align-items:center; padding:28px 20px; }
+.chosen { text-align:center; color:#444; font-size:12px; margin-top:48px; padding-bottom:40px; }
+.chosen b { color:#fff; }
+</style>
+</head>
+<body>
+<h1>KUERRE — Opciones de color</h1>
+<p class="sub">Clic para seleccionar</p>
+<div class="grid" id="grid"></div>
+<p class="chosen" id="chosen">Ninguna seleccionada</p>
+
+<script>
+// ── K SHAPE (300×300 canvas) ─────────────────────────────────────────────
+const K = "M 10,10 L 90,10 L 90,110 L 290,10 L 290,90 L 165,150 L 290,210 L 290,290 L 90,190 L 90,290 L 10,290 Z";
+
+// ── QR CELLS ─────────────────────────────────────────────────────────────
+function buildCells(cs=8) {
+  const all = [];
+  const cols = Math.ceil(300/cs), rows = Math.ceil(300/cs);
+
+  function hash(r,c) {
+    let v=(r*2654435761^c*2246822519)>>>0;
+    v^=v>>>16; v*=0x45d9f3b; v^=v>>>16;
+    return (v>>>0)%100;
+  }
+
+  // data modules
+  for (let r=0;r<rows;r++) for (let c=0;c<cols;c++)
+    if (hash(r,c)<40) all.push({x:c*cs, y:r*cs, s:cs-1, t:'d'});
+
+  // finder pattern helper (7×7 standard QR structure)
+  function finder(fx,fy) {
+    for (let dr=0;dr<=6;dr++) for (let dc=0;dc<=6;dc++) {
+      const outer = dr===0||dr===6||dc===0||dc===6;
+      const center= dr>=2&&dr<=4&&dc>=2&&dc<=4;
+      if (outer||center)
+        all.push({x:fx+dc*cs, y:fy+dr*cs, s:cs-1, t:'f'});
+    }
+  }
+
+  finder(12, 12);   // top-left of stem
+  finder(210, 12);  // top-right (inside upper arm)
+  finder(12, 212);  // bottom-left of stem
+
+  return all;
+}
+
+const CELLS = buildCells(8);
+
+// ── SVG GENERATOR ────────────────────────────────────────────────────────
+let uid = 0;
+function makeSVG({bg, kbg, mod, fin, stroke, size=220}) {
+  const id='k'+(uid++);
+  let s=`<svg width="${size}" height="${size}" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">`;
+  s+=`<defs><clipPath id="${id}"><path d="${K}"/></clipPath></defs>`;
+
+  // outer background
+  s+=`<rect width="300" height="300" fill="${bg}"/>`;
+
+  // K interior fill
+  s+=`<path d="${K}" fill="${kbg}"/>`;
+
+  // QR modules clipped to K
+  s+=`<g clip-path="url(#${id})">`;
+  CELLS.forEach(({x,y,s:w,t})=>{
+    const c = t==='f' ? fin : mod;
+    if(c) s+=`<rect x="${x+.5}" y="${y+.5}" width="${w}" height="${w}" fill="${c}" rx=".5"/>`;
+  });
+  s+=`</g>`;
+
+  // K outline on top
+  if(stroke) s+=`<path d="${K}" fill="none" stroke="${stroke}" stroke-width="5"/>`;
+
+  return s+'</svg>';
+}
+
+// ── 10 VARIANTES ─────────────────────────────────────────────────────────
+const V = [
+  {
+    num:1, nc:'#888', nm:'B&W · fondo gris', ds:'Referencia base',
+    bg:'#d0d0d0', kbg:'#fff', mod:'#111', fin:'#111', stroke:'#d0d0d0'
+  },
+  {
+    num:2, nc:'#fb7185', nm:'Fondo salmón', ds:'Brand color como background',
+    bg:'#fb7185', kbg:'#fff', mod:'#111', fin:'#111', stroke:'#fb7185'
+  },
+  {
+    num:3, nc:'#fb7185', nm:'Módulos salmón', ds:'QR en color primario',
+    bg:'#fdf0f1', kbg:'#fff', mod:'#e01f3c', fin:'#fb7185', stroke:'#fdf0f1'
+  },
+  {
+    num:4, nc:'#f59e0b', nm:'Finders dorado', ds:'Corners QR en oro',
+    bg:'#f2efe8', kbg:'#fff', mod:'#111', fin:'#d97706', stroke:'#f2efe8'
+  },
+  {
+    num:5, nc:'#fff', nm:'Dark + blanco', ds:'Invertido, oscuro total',
+    bg:'#0d0b0c', kbg:'#0d0b0c', mod:'#f0f0f0', fin:'#ffffff', stroke:'#ffffff'
+  },
+  {
+    num:6, nc:'#fb7185', nm:'Dark + salmón', ds:'Oscuro con color de marca',
+    bg:'#0d0b0c', kbg:'#0d0b0c', mod:'#fb7185', fin:'#fda4af', stroke:'#fb7185'
+  },
+  {
+    num:7, nc:'#f59e0b', nm:'Dark + dorado', ds:'Premium, eventos de lujo',
+    bg:'#0a0906', kbg:'#0a0906', mod:'#d97706', fin:'#f59e0b', stroke:'#d97706'
+  },
+  {
+    num:8, nc:'#0d9488', nm:'Finders teal', ds:'Verde agua en corners',
+    bg:'#f0f8f7', kbg:'#fff', mod:'#111', fin:'#0d9488', stroke:'#f0f8f7'
+  },
+  {
+    num:9, nc:'#7c3aed', nm:'Módulos violeta', ds:'Profundo, distinto',
+    bg:'#f6f4ff', kbg:'#fff', mod:'#5b21b6', fin:'#7c3aed', stroke:'#f6f4ff'
+  },
+  {
+    num:10, nc:'#fb923c', nm:'Finders coral', ds:'Cálido, mínimo',
+    bg:'#fafafa', kbg:'#fff', mod:'#1a1a1a', fin:'#ea580c', stroke:'#f0f0f0'
+  }
+];
+
+const grid = document.getElementById('grid');
+const chosen = document.getElementById('chosen');
+
+V.forEach(v=>{
+  const card=document.createElement('div');
+  card.className='card';
+  card.onclick=()=>{
+    document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
+    card.classList.add('sel');
+    chosen.innerHTML=`Seleccionaste: <b>${v.num} — ${v.nm}</b>`;
+  };
+  card.innerHTML=`
+    <div class="lbl">
+      <div class="num" style="background:${v.nc}22;color:${v.nc}">${v.num}</div>
+      <span class="nm">${v.nm}</span>
+      <span class="ds">${v.ds}</span>
+    </div>
+    <div class="wrap" style="background:${v.bg}">
+      ${makeSVG(v)}
+    </div>`;
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

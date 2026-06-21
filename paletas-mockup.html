@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Servital — Paletas de Color</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; font-family: 'Inter', system-ui, sans-serif; padding: 40px 20px; }
+  h1 { color: #fff; text-align: center; font-size: 22px; font-weight: 300; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 8px; }
+  .sub { color: #666; text-align: center; font-size: 13px; margin-bottom: 48px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; max-width: 1200px; margin: 0 auto; }
+
+  .card { border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); }
+  .card-label { background: #1a1a1a; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  .card-label .num { width: 22px; height: 22px; border-radius: 50%; background: #333; color: #aaa; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
+  .card-label .name { color: #fff; font-size: 13px; font-weight: 500; }
+  .card-label .desc { color: #666; font-size: 11px; margin-left: auto; text-align: right; max-width: 120px; line-height: 1.3; }
+
+  /* MOCKUP UI */
+  .mock { height: 200px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .mock-nav { height: 36px; display: flex; align-items: center; padding: 0 14px; gap: 10px; flex-shrink: 0; position: relative; z-index: 2; }
+  .mock-logo { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .mock-nav-links { display: flex; gap: 14px; margin-left: auto; }
+  .mock-nav-links span { font-size: 9px; opacity: .5; }
+  .mock-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; position: relative; z-index: 2; }
+  .mock-title { font-size: 15px; font-weight: 700; letter-spacing: -.01em; text-align: center; line-height: 1.2; }
+  .mock-sub { font-size: 9px; opacity: .5; letter-spacing: .08em; text-align: center; }
+  .mock-btns { display: flex; gap: 8px; margin-top: 4px; }
+  .mock-btn { padding: 6px 14px; border-radius: 6px; font-size: 9px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+  .mock-bg-glow { position: absolute; inset: 0; }
+
+  /* SWATCHES */
+  .swatches { background: #1a1a1a; padding: 10px 14px; display: flex; gap: 8px; align-items: center; }
+  .sw { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .sw-dot { width: 28px; height: 28px; border-radius: 8px; }
+  .sw-hex { font-size: 9px; color: #555; font-family: monospace; }
+
+  /* ── PALETA 1: ACTUAL ── */
+  .p1 .mock { background: #060d0f; color: #fff; }
+  .p1 .mock-bg-glow { background: radial-gradient(ellipse 70% 55% at 15% 15%, rgba(0,200,140,.28) 0%, transparent 60%), radial-gradient(ellipse 55% 45% at 85% 80%, rgba(0,160,220,.22) 0%, transparent 60%); }
+  .p1 .mock-nav { background: rgba(6,13,15,.9); }
+  .p1 .mock-logo { color: #00c896; }
+  .p1 .mock-btn:first-child { background: linear-gradient(135deg,#00c896,#00a0e0); color: #000; }
+  .p1 .mock-btn:last-child { border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.7); background: transparent; }
+  .p1 .num { background: #00c896 !important; color: #000 !important; }
+
+  /* ── PALETA 2: VIOLETA + CYAN ── */
+  .p2 .mock { background: #0a0a1a; color: #fff; }
+  .p2 .mock-bg-glow { background: radial-gradient(ellipse 70% 55% at 15% 15%, rgba(124,58,237,.3) 0%, transparent 60%), radial-gradient(ellipse 55% 45% at 85% 80%, rgba(6,182,212,.2) 0%, transparent 60%); }
+  .p2 .mock-nav { background: rgba(10,10,26,.9); }
+  .p2 .mock-logo { color: #7c3aed; }
+  .p2 .mock-btn:first-child { background: linear-gradient(135deg,#7c3aed,#06b6d4); color: #fff; }
+  .p2 .mock-btn:last-child { border: 1px solid rgba(124,58,237,.4); color: #7c3aed; background: transparent; }
+  .p2 .num { background: #7c3aed !important; color: #fff !important; }
+
+  /* ── PALETA 3: NEÓN VERDE + AZUL CIELO ── */
+  .p3 .mock { background: #020c0a; color: #fff; }
+  .p3 .mock-bg-glow { background: radial-gradient(ellipse 70% 55% at 20% 20%, rgba(0,229,160,.3) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 75%, rgba(14,165,233,.2) 0%, transparent 60%); }
+  .p3 .mock-nav { background: rgba(2,12,10,.9); }
+  .p3 .mock-logo { color: #00e5a0; }
+  .p3 .mock-btn:first-child { background: linear-gradient(135deg,#00e5a0,#0ea5e9); color: #000; }
+  .p3 .mock-btn:last-child { border: 1px solid rgba(0,229,160,.3); color: #00e5a0; background: transparent; }
+  .p3 .num { background: #00e5a0 !important; color: #000 !important; }
+
+  /* ── PALETA 4: ÁMBAR / LUJO CÁLIDO ── */
+  .p4 .mock { background: #0c0902; color: #fff; }
+  .p4 .mock-bg-glow { background: radial-gradient(ellipse 65% 50% at 20% 20%, rgba(245,158,11,.2) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 80%, rgba(239,68,68,.15) 0%, transparent 60%); }
+  .p4 .mock-nav { background: rgba(12,9,2,.9); }
+  .p4 .mock-logo { color: #f59e0b; }
+  .p4 .mock-btn:first-child { background: linear-gradient(135deg,#f59e0b,#ef4444); color: #000; }
+  .p4 .mock-btn:last-child { border: 1px solid rgba(245,158,11,.3); color: #f59e0b; background: transparent; }
+  .p4 .num { background: #f59e0b !important; color: #000 !important; }
+
+  /* ── PALETA 5: ROSA / MAGENTA ── */
+  .p5 .mock { background: #0d070f; color: #fff; }
+  .p5 .mock-bg-glow { background: radial-gradient(ellipse 65% 55% at 20% 20%, rgba(236,72,153,.28) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 75%, rgba(168,85,247,.22) 0%, transparent 60%); }
+  .p5 .mock-nav { background: rgba(13,7,15,.9); }
+  .p5 .mock-logo { color: #ec4899; }
+  .p5 .mock-btn:first-child { background: linear-gradient(135deg,#ec4899,#a855f7); color: #fff; }
+  .p5 .mock-btn:last-child { border: 1px solid rgba(236,72,153,.3); color: #ec4899; background: transparent; }
+  .p5 .num { background: #ec4899 !important; color: #fff !important; }
+
+  /* ── PALETA 6: NARANJA + CORAL ── */
+  .p6 .mock { background: #0f0900; color: #fff; }
+  .p6 .mock-bg-glow { background: radial-gradient(ellipse 65% 55% at 20% 20%, rgba(249,115,22,.28) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 75%, rgba(251,191,36,.2) 0%, transparent 60%); }
+  .p6 .mock-nav { background: rgba(15,9,0,.9); }
+  .p6 .mock-logo { color: #f97316; }
+  .p6 .mock-btn:first-child { background: linear-gradient(135deg,#f97316,#fbbf24); color: #000; }
+  .p6 .mock-btn:last-child { border: 1px solid rgba(249,115,22,.3); color: #f97316; background: transparent; }
+  .p6 .num { background: #f97316 !important; color: #000 !important; }
+
+  /* ── PALETA 7: ESMERALDA + ORO ── */
+  .p7 .mock { background: #06100a; color: #fff; }
+  .p7 .mock-bg-glow { background: radial-gradient(ellipse 65% 55% at 20% 20%, rgba(16,185,129,.28) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 75%, rgba(201,168,76,.2) 0%, transparent 60%); }
+  .p7 .mock-nav { background: rgba(6,16,10,.9); }
+  .p7 .mock-logo { color: #10b981; }
+  .p7 .mock-btn:first-child { background: linear-gradient(135deg,#10b981,#c9a84c); color: #000; }
+  .p7 .mock-btn:last-child { border: 1px solid rgba(201,168,76,.3); color: #c9a84c; background: transparent; }
+  .p7 .num { background: #10b981 !important; color: #000 !important; }
+
+  /* ── PALETA 8: AZUL MARINO + ÍNDIGO ── */
+  .p8 .mock { background: #050812; color: #fff; }
+  .p8 .mock-bg-glow { background: radial-gradient(ellipse 65% 55% at 20% 20%, rgba(59,130,246,.28) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 75%, rgba(99,102,241,.22) 0%, transparent 60%); }
+  .p8 .mock-nav { background: rgba(5,8,18,.9); }
+  .p8 .mock-logo { color: #3b82f6; }
+  .p8 .mock-btn:first-child { background: linear-gradient(135deg,#3b82f6,#6366f1); color: #fff; }
+  .p8 .mock-btn:last-child { border: 1px solid rgba(59,130,246,.3); color: #3b82f6; background: transparent; }
+  .p8 .num { background: #3b82f6 !important; color: #fff !important; }
+
+  /* ── PALETA 9: BLANCO / MINIMALISTA ── */
+  .p9 .mock { background: #f8f9fa; color: #111; }
+  .p9 .mock-bg-glow { background: radial-gradient(ellipse 65% 55% at 20% 20%, rgba(0,200,140,.1) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 75%, rgba(0,160,220,.08) 0%, transparent 60%); }
+  .p9 .mock-nav { background: rgba(248,249,250,.95); border-bottom: 1px solid #e5e7eb; }
+  .p9 .mock-logo { color: #00c896; }
+  .p9 .mock-title { color: #111; }
+  .p9 .mock-sub { color: #555; }
+  .p9 .mock-nav-links span { color: #555; }
+  .p9 .mock-btn:first-child { background: #111; color: #fff; }
+  .p9 .mock-btn:last-child { border: 1px solid #ddd; color: #555; background: transparent; }
+  .p9 .num { background: #111 !important; color: #fff !important; }
+
+  /* ── PALETA 10: ROJO + NEGRO ── */
+  .p10 .mock { background: #0d0505; color: #fff; }
+  .p10 .mock-bg-glow { background: radial-gradient(ellipse 65% 55% at 20% 20%, rgba(220,38,38,.28) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 75%, rgba(251,113,133,.18) 0%, transparent 60%); }
+  .p10 .mock-nav { background: rgba(13,5,5,.9); }
+  .p10 .mock-logo { color: #dc2626; }
+  .p10 .mock-btn:first-child { background: linear-gradient(135deg,#dc2626,#fb7185); color: #fff; }
+  .p10 .mock-btn:last-child { border: 1px solid rgba(220,38,38,.3); color: #dc2626; background: transparent; }
+  .p10 .num { background: #dc2626 !important; color: #fff !important; }
+
+  /* ─── Selected ─── */
+  .card.selected { outline: 2px solid #00e5a0; outline-offset: 2px; }
+  .card { cursor: pointer; transition: transform .15s, outline .15s; }
+  .card:hover { transform: translateY(-3px); }
+  .chosen { text-align: center; color: #666; font-size: 13px; margin-top: 40px; }
+  .chosen b { color: #fff; }
+</style>
+</head>
+<body>
+
+<h1>Servital — Paletas de Color</h1>
+<p class="sub">Hacé clic en una para seleccionarla</p>
+
+<div class="grid">
+
+  <!-- 1 -->
+  <div class="card p1" onclick="select(1)">
+    <div class="card-label">
+      <div class="num">1</div>
+      <div class="name">Actual — Verde Turquesa</div>
+      <div class="desc">La paleta hoy</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#060d0f;border:1px solid #333"></div><div class="sw-hex">#060d0f</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#00c896"></div><div class="sw-hex">#00c896</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#00a0e0"></div><div class="sw-hex">#00a0e0</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card p2" onclick="select(2)">
+    <div class="card-label">
+      <div class="num">2</div>
+      <div class="name">Violeta + Cyan</div>
+      <div class="desc">Estilo Stripe / Linear</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#0a0a1a;border:1px solid #333"></div><div class="sw-hex">#0a0a1a</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#7c3aed"></div><div class="sw-hex">#7c3aed</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#06b6d4"></div><div class="sw-hex">#06b6d4</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card p3" onclick="select(3)">
+    <div class="card-label">
+      <div class="num">3</div>
+      <div class="name">Verde Neón + Azul Cielo</div>
+      <div class="desc">Actual más saturado</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#020c0a;border:1px solid #333"></div><div class="sw-hex">#020c0a</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#00e5a0"></div><div class="sw-hex">#00e5a0</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#0ea5e9"></div><div class="sw-hex">#0ea5e9</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card p4" onclick="select(4)">
+    <div class="card-label">
+      <div class="num">4</div>
+      <div class="name">Ámbar + Rojo</div>
+      <div class="desc">Lujo / eventos</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#0c0902;border:1px solid #333"></div><div class="sw-hex">#0c0902</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#f59e0b"></div><div class="sw-hex">#f59e0b</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ef4444"></div><div class="sw-hex">#ef4444</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card p5" onclick="select(5)">
+    <div class="card-label">
+      <div class="num">5</div>
+      <div class="name">Rosa + Violeta</div>
+      <div class="desc">Quinceañeras / fiestas</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#0d070f;border:1px solid #333"></div><div class="sw-hex">#0d070f</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ec4899"></div><div class="sw-hex">#ec4899</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#a855f7"></div><div class="sw-hex">#a855f7</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card p6" onclick="select(6)">
+    <div class="card-label">
+      <div class="num">6</div>
+      <div class="name">Naranja + Ámbar</div>
+      <div class="desc">Energía / calor</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#0f0900;border:1px solid #333"></div><div class="sw-hex">#0f0900</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#f97316"></div><div class="sw-hex">#f97316</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#fbbf24"></div><div class="sw-hex">#fbbf24</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card p7" onclick="select(7)">
+    <div class="card-label">
+      <div class="num">7</div>
+      <div class="name">Esmeralda + Dorado</div>
+      <div class="desc">Premium / elegante</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#06100a;border:1px solid #333"></div><div class="sw-hex">#06100a</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#10b981"></div><div class="sw-hex">#10b981</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#c9a84c"></div><div class="sw-hex">#c9a84c</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card p8" onclick="select(8)">
+    <div class="card-label">
+      <div class="num">8</div>
+      <div class="name">Azul + Índigo</div>
+      <div class="desc">Tech / confianza</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#050812;border:1px solid #333"></div><div class="sw-hex">#050812</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#3b82f6"></div><div class="sw-hex">#3b82f6</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#6366f1"></div><div class="sw-hex">#6366f1</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card p9" onclick="select(9)">
+    <div class="card-label">
+      <div class="num">9</div>
+      <div class="name">Blanco / Minimalista</div>
+      <div class="desc">Limpio / moderno</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span style="color:#555">QR</span><span style="color:#555">Premiere</span><span style="color:#555">Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title" style="color:#111">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub" style="color:#555">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches" style="background:#f0f0f0">
+      <div class="sw"><div class="sw-dot" style="background:#f8f9fa;border:1px solid #ddd"></div><div class="sw-hex">#f8f9fa</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#111111"></div><div class="sw-hex">#111111</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#00c896"></div><div class="sw-hex">#00c896</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#e5e7eb;border:1px solid #ccc"></div><div class="sw-hex">#e5e7eb</div></div>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card p10" onclick="select(10)">
+    <div class="card-label">
+      <div class="num">10</div>
+      <div class="name">Rojo + Coral</div>
+      <div class="desc">Pasión / impacto</div>
+    </div>
+    <div class="mock">
+      <div class="mock-bg-glow"></div>
+      <div class="mock-nav"><span class="mock-logo">SERVITAL</span><div class="mock-nav-links"><span>QR</span><span>Premiere</span><span>Invitaciones</span></div></div>
+      <div class="mock-body">
+        <div class="mock-title">Experiencias digitales<br>para tus eventos</div>
+        <div class="mock-sub">QR · PREMIERE · INVITACIONES</div>
+        <div class="mock-btns">
+          <div class="mock-btn">Ver servicios</div>
+          <div class="mock-btn">Contactar</div>
+        </div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="sw-dot" style="background:#0d0505;border:1px solid #333"></div><div class="sw-hex">#0d0505</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#dc2626"></div><div class="sw-hex">#dc2626</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#fb7185"></div><div class="sw-hex">#fb7185</div></div>
+      <div class="sw"><div class="sw-dot" style="background:#ffffff;border:1px solid #333"></div><div class="sw-hex">#ffffff</div></div>
+    </div>
+  </div>
+
+</div>
+
+<p class="chosen" id="chosen">Ninguna seleccionada</p>
+
+<script>
+const names = ['','Actual — Verde Turquesa','Violeta + Cyan','Verde Neón + Azul Cielo','Ámbar + Rojo','Rosa + Violeta','Naranja + Ámbar','Esmeralda + Dorado','Azul + Índigo','Blanco / Minimalista','Rojo + Coral'];
+function select(n) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.card')[n-1].classList.add('selected');
+  document.getElementById('chosen').innerHTML = `Seleccionaste: <b>Paleta ${n} — ${names[n]}</b>`;
+  document.querySelectorAll('.num')[n-1].textContent = '✓';
+  setTimeout(() => document.querySelectorAll('.num')[n-1].textContent = n, 1500);
+}
+</script>
+
+</body>
+</html>

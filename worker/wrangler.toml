@@ -1,10 +1,10 @@
-name = "servital-worker"
+name = "kuerre-worker"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "servital-db"
+database_name = "kuerre-db"
 database_id = "8ea1a29e-942d-40f6-84a3-341e822c4323"
 
 [[kv_namespaces]]

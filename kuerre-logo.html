@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>KUERRE — Logo K×QR</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Cormorant+Garamond:ital,wght@1,300&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0d0b0c; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 30px; gap:64px; font-family:'Inter',sans-serif; }
+.page-title { color:#2a2a2a; font-size:9px; letter-spacing:.4em; text-transform:uppercase; font-weight:400; }
+.section { display:flex; flex-direction:column; align-items:center; gap:24px; }
+.sec-label { color:#252525; font-size:9px; letter-spacing:.25em; text-transform:uppercase; }
+.row { display:flex; gap:56px; align-items:flex-end; flex-wrap:wrap; justify-content:center; }
+.card { display:flex; flex-direction:column; align-items:center; gap:14px; }
+.clabel { color:#2e2e2e; font-size:9px; letter-spacing:.18em; text-transform:uppercase; }
+.size-row { display:flex; gap:20px; align-items:flex-end; }
+.divider { width:1px; height:40px; background:#1a1a1a; }
+</style>
+</head>
+<body>
+
+<p class="page-title">KUERRE — Logo K × QR</p>
+
+<div class="row" id="main-row"></div>
+
+<div class="divider" style="width:120px;height:1px;background:#1a1a1a"></div>
+
+<div class="row" id="alt-row"></div>
+
+<div class="divider" style="width:120px;height:1px;background:#1a1a1a"></div>
+
+<div class="section">
+  <p class="sec-label">Tamaños</p>
+  <div class="size-row" id="size-row"></div>
+</div>
+
+<script>
+// ── GRID CONFIG ──────────────────────────────────
+const SIZE = 25;   // 25×25 modules (QR-like)
+const U    = 14;   // px per module
+const M    = 16;   // margin
+const SW   = SIZE * U + M * 2; // SVG total width = 382px
+
+// ── BUILD GRID ───────────────────────────────────
+function buildGrid() {
+  const g = Array.from({length:SIZE}, () => Array(SIZE).fill('e'));
+
+  // K STEM — cols 9-11, full height
+  for (let r=0; r<SIZE; r++) { g[r][9]='k'; g[r][10]='k'; g[r][11]='k'; }
+
+  // K UPPER ARM — from (row 12, col 12) going up-right, 2 modules wide
+  for (let i=0; i<=12; i++) {
+    const r=12-i, c=12+i;
+    if (r>=0 && c<SIZE)        g[r][c]   = 'k';
+    if (r>=0 && c+1<SIZE)      g[r][c+1] = 'k';
+  }
+
+  // K LOWER ARM — from (row 13, col 12) going down-right, 2 modules wide
+  for (let i=0; i<=11; i++) {
+    const r=13+i, c=12+i;
+    if (r<SIZE && c<SIZE)      g[r][c]   = 'k';
+    if (r<SIZE && c+1<SIZE)    g[r][c+1] = 'k';
+  }
+
+  // DATA DOTS — ~30% of remaining empty cells (deterministic hash)
+  function h(r,c) {
+    let v=(r*2654435761^c*2246822519)>>>0;
+    v^=v>>>16; v*=0x45d9f3b; v^=v>>>16;
+    return (v>>>0)%100;
+  }
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++)
+    if (g[r][c]==='e' && h(r,c)<30) g[r][c]='d';
+
+  // FINDER PATTERNS — override everything (standard QR positions)
+  // TL:(0,0) · TR:(0,18) · BL:(18,0)
+  function finder(gr, gc) {
+    for (let dr=0;dr<=6;dr++) for (let dc=0;dc<=6;dc++) {
+      const r=gr+dr, c=gc+dc;
+      if (r>=SIZE||c>=SIZE) continue;
+      const border = dr===0||dr===6||dc===0||dc===6;
+      const center = dr>=2&&dr<=4&&dc>=2&&dc<=4;
+      g[r][c] = (border||center) ? 'f' : 'fo';
+    }
+  }
+  finder(0,0); finder(0,18); finder(18,0);
+
+  return g;
+}
+
+// ── RENDER SVG ───────────────────────────────────
+function svg(g, theme, scale=1) {
+  const {bg,kc,fc,foc,dc,da} = theme;
+  const W = Math.round(SW*scale);
+  let s = `<svg width="${W}" height="${W}" viewBox="0 0 ${SW} ${SW}" xmlns="http://www.w3.org/2000/svg">`;
+  s += `<rect width="${SW}" height="${SW}" fill="${bg}" rx="22"/>`;
+  for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) {
+    const x=M+c*U+1, y=M+r*U+1, w=U-2, v=g[r][c];
+    if      (v==='k')  s+=`<rect x="${x}" y="${y}" width="${w}" height="${w}" fill="${kc}" rx="2.5"/>`;
+    else if (v==='f')  s+=`<rect x="${x}" y="${y}" width="${w}" height="${w}" fill="${fc}" rx="2.5"/>`;
+    else if (v==='fo') s+=`<rect x="${x}" y="${y}" width="${w}" height="${w}" fill="${foc}" rx="0"/>`;
+    else if (v==='d')  s+=`<rect x="${x}" y="${y}" width="${w}" height="${w}" fill="${dc}" opacity="${da}" rx="2"/>`;
+  }
+  return s+'</svg>';
+}
+
+// ── THEMES ───────────────────────────────────────
+const T = {
+  // Salmon oscuro (brand principal)
+  dark: { bg:'#0d0b0c', kc:'#fb7185', fc:'#fb7185', foc:'#0d0b0c', dc:'#fda4af', da:'0.28' },
+  // Salmon claro
+  light: { bg:'#fff1f3', kc:'#e0203c', fc:'#e0203c', foc:'#fff1f3', dc:'#e0203c', da:'0.14' },
+  // Blanco sobre oscuro
+  white: { bg:'#0d0b0c', kc:'#ffffff', fc:'#ffffff', foc:'#0d0b0c', dc:'#ffffff', da:'0.18' },
+  // Negro sobre blanco (imprenta)
+  mono:  { bg:'#f9f9f9', kc:'#111111', fc:'#111111', foc:'#f9f9f9', dc:'#111111', da:'0.14' },
+  // Gris ceniza (complementario)
+  ash:   { bg:'#141214', kc:'#a0a0b4', fc:'#a0a0b4', foc:'#141214', dc:'#a0a0b4', da:'0.2'  },
+  // Salmon + Gris mixto (dos colores)
+  duo:   { bg:'#0d0b0c', kc:'#fb7185', fc:'#9ca3af', foc:'#0d0b0c', dc:'#9ca3af', da:'0.2'  },
+};
+
+const grid = buildGrid();
+
+function card(themeKey, label, scale=1) {
+  const d = document.createElement('div');
+  d.className='card';
+  d.innerHTML = svg(grid, T[themeKey], scale);
+  const l = document.createElement('span');
+  l.className='clabel'; l.textContent=label;
+  d.appendChild(l);
+  return d;
+}
+
+// Main row: 3 large variants
+const main = document.getElementById('main-row');
+main.appendChild(card('dark',  'Salmon · Dark'));
+main.appendChild(card('light', 'Salmon · Light'));
+main.appendChild(card('white', 'Blanco · Dark'));
+
+// Alt row: más variantes
+const alt = document.getElementById('alt-row');
+alt.appendChild(card('mono', 'Mono'));
+alt.appendChild(card('ash',  'Ceniza'));
+alt.appendChild(card('duo',  'Duo'));
+
+// Size row: dark theme at 4 sizes
+const sizes = document.getElementById('size-row');
+for (const [sc,lbl] of [[1,'380px'],[0.53,'200px'],[0.26,'100px'],[0.13,'50px']]) {
+  const d=document.createElement('div');
+  d.className='card';
+  d.innerHTML=svg(grid,T.dark,sc);
+  const l=document.createElement('span'); l.className='clabel'; l.textContent=lbl;
+  d.appendChild(l);
+  sizes.appendChild(d);
+}
+</script>
+</body>
+</html>
