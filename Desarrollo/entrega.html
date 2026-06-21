@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="page-title">Servital — Entrega</title>
+<title id="page-title">KUERRE — Entrega</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:     #0a0a0f;
-  --green:   #00c896;
+  --green:   #fb7185;
   --violet: #7b2fd4;
   --gold:   #c9a84c;
   --white:  #ffffff;
@@ -248,7 +248,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
   <div id="hero-bg"></div>
   <div class="hero-overlay"></div>
   <div class="hero-content">
-    <div id="hero-brand" class="hero-brand">Servital · Fotografía</div>
+    <div id="hero-brand" class="hero-brand">KUERRE · Fotografía</div>
     <div id="hero-nombres" class="hero-names">Tu <span class="hero-ampersand">&</span> Vos</div>
     <div class="hero-divider"><span class="hero-divider-star">✦</span></div>
     <div id="hero-tipo" class="hero-tipo"></div>
@@ -370,7 +370,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 
 <!-- FOOTER -->
 <footer id="footer">
-  <div id="footer-brand" class="footer-brand">Servital</div>
+  <div id="footer-brand" class="footer-brand">KUERRE</div>
   <div class="footer-tagline">Fotografía & Video de Eventos</div>
   <a id="footer-wsp" class="footer-wsp" href="#" target="_blank">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.374 0 0 5.373 0 12c0 2.123.558 4.114 1.531 5.837L.031 24l6.336-1.483A11.946 11.946 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.892a9.875 9.875 0 01-5.031-1.378l-.361-.214-3.741.876.938-3.648-.235-.374A9.863 9.863 0 012.108 12c0-5.455 4.437-9.892 9.892-9.892 5.456 0 9.893 4.437 9.893 9.892 0 5.456-4.437 9.892-9.893 9.892z"/></svg>
@@ -393,19 +393,19 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// CONFIGURACIÓN — viene de URL params + servital_entregas en KV
+// CONFIGURACIÓN — viene de URL params + KUERRE_entregas en KV
 // ═══════════════════════════════════════════════════════════
-// GAS URL — se carga desde servital_contratos_cfg en localStorage (misma que contratos)
+// GAS URL — se carga desde KUERRE_contratos_cfg en localStorage (misma que contratos)
 let GAS_URL = '';
 try {
-  const cfg = JSON.parse(localStorage.getItem('servital_contratos_cfg'));
+  const cfg = JSON.parse(localStorage.getItem('KUERRE_contratos_cfg'));
   if(cfg && cfg.url) GAS_URL = cfg.url;
 } catch(e) {}
 const CONFIG = {
-  CF_URL:      'https://servital-worker.cristian-romero-digital.workers.dev',
+  CF_URL:      'https://KUERRE-worker.cristian-romero-digital.workers.dev',
   WSP_NUM:     '5491162557763',
   IG_DEFAULT:  'https://www.instagram.com/cristian.romero.digital/',
-  WEB_DEFAULT: 'https://servital.com.ar',
+  WEB_DEFAULT: 'https://KUERRE.com.ar',
   LOCALE:      'es-AR'
 };
 const CF_URL      = CONFIG.CF_URL;
@@ -540,10 +540,10 @@ async function init() {
 
   // Lanzar todos los fetches CF en paralelo
   const fetchEvent  = (EVENT_ID && !EVENT_FOLDER)
-    ? fetch(CF_URL + '/servital_entregas').then(r => r.json()).catch(() => [])
+    ? fetch(CF_URL + '/KUERRE_entregas').then(r => r.json()).catch(() => [])
     : Promise.resolve(null);
-  const fetchGasUrl = fetch(CF_URL + '/servital_contratos_cfg').then(r => r.text()).catch(() => null);
-  const fetchSett   = fetch(CF_URL + '/servital_settings').then(r => r.text()).catch(() => null);
+  const fetchGasUrl = fetch(CF_URL + '/KUERRE_contratos_cfg').then(r => r.text()).catch(() => null);
+  const fetchSett   = fetch(CF_URL + '/KUERRE_settings').then(r => r.text()).catch(() => null);
 
   // Esperar evento + GAS URL (ambos necesarios antes del Drive call)
   const [eventData, gasRaw] = await Promise.all([fetchEvent, fetchGasUrl]);
@@ -604,7 +604,7 @@ async function init() {
 }
 
 function applyConfig() {
-  document.getElementById('page-title').textContent = CFG.nombres + ' — Servital';
+  document.getElementById('page-title').textContent = CFG.nombres + ' — KUERRE';
   document.getElementById('hero-nombres').innerHTML = CFG.nombres.replace('&', '<span class="hero-ampersand">&</span>');
   document.getElementById('hero-fecha').textContent = CFG.fecha;
   document.getElementById('hero-tipo').textContent  = CFG.tipo;
@@ -612,7 +612,7 @@ function applyConfig() {
   if(CFG.portadaId) document.getElementById('hero-bg').style.backgroundImage = `url('${thumbUrl(CFG.portadaId, 1200)}')`;
   const overlayEl = document.querySelector('.hero-overlay');
   if(overlayEl) overlayEl.style.background = OVERLAY_PRESETS[CFG.overlay] || OVERLAY_PRESETS.violeta;
-  document.getElementById('footer-copy').textContent = `© ${new Date().getFullYear()} Servital · Todos los derechos reservados`;
+  document.getElementById('footer-copy').textContent = `© ${new Date().getFullYear()} KUERRE · Todos los derechos reservados`;
   const wspUrl = `https://wa.me/${WSP_NUM}`;
   document.getElementById('wsp-float').href  = wspUrl;
   document.getElementById('footer-wsp').href = wspUrl;
@@ -1056,10 +1056,10 @@ async function enviarPedidoAlbum() {
   try {
     const CF = CONFIG.CF_URL;
     const AUTH = 'crd2025';
-    const res = await fetch(CF + '/servital_pedidos', { headers: { 'Authorization': AUTH } });
+    const res = await fetch(CF + '/KUERRE_pedidos', { headers: { 'Authorization': AUTH } });
     const arr = (res.ok ? await res.json() : null) || [];
     arr.unshift(pedidoRecord);
-    await fetch(CF + '/servital_pedidos', {
+    await fetch(CF + '/KUERRE_pedidos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': AUTH },
       body: JSON.stringify(arr.slice(0, 300))
@@ -1196,7 +1196,7 @@ function tipoTabActual() {
 async function checkPedidoExistente() {
   if(!CFG.nombres) return;
   try {
-    const res = await fetch('https://servital-worker.cristian-romero-digital.workers.dev/servital_pedidos', { headers: { 'Authorization': 'crd2025' } });
+    const res = await fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/KUERRE_pedidos', { headers: { 'Authorization': 'crd2025' } });
     const arr = (res.ok ? await res.json() : null) || [];
     arr.filter(p => p.evento === CFG.nombres && p.tipoAlbum)
        .forEach(p => { _pedidosExistentes[p.tipoAlbum] = true; });

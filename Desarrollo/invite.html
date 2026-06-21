@@ -429,7 +429,7 @@ footer small a{color:inherit}
 <footer>
   <p id="footer-names"></p>
   <img id="footer-logo" alt="Logo">
-  <small>Invitación digital · <a id="invite-footer-web" href="https://www.servital.com.ar" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Servital</a> · <a id="invite-footer-ig" href="https://www.instagram.com/cristian.romero.digital" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">@servital.com.ar</a></small>
+  <small>Invitación digital · <a id="invite-footer-web" href="https://www.KUERRE.com.ar" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">KUERRE</a> · <a id="invite-footer-ig" href="https://www.instagram.com/cristian.romero.digital" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">@KUERRE.com.ar</a></small>
 </footer>
 
 </div><!-- /invite-app -->
@@ -440,9 +440,9 @@ footer small a{color:inherit}
 <script>
 let cfg = null;
 const CONFIG = {
-  CF_URL:      'https://servital-worker.cristian-romero-digital.workers.dev',
+  CF_URL:      'https://KUERRE-worker.cristian-romero-digital.workers.dev',
   IG_DEFAULT:  'https://www.instagram.com/cristian.romero.digital/',
-  WEB_DEFAULT: 'https://servital.com.ar',
+  WEB_DEFAULT: 'https://KUERRE.com.ar',
   LOCALE:      'es-AR'
 };
 const CF_URL_INV = CONFIG.CF_URL; // alias para compatibilidad
@@ -775,7 +775,7 @@ async function init() {
   renderRSVP(cfg);
   renderSpotify(cfg);
   renderNav(cfg);
-  const logoSrc = cfg.logo_dark || localStorage.getItem('servital_site_logo');
+  const logoSrc = cfg.logo_dark || localStorage.getItem('KUERRE_site_logo');
   if (logoSrc) { const el = document.getElementById('footer-logo'); el.src = logoSrc; el.style.display = 'block'; }
   if (cfg.youtube_audio && cfg.env_mostrar !== false) {
     showEnvelope(cfg);
@@ -784,9 +784,9 @@ async function init() {
     if (cfg.youtube_audio) initYoutubeAudio(cfg.youtube_audio);
     // sin sobre: unmute en primer scroll/touch/click (manejado dentro de initYoutubeAudio)
   }
-  // Load branding from servital_settings
+  // Load branding from KUERRE_settings
   try {
-    const sRes = await fetch(CF_URL_INV + '/servital_settings?t=' + Date.now());
+    const sRes = await fetch(CF_URL_INV + '/KUERRE_settings?t=' + Date.now());
     const sText = await sRes.text();
     if (sText && sText !== 'null') {
       const s = JSON.parse(sText);
