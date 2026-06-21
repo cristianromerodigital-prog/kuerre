@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='133';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='134';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Fotos del Evento — Servital</title>
+<title>Fotos del Evento — KUERRE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:     #0a0a0f;
-  --green:   #00c896;
+  --green:   #fb7185;
   --gold:   #c9a84c;
   --white:  #ffffff;
 }
@@ -184,10 +184,10 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 
 <div id="unavailable">
   <div class="msg-title">Este evento ya no está disponible</div>
-  <div class="msg-sub">Servital</div>
+  <div class="msg-sub">KUERRE</div>
 </div>
 
-<div id="top-brand">Servital</div>
+<div id="top-brand">KUERRE</div>
 
 <section id="hero">
   <div id="hero-bg"></div>
@@ -196,7 +196,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
     <div class="hero-logo-seal" id="hero-logo-seal">
       <img class="hero-logo" id="hero-logo-img" alt="CR">
     </div>
-    <div class="hero-brand">Servital</div>
+    <div class="hero-brand">KUERRE</div>
     <div id="hero-nombres" class="hero-nombres"></div>
     <div class="hero-divider"><span class="hero-divider-star">✦</span></div>
     <div id="hero-fecha" class="hero-fecha"></div>
@@ -244,7 +244,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 <div id="upload-progress">Subiendo foto...</div>
 
 <div id="social-float">
-  <a id="logo-float" class="sfloat-btn" href="https://servital.com.ar" target="_blank">
+  <a id="logo-float" class="sfloat-btn" href="https://KUERRE.com.ar" target="_blank">
     <img id="logo-float-img" alt="CR">
   </a>
   <a id="ig-float" class="sfloat-btn" href="https://www.instagram.com/cristian.romero.producciones" target="_blank">
@@ -314,12 +314,12 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 </div>
 
 <script>
-const WORKER_URL = 'https://servital-worker.cristian-romero-digital.workers.dev';
+const WORKER_URL = 'https://KUERRE-worker.cristian-romero-digital.workers.dev';
 const params = new URLSearchParams(window.location.search);
 const EVENT_ID = params.get('e') || '';
 
-let settings = (() => { try { return JSON.parse(localStorage.getItem('servital_settings')) || {}; } catch(e) { return {}; } })();
-fetch('https://servital-worker.cristian-romero-digital.workers.dev/servital_settings',{headers:{Authorization:'crd2025'}}).then(r=>r.json()).then(function(d){ settings=Object.assign({},settings,{logo_url:d.logoUrl||'',whatsapp:d.waSuffix||'',website:d.entregaWebUrl||'',instagram:d.instagram||'',entregaIgUrl:d.entregaIgUrl||''}); applyBranding(); }).catch(function(){});
+let settings = (() => { try { return JSON.parse(localStorage.getItem('KUERRE_settings')) || {}; } catch(e) { return {}; } })();
+fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/KUERRE_settings',{headers:{Authorization:'crd2025'}}).then(r=>r.json()).then(function(d){ settings=Object.assign({},settings,{logo_url:d.logoUrl||'',whatsapp:d.waSuffix||'',website:d.entregaWebUrl||'',instagram:d.instagram||'',entregaIgUrl:d.entregaIgUrl||''}); applyBranding(); }).catch(function(){});
 
 let evento = null;
 let fotos = [];
@@ -635,7 +635,7 @@ function showPhraseSlide(texto) {
     el.offsetHeight;
     el.style.animation = `${anim} ${dur}s linear infinite`;
   }
-  const nombreEv = (evento && evento.nombre ? evento.nombre : 'Servital').toUpperCase();
+  const nombreEv = (evento && evento.nombre ? evento.nombre : 'KUERRE').toUpperCase();
   const topText  = Array(8).fill(nombreEv).join('  ·  ');
   const mainText = Array(5).fill(texto).join('  ✦  ');
   const botText  = Array(5).fill(texto).join('  ·  ');
