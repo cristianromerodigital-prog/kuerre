@@ -1,5 +1,5 @@
--- Servital DB Schema
--- Aplicar con: wrangler d1 execute servital-db --file=worker/schema.sql
+﻿-- kuerre DB Schema
+-- Aplicar con: wrangler d1 execute kuerre-db --file=worker/schema.sql
 
 CREATE TABLE IF NOT EXISTS eventos (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
