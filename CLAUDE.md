@@ -1,4 +1,4 @@
-# Servital — CLAUDE.md
+﻿# Kuerre — CLAUDE.md
 
 ## Stack
 Vanilla HTML/CSS/JS. Sin build system, sin frameworks, sin npm.
@@ -21,9 +21,9 @@ Vanilla HTML/CSS/JS. Sin build system, sin frameworks, sin npm.
 - Bump versión V1.XX antes de cada push
 
 ## Infraestructura Cloudflare (separada de CRD)
-- Worker: `servital-worker` → URL definida tras deploy en Task 10
-- KV namespace: prefijo `servital_*`
-- D1: `servital-db`
+- Worker: `Kuerre-worker` → URL definida tras deploy en Task 10
+- KV namespace: prefijo `Kuerre_*`
+- D1: `Kuerre-db`
 
 ## Identidad visual
 - Fondo: #060d0f | Acento: #00c896 | Secundario: #00a0e0
