@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='136';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='196';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Fotos del Evento — KUERRE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:     #0a0a0f;
-  --green:   #9060b8;
+  --cyan:   #00d4e8;
   --gold:   #c9a84c;
-  --white:    #111111;
+  --white:  #ffffff;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }
@@ -22,7 +22,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after { cursor:none !important; }
 #lightbox.active, #lightbox.active * { cursor:auto !important; }
 #lightbox.active button { cursor:pointer !important; }
-#cursor { position:fixed; width:10px; height:10px; background:var(--green); border-radius:50%; pointer-events:none; z-index:9999; left:0; top:0; transform:translate(-50%,-50%); mix-blend-mode:difference; transition:opacity .3s; }
+#cursor { position:fixed; width:10px; height:10px; background:var(--cyan); border-radius:50%; pointer-events:none; z-index:9999; left:0; top:0; transform:translate(-50%,-50%); mix-blend-mode:difference; transition:opacity .3s; }
 #cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(0,212,232,.5); border-radius:50%; pointer-events:none; z-index:9998; left:0; top:0; transform:translate(-50%,-50%); transition:transform .12s ease-out; }
 
 /* GRAIN */
@@ -49,7 +49,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 .hero-logo-seal { width:72px; height:72px; margin:0 auto 24px; display:none; }
 .hero-logo { width:100%; height:100%; object-fit:contain; filter:invert(1); mix-blend-mode:color-dodge; border-radius:50%; }
 .hero-brand { display:none; }
-#top-brand { position:fixed; top:0; left:0; right:0; z-index:100; text-align:center; padding:10px 16px; font-size:9px; letter-spacing:.5em; text-transform:uppercase; color:var(--green); opacity:.85; background:linear-gradient(to bottom,rgba(13,17,23,.85) 0%,rgba(13,17,23,0) 100%); pointer-events:none; }
+#top-brand { position:fixed; top:0; left:0; right:0; z-index:100; text-align:center; padding:10px 16px; font-size:9px; letter-spacing:.5em; text-transform:uppercase; color:var(--cyan); opacity:.85; background:linear-gradient(to bottom,rgba(13,17,23,.85) 0%,rgba(13,17,23,0) 100%); pointer-events:none; }
 .hero-nombres { font-family:'Cormorant Garamond',serif; font-weight:300; font-style:italic; font-size:clamp(40px,7vw,88px); line-height:1; color:var(--white); text-shadow:0 0 60px rgba(0,212,232,.2); margin-bottom:10px; }
 .hero-divider { display:flex; align-items:center; justify-content:center; gap:12px; margin:14px 0; }
 .hero-divider::before { content:''; flex:1; max-width:80px; height:1px; background:linear-gradient(to right,transparent,rgba(201,168,76,.6)); }
@@ -68,7 +68,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 #gallery-section { padding:60px 24px 140px; max-width:1200px; margin:0 auto; }
 #gallery-section.hidden { display:none; }
 .gallery-header { text-align:center; margin-bottom:40px; }
-.gallery-header-eyebrow { font-size:10px; letter-spacing:.4em; text-transform:uppercase; color:var(--green); margin-bottom:10px; opacity:.7; }
+.gallery-header-eyebrow { font-size:10px; letter-spacing:.4em; text-transform:uppercase; color:var(--cyan); margin-bottom:10px; opacity:.7; }
 .gallery-header-title { font-family:'Cormorant Garamond',serif; font-size:clamp(28px,5vw,48px); font-weight:300; font-style:italic; }
 .gallery-count { text-align:center; margin-bottom:24px; font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.3); }
 #gallery-grid { columns:2; column-gap:10px; }
@@ -85,27 +85,55 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 .gallery-empty { text-align:center; padding:60px 20px; color:rgba(255,255,255,.2); font-size:13px; letter-spacing:.2em; }
 .gallery-closed-notice { text-align:center; padding:12px 20px; margin-bottom:20px; font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.3); border:1px solid rgba(255,255,255,.08); }
 
-/* TV SLIDESHOW */
-#tv-mode { display:none; position:fixed; inset:0; background:#000; z-index:10; }
-#tv-mode.active { display:block; }
-#tv-slide { position:absolute; inset:0; background-size:contain; background-repeat:no-repeat; background-position:center; background-color:#000; transition:opacity .8s ease; }
-#tv-slide.fade-out { opacity:0; }
-#tv-overlay { position:absolute; bottom:0; left:0; right:0; padding:20px 40px; background:linear-gradient(to top,rgba(0,0,0,.65) 0%,transparent 100%); display:flex; align-items:center; gap:20px; }
-#tv-logo { width:44px; height:44px; border-radius:50%; object-fit:contain; display:none; filter:invert(1); mix-blend-mode:color-dodge; }
-#tv-nombre { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(18px,2.5vw,32px); font-weight:300; color:rgba(255,255,255,.8); }
-#tv-qr-wrap { margin-left:auto; display:flex; flex-direction:column; align-items:center; gap:6px; }
-#tv-qr-img { width:120px; height:120px; border-radius:8px; background:#fff; padding:5px; display:block; }
-#tv-qr-label { font-size:9px; letter-spacing:.25em; text-transform:uppercase; color:rgba(0,0,0,.1); }
-#tv-no-fotos { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
-#tv-no-fotos .nf-title { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(32px,5vw,64px); color:rgba(0,0,0,.55); }
-#tv-no-fotos .nf-sub { font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.25); }
+/* TV DASHBOARD */
+#tv-mode { display:none; position:fixed; inset:0; background:#07070d; z-index:10; flex-direction:column; }
+#tv-mode.active { display:flex; }
+#tv-header { height:60px; display:flex; align-items:center; padding:0 28px; border-bottom:1px solid rgba(255,255,255,.06); flex-shrink:0; gap:0; }
+.tv-h-nombre { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(15px,1.6vw,20px); color:rgba(255,255,255,.45); white-space:nowrap; margin-right:20px; }
+.tv-h-title { font-size:clamp(12px,1.3vw,17px); letter-spacing:.3em; text-transform:uppercase; color:#fff; }
+.tv-h-sep { flex:1; }
+.tv-dot { width:8px; height:8px; border-radius:50%; background:#ff4444; display:inline-block; margin-right:8px; animation:tv-blink 1.2s ease-in-out infinite; flex-shrink:0; }
+.tv-h-live { font-size:10px; letter-spacing:.35em; text-transform:uppercase; color:rgba(255,255,255,.4); display:flex; align-items:center; }
+@keyframes tv-blink { 0%,100%{opacity:1} 50%{opacity:.18} }
+#tv-body { display:flex; flex:1; overflow:hidden; min-height:0; }
+#tv-left { width:clamp(140px,13vw,200px); flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px 14px; border-right:1px solid rgba(255,255,255,.05); }
+.tv-scan-label { font-size:clamp(8px,.85vw,11px); letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.38); text-align:center; line-height:1.9; }
+#tv-qr-img { width:clamp(100px,10vw,148px); height:clamp(100px,10vw,148px); border-radius:10px; background:#fff; padding:5px; display:block; }
+#tv-logo { width:clamp(52px,5.5vw,72px); height:auto; object-fit:contain; filter:invert(1) brightness(1.2); mix-blend-mode:screen; }
+#tv-main { flex:1; position:relative; overflow:hidden; min-width:0; display:flex; align-items:center; justify-content:center; background:#000; }
+#tv-current-img { width:100%; height:100%; object-fit:contain; display:block; transition:opacity .5s ease; }
+#tv-current-img.fade-out { opacity:0; }
+#tv-no-fotos { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+#tv-no-fotos .nf-title { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(32px,5vw,64px); color:rgba(255,255,255,.65); }
+#tv-no-fotos .nf-sub { font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.22); }
+#tv-queue { width:clamp(130px,13vw,190px); flex-shrink:0; display:flex; flex-direction:column; gap:8px; padding:12px 8px; overflow:hidden; }
+.tv-queue-item { flex-shrink:0; overflow:hidden; border-radius:8px; background:rgba(255,255,255,.04); }
+.tv-queue-item img { width:100%; height:auto; display:block; transition:opacity .4s; }
+.tv-queue-item.empty { height:80px; }
+.tv-queue-item.empty img { opacity:0; }
+#tv-right { width:clamp(180px,19vw,260px); flex-shrink:0; overflow:hidden; }
+#tv-feed-inner { display:flex; flex-direction:column; padding:12px 10px; overflow:hidden; height:100%; }
+.tv-feed-wrapper { overflow:hidden; max-height:160px; margin-bottom:10px; transition:max-height .45s ease, margin-bottom .45s ease; }
+.tv-feed-wrapper.collapsing { max-height:0; margin-bottom:0; }
+.tv-feed-item { padding:12px 14px; border-radius:2px; font-size:clamp(11px,1.1vw,14px); line-height:1.6; color:#1a1a1a; font-weight:600; box-shadow:3px 4px 12px rgba(0,0,0,.5); animation:tv-postit-in .5s cubic-bezier(.16,1,.3,1) forwards; opacity:0; }
+.tv-feed-nombre { font-size:clamp(9px,.9vw,11px); font-weight:700; letter-spacing:.05em; color:rgba(0,0,0,.45); margin-bottom:5px; }
+@keyframes tv-postit-in { from{opacity:0;transform:translateY(18px) rotate(var(--r))} to{opacity:1;transform:translateY(0) rotate(var(--r))} }
+#tv-ranking-bar { height:68px; border-top:1px solid rgba(255,255,255,.06); display:flex; align-items:center; padding:0 28px; flex-shrink:0; gap:0; }
+.tv-rank-label { font-size:9px; letter-spacing:.45em; text-transform:uppercase; color:rgba(255,255,255,.22); margin-right:28px; white-space:nowrap; }
+#tv-ranking-inner { display:flex; align-items:center; gap:28px; }
+.tv-rank-item { display:flex; align-items:center; gap:10px; }
+.tv-rank-num { font-size:20px; font-weight:800; color:rgba(255,255,255,.16); min-width:22px; line-height:1; }
+.tv-rank-num.p1 { color:#ffd700; } .tv-rank-num.p2 { color:#c0c0c0; } .tv-rank-num.p3 { color:#cd7f32; }
+.tv-rank-thumb { width:44px; height:44px; border-radius:8px; object-fit:cover; }
+.tv-rank-hearts { display:flex; align-items:center; gap:4px; font-size:13px; font-weight:700; color:#fff; }
+.tv-rank-hearts small { font-size:10px; color:rgba(255,80,100,.8); }
 
 /* UPLOAD FAB */
 #btn-upload { display:none; position:fixed; bottom:28px; right:28px; z-index:200; width:56px; height:56px; border-radius:50%; background:var(--gold); border:none; color:#000; font-size:28px; font-weight:300; line-height:1; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:transform .2s; cursor:pointer !important; }
 #btn-upload:hover { transform:scale(1.08); }
-#upload-label { display:none; position:fixed; bottom:38px; right:92px; z-index:200; background:rgba(13,17,23,.88); border:1px solid rgba(0,0,0,.12); border-radius:20px; padding:7px 14px; font-size:9px; letter-spacing:.25em; text-transform:uppercase; color:rgba(255,255,255,.85); pointer-events:none; white-space:nowrap; }
+#upload-label { display:none; position:fixed; bottom:38px; right:92px; z-index:200; background:rgba(13,17,23,.88); border:1px solid rgba(255,255,255,.15); border-radius:20px; padding:7px 14px; font-size:9px; letter-spacing:.25em; text-transform:uppercase; color:rgba(255,255,255,.85); pointer-events:none; white-space:nowrap; }
 @keyframes label-fadeout { 0%{opacity:1} 80%{opacity:1} 100%{opacity:0} }
-#upload-progress { display:none; position:fixed; bottom:96px; right:24px; z-index:201; background:rgba(0,0,0,.85); border:1px solid rgba(255,255,255,.12); padding:10px 18px; font-size:11px; letter-spacing:.2em; color:rgba(255,255,255,.6); }
+#upload-progress { display:none; position:fixed; bottom:96px; right:24px; z-index:500; background:rgba(0,0,0,.85); border:1px solid rgba(255,255,255,.12); padding:10px 18px; font-size:11px; letter-spacing:.2em; color:rgba(255,255,255,.6); }
 
 /* ACTION + FRASE MODALS */
 #action-modal,#frase-modal { position:fixed; inset:0; z-index:450; background:rgba(0,0,0,.8); backdrop-filter:blur(6px); display:flex; align-items:flex-end; justify-content:center; padding-bottom:env(safe-area-inset-bottom,0); }
@@ -123,24 +151,13 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 #frase-error { font-size:11px; color:#ff4d6d; margin-bottom:10px; display:none; }
 #frase-submit { width:100%; padding:14px; background:var(--gold); border:none; border-radius:10px; font-size:11px; letter-spacing:.3em; text-transform:uppercase; font-weight:600; color:#000; cursor:pointer; }
 #frase-submit:disabled { opacity:.4; cursor:default; }
-/* TV FRASE SLIDE (opción 10) */
-#tv-phrase { position:absolute; inset:0; background:#07070d; display:none; flex-direction:column; align-items:center; justify-content:center; gap:12px; overflow:hidden; z-index:4; }
-#tv-phrase::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%,rgba(0,212,232,.05) 0%,transparent 70%); pointer-events:none; }
-.tp-row { width:100%; overflow:hidden; mask-image:linear-gradient(to right,transparent 0%,black 5%,black 95%,transparent 100%); -webkit-mask-image:linear-gradient(to right,transparent 0%,black 5%,black 95%,transparent 100%); }
-.tp-inner { display:inline-flex; white-space:nowrap; }
-.tp-inner span { font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:300; padding-right:80px; }
-.tp-sm .tp-inner span { font-size:clamp(33px,4.5vw,54px); color:rgba(0,212,232,.5); letter-spacing:.1em; }
-.tp-big .tp-inner span { font-size:clamp(84px,14.4vw,174px); color:#fff; letter-spacing:.03em; }
-.tp-med .tp-inner span { font-size:clamp(42px,6.6vw,78px); color:rgba(255,255,255,.25); letter-spacing:.06em; }
-@keyframes tp-fwd { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-@keyframes tp-rev { from{transform:translateX(-50%)} to{transform:translateX(0)} }
-/* TV TICKER (legacy — oculto, reemplazado por slides) */
+/* TV TICKER (legacy) */
 #tv-ticker { display:none !important; }
 
 /* WELCOME MODAL */
 #welcome-modal { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.85); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:24px; }
 #welcome-box { background:#0d1117; border:1px solid rgba(0,212,232,.2); border-radius:16px; padding:36px 28px 28px; max-width:340px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.6); }
-.wm-eyebrow { font-size:8px; letter-spacing:.5em; text-transform:uppercase; color:var(--green); opacity:.7; margin-bottom:16px; }
+.wm-eyebrow { font-size:8px; letter-spacing:.5em; text-transform:uppercase; color:var(--cyan); opacity:.7; margin-bottom:16px; }
 .wm-title { font-family:'Cormorant Garamond',serif; font-size:clamp(26px,6vw,34px); font-weight:300; font-style:italic; color:#fff; margin-bottom:28px; line-height:1.15; }
 .wm-rules { display:flex; flex-direction:column; gap:16px; margin-bottom:32px; text-align:left; }
 .wm-rule { display:flex; align-items:center; gap:14px; }
@@ -161,7 +178,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 #lightbox.active { display:flex; }
 #lb-img { width:100vw; height:100vh; object-fit:contain; pointer-events:none; }
 #lb-close { position:fixed; top:20px; right:24px; background:none; border:none; color:rgba(255,255,255,.6); font-size:28px; cursor:pointer !important; z-index:601; }
-#lb-prev,#lb-next { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); border:none; color:rgba(0,0,0,.55); font-size:36px; padding:16px 12px; cursor:pointer !important; z-index:601; }
+#lb-prev,#lb-next { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); border:none; color:rgba(255,255,255,.7); font-size:36px; padding:16px 12px; cursor:pointer !important; z-index:601; }
 #lb-prev { left:8px; }
 #lb-next { right:8px; }
 
@@ -215,39 +232,58 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 </section>
 
 <div id="tv-mode">
-  <div id="tv-slide"></div>
-  <div id="tv-no-fotos" style="display:none">
-    <div class="nf-title" id="tv-no-fotos-nombre"></div>
-    <div class="nf-sub">Esperando las primeras fotos...</div>
+  <div id="tv-header">
+    <div class="tv-h-nombre" id="tv-nombre"></div>
+    <div class="tv-h-title">GALERÍA EN VIVO</div>
+    <div class="tv-h-sep"></div>
+    <div class="tv-h-live"><span class="tv-dot"></span>EN VIVO</div>
   </div>
-  <div id="tv-phrase">
-    <div class="tp-row tp-sm"><div class="tp-inner" id="tp-top"></div></div>
-    <div class="tp-row tp-big"><div class="tp-inner" id="tp-main"></div></div>
-    <div class="tp-row tp-med"><div class="tp-inner" id="tp-bot"></div></div>
-  </div>
-  <div id="tv-ticker"><div id="tv-ticker-inner"></div></div>
-  <div id="tv-overlay">
-    <img id="tv-logo" alt="CR">
-    <div id="tv-nombre"></div>
-    <div id="tv-qr-wrap">
+  <div id="tv-body">
+    <div id="tv-left">
+      <div class="tv-scan-label">ESCANEÁ Y<br>PARTÍ TU MOMENTO</div>
       <img id="tv-qr-img" alt="QR">
-      <div id="tv-qr-label">Escaneá para subir fotos</div>
+      <div id="tv-brand" style="display:none;text-align:center;line-height:1.3;display:none">
+        <img id="tv-logo" alt="CR" style="display:block;margin:0 auto 6px">
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(10px,1vw,13px);color:rgba(255,255,255,.8);letter-spacing:.06em">KUERRE</div>
+        <div style="font-size:clamp(7px,.7vw,9px);letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:2px">KUERRE</div>
+      </div>
+    </div>
+    <div id="tv-main">
+      <img id="tv-current-img" src="" alt="">
+      <div id="tv-no-fotos">
+        <div class="nf-title" id="tv-no-fotos-nombre"></div>
+        <div class="nf-sub">Esperando las primeras fotos...</div>
+      </div>
+    </div>
+    <div id="tv-queue">
+      <div class="tv-queue-item empty" id="tv-q0"><img src="" alt=""></div>
+      <div class="tv-queue-item empty" id="tv-q1"><img src="" alt=""></div>
+      <div class="tv-queue-item empty" id="tv-q2"><img src="" alt=""></div>
+    </div>
+    <div id="tv-right">
+      <div id="tv-feed-inner"></div>
     </div>
   </div>
+  <div id="tv-ranking-bar">
+    <span class="tv-rank-label">RANKING EN VIVO</span>
+    <div id="tv-ranking-inner"></div>
+  </div>
+  <div id="tv-ticker" style="display:none"></div>
 </div>
 
 <div id="upload-label">subí tu foto</div>
 <button id="btn-upload" title="Subir foto" onclick="openActionModal()">
-  <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none">
+  <input type="file" id="file-input" accept="image/*" style="display:none">
+  <input type="file" id="file-input-camera" accept="image/*" capture="environment" style="display:none">
   +
 </button>
 <div id="upload-progress">Subiendo foto...</div>
 
 <div id="social-float">
-  <a id="logo-float" class="sfloat-btn" href="https://KUERRE.com.ar" target="_blank">
+  <a id="logo-float" class="sfloat-btn" href="https://cristianromeroKUERRE.com.ar" target="_blank">
     <img id="logo-float-img" alt="CR">
   </a>
-  <a id="ig-float" class="sfloat-btn" href="https://www.instagram.com/cristian.romero.producciones" target="_blank">
+  <a id="ig-float" class="sfloat-btn" href="https://www.instagram.com/cristian.romero.KUERRE" target="_blank">
     <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" width="26" height="26"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-linecap="round" stroke-width="2.5"/></svg>
   </a>
 </div>
@@ -259,9 +295,9 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 <div id="action-modal" style="display:none">
   <div id="action-box">
     <div class="am-title">¿Qué querés compartir?</div>
-    <button class="am-btn" onclick="choosePhoto()">
-      <span class="am-btn-icon">📸</span>
-      <span><span class="am-btn-label">Subir una foto</span><span class="am-btn-sub">Elegí una imagen de tu cámara o galería</span></span>
+    <button class="am-btn" onclick="chooseCamera()">
+      <span class="am-btn-icon">📷</span>
+      <span><span class="am-btn-label">Tomar foto</span><span class="am-btn-sub">Abrí la cámara ahora</span></span>
     </button>
     <button class="am-btn" onclick="chooseFrase()">
       <span class="am-btn-icon">💬</span>
@@ -275,6 +311,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 <div id="frase-modal" style="display:none">
   <div id="frase-box">
     <div class="am-title">Escribí tu frase</div>
+    <input id="frase-nombre" type="text" maxlength="40" placeholder="Tu nombre (opcional)" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 14px;color:#fff;font-size:14px;font-family:inherit;box-sizing:border-box;margin-bottom:10px;outline:none">
     <textarea id="frase-input" placeholder="Ej: ¡Qué noche más especial! 🎉" maxlength="150" oninput="onFraseInput()"></textarea>
     <div id="frase-counter">0 / 150</div>
     <div id="frase-error"></div>
@@ -319,18 +356,25 @@ const params = new URLSearchParams(window.location.search);
 const EVENT_ID = params.get('e') || '';
 
 let settings = (() => { try { return JSON.parse(localStorage.getItem('KUERRE_settings')) || {}; } catch(e) { return {}; } })();
-fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/KUERRE_settings',{headers:{Authorization:'crd2025'}}).then(r=>r.json()).then(function(d){ settings=Object.assign({},settings,{logo_url:d.logoUrl||'',whatsapp:d.waSuffix||'',website:d.entregaWebUrl||'',instagram:d.instagram||'',entregaIgUrl:d.entregaIgUrl||''}); applyBranding(); }).catch(function(){});
+
+function checkNSFW() {
+  return { ok: true, uncertain: true };
+}
+fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/site/config',{headers:{Authorization:'crd2025'}}).then(r=>r.json()).then(function(d){ settings=Object.assign({},settings,{logo_url:d.logoUrl||'',whatsapp:d.waSuffix||'',website:d.entregaWebUrl||'',instagram:d.instagram||'',entregaIgUrl:d.entregaIgUrl||''}); applyBranding(); }).catch(function(){});
 
 let evento = null;
 let fotos = [];
 let frases = [];
-let slides = [];
 let lbIndex = 0;
 let slideshowIndex = 0;
 let slideshowTimer = null;
 let refreshTimer = null;
+let _feedTimer = null;
+let _feedCount = 0;
+let _feedPointer = 0;
+let _feedColorIdx = 0;
 let isUploading = false;
-const IS_TV = window.innerWidth > 1024 && window.innerHeight > 600 && !('ontouchstart' in window);
+const IS_TV = params.get('tv') !== '0' && window.innerWidth > 1024 && window.innerHeight > 600 && !('ontouchstart' in window);
 
 // ── CURSOR ──
 const cur = document.getElementById('cursor');
@@ -369,8 +413,8 @@ function isClosed() {
 function applyBranding() {
   const logo = settings.logo_url || '';
   if (logo) {
-    const tvLogo = document.getElementById('tv-logo');
-    tvLogo.src = logo; tvLogo.style.display = 'block';
+    document.getElementById('tv-logo').src = logo;
+    document.getElementById('tv-brand').style.display = 'block';
     document.getElementById('logo-float-img').src = logo;
     document.getElementById('logo-float').style.display = 'flex';
   }
@@ -404,6 +448,7 @@ function setupMobile() {
     uploadHint.style.display = 'flex';
     uploadBtn.addEventListener('click', () => { uploadHint.style.display = 'none'; }, { once: true });
     document.getElementById('file-input').addEventListener('change', handleFileSelect);
+    document.getElementById('file-input-camera').addEventListener('change', handleFileSelect);
   } else {
     document.getElementById('gallery-closed-notice').style.display = 'block';
   }
@@ -453,11 +498,11 @@ function setupTV() {
   document.getElementById('tv-qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(eventUrl) + '&format=png';
   document.getElementById('tv-nombre').textContent = evento.nombre;
   document.getElementById('tv-no-fotos-nombre').textContent = evento.nombre;
-  loadSlidesTV();
-  refreshTimer = setInterval(loadSlidesTV, 15000);
+  loadDashboardTV();
+  refreshTimer = setInterval(loadDashboardTV, 15000);
 }
 
-async function loadSlidesTV() {
+async function loadDashboardTV() {
   try {
     const [fotosRes, frasesRes] = await Promise.all([
       fetch(`${WORKER_URL}/eventos/${EVENT_ID}/fotos`),
@@ -465,27 +510,117 @@ async function loadSlidesTV() {
     ]);
     const fotosData = await fotosRes.json();
     const frasesData = await frasesRes.json();
-    const prevCount = slides.length;
+    const prevCount = fotos.length;
     if (fotosData.files) fotos = fotosData.files;
     if (frasesData.frases) frases = frasesData.frases;
-    buildSlides();
-    if (slides.length > 0) {
-      document.getElementById('tv-no-fotos').style.display = 'none';
-      if (prevCount === 0) startSlideshow();
+    const noFotos = document.getElementById('tv-no-fotos');
+    if (fotos.length > 0) {
+      noFotos.style.display = 'none';
+      if (prevCount === 0) { slideshowIndex = 0; showCurrentTV(); startTVSlideshow(); }
+      renderTVRanking();
     } else {
-      document.getElementById('tv-no-fotos').style.display = 'flex';
+      noFotos.style.display = 'flex';
     }
+    renderTVFeed();
   } catch(e) {}
 }
 
-function buildSlides() {
-  slides = [];
-  const max = Math.max(fotos.length, frases.length);
-  for (let i = 0; i < max; i++) {
-    if (i < fotos.length) slides.push({ type: 'foto', url: fotos[i].url, name: fotos[i].name });
-    if (i < frases.length) slides.push({ type: 'frase', texto: frases[i].texto });
+const _FEED_COLORS = ['#ffd740','#69f0ae','#ff80ab','#80d8ff','#b39ddb','#ffccbc','#f0f4c3','#b2dfdb','#ffe082','#f48fb1'];
+const _FEED_ROTS   = ['-1.2deg','.8deg','-0.5deg','1.1deg','-.7deg','.5deg','-1deg','.9deg'];
+
+function renderTVFeed() {
+  const allItems = [...frases].reverse();
+  if (!allItems.length) return;
+  if (allItems.length === _feedCount) return;
+  _feedCount = allItems.length;
+  if (_feedTimer) { clearInterval(_feedTimer); _feedTimer = null; }
+  const el = document.getElementById('tv-feed-inner');
+  if (!el) return;
+  el.innerHTML = '';
+  _feedPointer = 0;
+  _feedColorIdx = 0;
+  const initial = Math.min(8, allItems.length);
+  for (let i = 0; i < initial; i++) {
+    const wrapper = makeFeedItem(allItems[_feedPointer], _feedColorIdx);
+    wrapper.querySelector('.tv-feed-item').style.animationDelay = (i * .1) + 's';
+    el.appendChild(wrapper);
+    _feedPointer = (_feedPointer + 1) % allItems.length;
+    _feedColorIdx++;
   }
-  if (!slides.length && fotos.length) slides = fotos.map(f => ({ type: 'foto', url: f.url, name: f.name }));
+  if (allItems.length < 2) return;
+  _feedTimer = setInterval(() => {
+    const wrappers = el.querySelectorAll('.tv-feed-wrapper:not(.collapsing)');
+    if (!wrappers.length) return;
+    const first = wrappers[0];
+    first.classList.add('collapsing');
+    const newItem = makeFeedItem(allItems[_feedPointer], _feedColorIdx);
+    _feedPointer = (_feedPointer + 1) % allItems.length;
+    _feedColorIdx++;
+    el.appendChild(newItem);
+    setTimeout(() => { if (first.parentNode) first.remove(); }, 480);
+  }, 3000);
+}
+
+function makeFeedItem(f, colorIdx) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'tv-feed-wrapper';
+  const div = document.createElement('div');
+  div.className = 'tv-feed-item';
+  div.style.cssText = `background:${_FEED_COLORS[colorIdx % _FEED_COLORS.length]};--r:${_FEED_ROTS[colorIdx % _FEED_ROTS.length]}`;
+  if (f.nombre) {
+    const label = document.createElement('div');
+    label.className = 'tv-feed-nombre';
+    label.textContent = '@ ' + f.nombre;
+    div.appendChild(label);
+  }
+  div.appendChild(document.createTextNode(f.texto));
+  wrapper.appendChild(div);
+  return wrapper;
+}
+
+function showCurrentTV() {
+  if (!fotos.length) return;
+  const img = document.getElementById('tv-current-img');
+  img.classList.add('fade-out');
+  setTimeout(() => {
+    img.src = fotos[slideshowIndex].url;
+    img.classList.remove('fade-out');
+  }, 280);
+  for (let i = 0; i < 3; i++) {
+    const nextIdx = (slideshowIndex + 1 + i) % fotos.length;
+    const item = document.getElementById(`tv-q${i}`);
+    if (!item) continue;
+    const qImg = item.querySelector('img');
+    if (fotos.length > 1) {
+      qImg.src = fotos[nextIdx].url;
+      item.classList.remove('empty');
+    } else {
+      item.classList.add('empty');
+    }
+  }
+}
+
+function startTVSlideshow() {
+  if (slideshowTimer) clearInterval(slideshowTimer);
+  slideshowTimer = setInterval(() => {
+    if (fotos.length > 1) {
+      slideshowIndex = (slideshowIndex + 1) % fotos.length;
+      showCurrentTV();
+    }
+  }, 6000);
+}
+
+function renderTVRanking() {
+  const el = document.getElementById('tv-ranking-inner');
+  const ranked = [...fotos].filter(f => (f.likes || 0) > 0).sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 3);
+  if (!ranked.length) { el.innerHTML = ''; return; }
+  const cls = ['p1','p2','p3'];
+  el.innerHTML = ranked.map((f, i) => `
+    <div class="tv-rank-item">
+      <div class="tv-rank-num ${cls[i]}">${i + 1}</div>
+      <img class="tv-rank-thumb" src="${f.url}" alt="">
+      <div class="tv-rank-hearts"><small>❤</small> ${f.likes}</div>
+    </div>`).join('');
 }
 
 // ── FOTOS ──
@@ -506,22 +641,6 @@ async function loadFotos() {
   } catch(e) {}
 }
 
-async function loadFotosTV() {
-  try {
-    const res = await fetch(`${WORKER_URL}/eventos/${EVENT_ID}/fotos`);
-    const data = await res.json();
-    if (data.files) {
-      const prev = fotos.length;
-      fotos = data.files;
-      if (fotos.length > 0) {
-        document.getElementById('tv-no-fotos').style.display = 'none';
-        if (prev === 0) startSlideshow();
-      } else {
-        document.getElementById('tv-no-fotos').style.display = 'flex';
-      }
-    }
-  } catch(e) {}
-}
 
 function renderGallery() {
   const grid = document.getElementById('gallery-grid');
@@ -597,53 +716,6 @@ function updateHeartUI(idx, f) {
 
 function updateWinnerCrown() {}
 
-// ── TV SLIDESHOW ──
-function startSlideshow() {
-  if (slideshowTimer) clearInterval(slideshowTimer);
-  showSlide(0);
-  slideshowTimer = setInterval(() => {
-    if (slides.length) showSlide((slideshowIndex + 1) % slides.length);
-  }, 6000);
-}
-
-function showSlide(index) {
-  slideshowIndex = index;
-  const item = slides[index];
-  if (!item) return;
-  if (item.type === 'frase') showPhraseSlide(item.texto);
-  else showPhotoSlide(item);
-}
-
-function showPhotoSlide(foto) {
-  document.getElementById('tv-phrase').style.display = 'none';
-  const slide = document.getElementById('tv-slide');
-  slide.classList.add('fade-out');
-  setTimeout(() => {
-    slide.style.backgroundImage = `url('${foto.url}')`;
-    slide.classList.remove('fade-out');
-  }, 400);
-}
-
-function showPhraseSlide(texto) {
-  document.getElementById('tv-slide').classList.add('fade-out');
-  const ph = document.getElementById('tv-phrase');
-  ph.style.display = 'flex';
-  function setRow(id, text, dur, anim) {
-    const el = document.getElementById(id);
-    el.innerHTML = `<span>${text}</span><span>${text}</span>`;
-    el.style.animation = 'none';
-    el.offsetHeight;
-    el.style.animation = `${anim} ${dur}s linear infinite`;
-  }
-  const nombreEv = (evento && evento.nombre ? evento.nombre : 'KUERRE').toUpperCase();
-  const topText  = Array(8).fill(nombreEv).join('  ·  ');
-  const mainText = Array(5).fill(texto).join('  ✦  ');
-  const botText  = Array(5).fill(texto).join('  ·  ');
-  const dur = Math.max(14, texto.length * 0.28);
-  setRow('tp-top',  topText,  dur * 1.6, 'tp-rev');
-  setRow('tp-main', mainText, dur,       'tp-fwd');
-  setRow('tp-bot',  botText,  dur * 1.3, 'tp-rev');
-}
 
 // ── ACTION MODAL ──
 function openActionModal() {
@@ -652,16 +724,22 @@ function openActionModal() {
 function closeActionModal() {
   document.getElementById('action-modal').style.display = 'none';
 }
+function chooseCamera() {
+  closeActionModal();
+  document.getElementById('file-input-camera').click();
+}
 function choosePhoto() {
   closeActionModal();
   document.getElementById('file-input').click();
 }
 function chooseFrase() {
   closeActionModal();
+  document.getElementById('frase-nombre').value = '';
   document.getElementById('frase-input').value = '';
   document.getElementById('frase-counter').textContent = '0 / 150';
   document.getElementById('frase-error').style.display = 'none';
   document.getElementById('frase-submit').disabled = true;
+  document.getElementById('frase-submit').textContent = 'Enviar frase';
   document.getElementById('frase-modal').style.display = 'flex';
   setTimeout(() => document.getElementById('frase-input').focus(), 50);
 }
@@ -720,10 +798,11 @@ async function submitFrase() {
   btn.disabled = true;
   btn.textContent = 'Enviando...';
   try {
+    const nombre = document.getElementById('frase-nombre').value.trim();
     const res = await fetch(`${WORKER_URL}/eventos/${EVENT_ID}/frases`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ texto })
+      body: JSON.stringify({ texto, nombre: nombre || null })
     });
     const data = await res.json();
     if (data.ok) {
@@ -745,6 +824,20 @@ async function submitFrase() {
   }
 }
 
+function showBlockedMsg(msg) {
+  const el = document.getElementById('upload-progress');
+  el.textContent = '⚠ ' + msg;
+  el.style.background = 'rgba(180,30,30,.95)';
+  el.style.color = '#fff';
+  el.style.display = 'block';
+  setTimeout(() => {
+    el.style.display = 'none';
+    el.style.background = '';
+    el.style.color = '';
+    el.textContent = 'Subiendo foto...';
+  }, 4000);
+}
+
 // ── UPLOAD ──
 async function handleFileSelect(e) {
   const file = e.target.files[0];
@@ -753,8 +846,27 @@ async function handleFileSelect(e) {
   if (file.size > 15 * 1024 * 1024) { showToast('La imagen es demasiado grande (máx 15MB)'); return; }
 
   isUploading = true;
-  document.getElementById('upload-progress').style.display = 'block';
+  const progressEl = document.getElementById('upload-progress');
+  progressEl.textContent = 'Analizando imagen...';
+  progressEl.style.display = 'block';
 
+  const { ok } = checkNSFW();
+  if (!ok) {
+    progressEl.textContent = '⚠ Foto no permitida en esta galería';
+    progressEl.style.background = 'rgba(180,30,30,.95)';
+    progressEl.style.color = '#fff';
+    setTimeout(() => {
+      progressEl.style.display = 'none';
+      progressEl.style.background = '';
+      progressEl.style.color = '';
+      progressEl.textContent = 'Subiendo foto...';
+    }, 3000);
+    isUploading = false;
+    e.target.value = '';
+    return;
+  }
+
+  progressEl.textContent = 'Subiendo foto...';
   const fd = new FormData();
   fd.append('file', file);
 
@@ -768,14 +880,15 @@ async function handleFileSelect(e) {
       showToast(msg);
       setTimeout(loadFotos, 3000);
     } else {
-      showToast(data.error || 'Error al subir. Intenta de nuevo.');
+      showBlockedMsg(data.error || 'Error al subir. Intenta de nuevo.');
     }
   } catch(err) {
-    showToast('Error de conexión. Intenta de nuevo.');
+    showBlockedMsg('Error de conexión. Intenta de nuevo.');
   } finally {
     isUploading = false;
-    document.getElementById('upload-progress').style.display = 'none';
     e.target.value = '';
+    const p = document.getElementById('upload-progress');
+    if (p.style.background === '') { p.style.display = 'none'; }
   }
 }
 
@@ -820,5 +933,3 @@ document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
-
-
