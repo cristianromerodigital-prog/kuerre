@@ -1,0 +1,8 @@
+{
+  "name": "kuerre-worker",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@crd/kuerre-core": "file:../../kuerre-core"
+  }
+}
