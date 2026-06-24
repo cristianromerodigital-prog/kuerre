@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@crd/kuerre-core": "file:../../kuerre-core"
+    "@crd/kuerre-core": "file:../../CORE"
   }
 }
