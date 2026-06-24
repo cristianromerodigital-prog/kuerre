@@ -1,0 +1,824 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<script>!function(){var v='136';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Fotos del Evento — KUERRE</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #0a0a0f;
+  --green:   #9060b8;
+  --gold:   #c9a84c;
+  --white:    #111111;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-serif; font-weight:300; overflow-x:hidden; }
+
+/* CURSOR */
+body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after { cursor:none !important; }
+#lightbox.active, #lightbox.active * { cursor:auto !important; }
+#lightbox.active button { cursor:pointer !important; }
+#cursor { position:fixed; width:10px; height:10px; background:var(--green); border-radius:50%; pointer-events:none; z-index:9999; left:0; top:0; transform:translate(-50%,-50%); mix-blend-mode:difference; transition:opacity .3s; }
+#cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(0,212,232,.5); border-radius:50%; pointer-events:none; z-index:9998; left:0; top:0; transform:translate(-50%,-50%); transition:transform .12s ease-out; }
+
+/* GRAIN */
+#grain { position:fixed; inset:0; z-index:300; pointer-events:none; opacity:.025; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size:200px; }
+
+/* LOADING */
+#loading-screen { position:fixed; inset:0; z-index:500; background:var(--bg); display:flex; align-items:center; justify-content:center; transition:opacity .6s; }
+#loading-screen.hidden { opacity:0; pointer-events:none; }
+.loading-text { font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.3); animation:pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.8} }
+
+/* UNAVAILABLE */
+#unavailable { display:none; position:fixed; inset:0; z-index:400; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; padding:40px; }
+#unavailable .msg-title { font-family:'Cormorant Garamond',serif; font-size:clamp(24px,5vw,40px); font-weight:300; font-style:italic; color:var(--white); }
+#unavailable .msg-sub { font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.3); }
+
+/* HERO */
+#hero { position:relative; width:100%; height:100vh; height:100dvh; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+#hero.hidden { display:none; }
+#hero-bg { position:absolute; inset:0; background-size:cover; background-position:center; filter:brightness(.42) saturate(1.1); }
+.hero-overlay { position:absolute; inset:0; background:radial-gradient(ellipse at 20% 80%,rgba(123,47,212,.45) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(0,212,232,.3) 0%,transparent 55%),linear-gradient(to bottom,rgba(10,10,15,.1) 0%,rgba(10,10,15,.75) 100%); }
+.hero-content { position:relative; z-index:2; text-align:center; padding:20px; animation:fadeUp 1.8s cubic-bezier(.16,1,.3,1) forwards; opacity:0; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+.hero-logo-seal { width:72px; height:72px; margin:0 auto 24px; display:none; }
+.hero-logo { width:100%; height:100%; object-fit:contain; filter:invert(1); mix-blend-mode:color-dodge; border-radius:50%; }
+.hero-brand { display:none; }
+#top-brand { position:fixed; top:0; left:0; right:0; z-index:100; text-align:center; padding:10px 16px; font-size:9px; letter-spacing:.5em; text-transform:uppercase; color:var(--green); opacity:.85; background:linear-gradient(to bottom,rgba(13,17,23,.85) 0%,rgba(13,17,23,0) 100%); pointer-events:none; }
+.hero-nombres { font-family:'Cormorant Garamond',serif; font-weight:300; font-style:italic; font-size:clamp(40px,7vw,88px); line-height:1; color:var(--white); text-shadow:0 0 60px rgba(0,212,232,.2); margin-bottom:10px; }
+.hero-divider { display:flex; align-items:center; justify-content:center; gap:12px; margin:14px 0; }
+.hero-divider::before { content:''; flex:1; max-width:80px; height:1px; background:linear-gradient(to right,transparent,rgba(201,168,76,.6)); }
+.hero-divider::after  { content:''; flex:1; max-width:80px; height:1px; background:linear-gradient(to left,transparent,rgba(201,168,76,.6)); }
+.hero-divider-star { color:var(--gold); font-size:12px; }
+.hero-fecha { font-size:clamp(10px,1.3vw,13px); letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.55); }
+#hero-idea { margin-top:20px; font-size:clamp(13px,1.8vw,16px); letter-spacing:.08em; color:#fff; text-shadow:0 1px 12px rgba(0,0,0,.8); min-height:24px; opacity:0; transform:translateY(10px); transition:opacity .55s ease, transform .55s ease; }
+#hero-idea.visible { opacity:1; transform:translateY(0); }
+#hero-idea.out { opacity:0; transform:translateY(-8px); }
+#upload-hint { position:fixed; right:92px; bottom:36px; z-index:201; display:none; align-items:center; gap:8px; color:rgba(255,255,255,.85); font-size:9px; letter-spacing:.25em; text-transform:uppercase; pointer-events:none; }
+.hint-arrow { width:22px; height:22px; border-right:2.5px solid rgba(0,212,232,1); border-bottom:2.5px solid rgba(0,212,232,1); transform:rotate(-45deg); flex-shrink:0; animation:hint-bounce .75s ease-in-out infinite; }
+@keyframes hint-bounce { 0%,100%{transform:rotate(-45deg) translateX(0)} 50%{transform:rotate(-45deg) translateX(5px)} }
+@keyframes hint-text-fade { to { opacity:0; width:0; overflow:hidden; margin:0; } }
+
+/* GALLERY */
+#gallery-section { padding:60px 24px 140px; max-width:1200px; margin:0 auto; }
+#gallery-section.hidden { display:none; }
+.gallery-header { text-align:center; margin-bottom:40px; }
+.gallery-header-eyebrow { font-size:10px; letter-spacing:.4em; text-transform:uppercase; color:var(--green); margin-bottom:10px; opacity:.7; }
+.gallery-header-title { font-family:'Cormorant Garamond',serif; font-size:clamp(28px,5vw,48px); font-weight:300; font-style:italic; }
+.gallery-count { text-align:center; margin-bottom:24px; font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.3); }
+#gallery-grid { columns:2; column-gap:10px; }
+@media (min-width:640px) { #gallery-grid { columns:3; } }
+@media (min-width:1024px) { #gallery-grid { columns:4; } }
+.gallery-item { position:relative; break-inside:avoid; margin-bottom:10px; overflow:hidden; cursor:pointer !important; }
+.gallery-item img { width:100%; display:block; transition:transform .4s ease; }
+.gallery-item:hover img { transform:scale(1.03); }
+.photo-heart { position:absolute; bottom:8px; right:8px; display:flex; align-items:center; gap:4px; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); border-radius:20px; padding:5px 8px 5px 7px; cursor:pointer !important; transition:transform .15s; z-index:2; -webkit-tap-highlight-color:transparent; }
+.photo-heart:active { transform:scale(.88); }
+.photo-heart.liked svg { filter:drop-shadow(0 0 5px rgba(255,77,109,.7)); }
+.photo-heart span { font-size:11px; font-weight:600; color:#fff; line-height:1; min-width:10px; }
+.photo-winner { position:absolute; top:8px; left:8px; font-size:20px; z-index:2; filter:drop-shadow(0 2px 6px rgba(0,0,0,.7)); pointer-events:none; }
+.gallery-empty { text-align:center; padding:60px 20px; color:rgba(255,255,255,.2); font-size:13px; letter-spacing:.2em; }
+.gallery-closed-notice { text-align:center; padding:12px 20px; margin-bottom:20px; font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.3); border:1px solid rgba(255,255,255,.08); }
+
+/* TV SLIDESHOW */
+#tv-mode { display:none; position:fixed; inset:0; background:#000; z-index:10; }
+#tv-mode.active { display:block; }
+#tv-slide { position:absolute; inset:0; background-size:contain; background-repeat:no-repeat; background-position:center; background-color:#000; transition:opacity .8s ease; }
+#tv-slide.fade-out { opacity:0; }
+#tv-overlay { position:absolute; bottom:0; left:0; right:0; padding:20px 40px; background:linear-gradient(to top,rgba(0,0,0,.65) 0%,transparent 100%); display:flex; align-items:center; gap:20px; }
+#tv-logo { width:44px; height:44px; border-radius:50%; object-fit:contain; display:none; filter:invert(1); mix-blend-mode:color-dodge; }
+#tv-nombre { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(18px,2.5vw,32px); font-weight:300; color:rgba(255,255,255,.8); }
+#tv-qr-wrap { margin-left:auto; display:flex; flex-direction:column; align-items:center; gap:6px; }
+#tv-qr-img { width:120px; height:120px; border-radius:8px; background:#fff; padding:5px; display:block; }
+#tv-qr-label { font-size:9px; letter-spacing:.25em; text-transform:uppercase; color:rgba(0,0,0,.1); }
+#tv-no-fotos { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+#tv-no-fotos .nf-title { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(32px,5vw,64px); color:rgba(0,0,0,.55); }
+#tv-no-fotos .nf-sub { font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.25); }
+
+/* UPLOAD FAB */
+#btn-upload { display:none; position:fixed; bottom:28px; right:28px; z-index:200; width:56px; height:56px; border-radius:50%; background:var(--gold); border:none; color:#000; font-size:28px; font-weight:300; line-height:1; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:transform .2s; cursor:pointer !important; }
+#btn-upload:hover { transform:scale(1.08); }
+#upload-label { display:none; position:fixed; bottom:38px; right:92px; z-index:200; background:rgba(13,17,23,.88); border:1px solid rgba(0,0,0,.12); border-radius:20px; padding:7px 14px; font-size:9px; letter-spacing:.25em; text-transform:uppercase; color:rgba(255,255,255,.85); pointer-events:none; white-space:nowrap; }
+@keyframes label-fadeout { 0%{opacity:1} 80%{opacity:1} 100%{opacity:0} }
+#upload-progress { display:none; position:fixed; bottom:96px; right:24px; z-index:201; background:rgba(0,0,0,.85); border:1px solid rgba(255,255,255,.12); padding:10px 18px; font-size:11px; letter-spacing:.2em; color:rgba(255,255,255,.6); }
+
+/* ACTION + FRASE MODALS */
+#action-modal,#frase-modal { position:fixed; inset:0; z-index:450; background:rgba(0,0,0,.8); backdrop-filter:blur(6px); display:flex; align-items:flex-end; justify-content:center; padding-bottom:env(safe-area-inset-bottom,0); }
+#action-box,#frase-box { background:#0d1117; border:1px solid rgba(255,255,255,.1); border-radius:20px 20px 0 0; padding:28px 24px 32px; width:100%; max-width:480px; }
+.am-title { font-size:10px; letter-spacing:.35em; text-transform:uppercase; color:var(--gray2); text-align:center; margin-bottom:20px; }
+.am-btn { display:flex; align-items:center; gap:14px; width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:16px 18px; margin-bottom:10px; cursor:pointer; text-align:left; transition:background .2s; }
+.am-btn:active { background:rgba(255,255,255,.1); }
+.am-btn-icon { font-size:22px; line-height:1; }
+.am-btn-label { font-size:13px; color:#fff; font-weight:500; display:block; }
+.am-btn-sub { font-size:10px; color:var(--gray2); display:block; margin-top:2px; }
+.am-cancel { display:block; width:100%; background:none; border:none; color:var(--gray2); font-size:11px; letter-spacing:.2em; text-transform:uppercase; margin-top:16px; cursor:pointer; padding:8px; }
+#frase-input { width:100%; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:14px; color:#fff; font-size:15px; font-family:inherit; resize:none; height:100px; box-sizing:border-box; margin-bottom:6px; }
+#frase-input:focus { outline:none; border-color:rgba(0,212,232,.5); }
+#frase-counter { font-size:10px; color:var(--gray2); text-align:right; margin-bottom:10px; }
+#frase-error { font-size:11px; color:#ff4d6d; margin-bottom:10px; display:none; }
+#frase-submit { width:100%; padding:14px; background:var(--gold); border:none; border-radius:10px; font-size:11px; letter-spacing:.3em; text-transform:uppercase; font-weight:600; color:#000; cursor:pointer; }
+#frase-submit:disabled { opacity:.4; cursor:default; }
+/* TV FRASE SLIDE (opción 10) */
+#tv-phrase { position:absolute; inset:0; background:#07070d; display:none; flex-direction:column; align-items:center; justify-content:center; gap:12px; overflow:hidden; z-index:4; }
+#tv-phrase::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%,rgba(0,212,232,.05) 0%,transparent 70%); pointer-events:none; }
+.tp-row { width:100%; overflow:hidden; mask-image:linear-gradient(to right,transparent 0%,black 5%,black 95%,transparent 100%); -webkit-mask-image:linear-gradient(to right,transparent 0%,black 5%,black 95%,transparent 100%); }
+.tp-inner { display:inline-flex; white-space:nowrap; }
+.tp-inner span { font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:300; padding-right:80px; }
+.tp-sm .tp-inner span { font-size:clamp(33px,4.5vw,54px); color:rgba(0,212,232,.5); letter-spacing:.1em; }
+.tp-big .tp-inner span { font-size:clamp(84px,14.4vw,174px); color:#fff; letter-spacing:.03em; }
+.tp-med .tp-inner span { font-size:clamp(42px,6.6vw,78px); color:rgba(255,255,255,.25); letter-spacing:.06em; }
+@keyframes tp-fwd { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes tp-rev { from{transform:translateX(-50%)} to{transform:translateX(0)} }
+/* TV TICKER (legacy — oculto, reemplazado por slides) */
+#tv-ticker { display:none !important; }
+
+/* WELCOME MODAL */
+#welcome-modal { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.85); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:24px; }
+#welcome-box { background:#0d1117; border:1px solid rgba(0,212,232,.2); border-radius:16px; padding:36px 28px 28px; max-width:340px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+.wm-eyebrow { font-size:8px; letter-spacing:.5em; text-transform:uppercase; color:var(--green); opacity:.7; margin-bottom:16px; }
+.wm-title { font-family:'Cormorant Garamond',serif; font-size:clamp(26px,6vw,34px); font-weight:300; font-style:italic; color:#fff; margin-bottom:28px; line-height:1.15; }
+.wm-rules { display:flex; flex-direction:column; gap:16px; margin-bottom:32px; text-align:left; }
+.wm-rule { display:flex; align-items:center; gap:14px; }
+.wm-rule-icon { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:18px; background:rgba(255,255,255,.06); }
+.wm-rule-text { font-size:12px; color:rgba(255,255,255,.75); line-height:1.45; letter-spacing:.02em; }
+.wm-rule-text strong { color:#fff; display:block; font-size:13px; margin-bottom:2px; }
+#welcome-btn { width:100%; padding:14px; background:var(--gold); border:none; border-radius:10px; font-size:11px; letter-spacing:.3em; text-transform:uppercase; font-weight:600; color:#000; cursor:pointer; transition:opacity .2s; }
+#welcome-btn:active { opacity:.8; }
+@keyframes wm-in { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+#welcome-box { animation:wm-in .35s cubic-bezier(.16,1,.3,1) forwards; }
+
+/* TOAST */
+#toast { position:fixed; bottom:108px; left:50%; transform:translateX(-50%) translateY(20px); z-index:400; background:rgba(0,0,0,.9); border:1px solid rgba(255,255,255,.12); padding:12px 24px; font-size:12px; letter-spacing:.15em; color:var(--white); opacity:0; transition:opacity .3s,transform .3s; pointer-events:none; text-align:center; max-width:320px; white-space:normal; }
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* LIGHTBOX */
+#lightbox { display:none; position:fixed; inset:0; z-index:600; background:rgba(0,0,0,.95); align-items:center; justify-content:center; }
+#lightbox.active { display:flex; }
+#lb-img { width:100vw; height:100vh; object-fit:contain; pointer-events:none; }
+#lb-close { position:fixed; top:20px; right:24px; background:none; border:none; color:rgba(255,255,255,.6); font-size:28px; cursor:pointer !important; z-index:601; }
+#lb-prev,#lb-next { position:fixed; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); border:none; color:rgba(0,0,0,.55); font-size:36px; padding:16px 12px; cursor:pointer !important; z-index:601; }
+#lb-prev { left:8px; }
+#lb-next { right:8px; }
+
+/* FLOATING BUTTONS */
+.sfloat-btn { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; transition:all .3s; cursor:pointer !important; }
+.sfloat-btn:hover { transform:scale(1.12); }
+#social-float { position:fixed; bottom:100px; right:28px; z-index:250; display:flex; flex-direction:column; align-items:center; gap:14px; }
+#ig-float { background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%); box-shadow:0 8px 24px rgba(214,36,159,.3); }
+#logo-float { background:#0d1117; border:1px solid rgba(0,212,232,.5); box-shadow:0 8px 24px rgba(0,212,232,.2); display:none; overflow:hidden; }
+#logo-float img { width:76%; height:76%; object-fit:contain; filter:invert(1); }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div id="grain"></div>
+
+<div id="loading-screen"><div class="loading-text">Cargando</div></div>
+
+<div id="unavailable">
+  <div class="msg-title">Este evento ya no está disponible</div>
+  <div class="msg-sub">KUERRE</div>
+</div>
+
+<div id="top-brand">KUERRE</div>
+
+<section id="hero">
+  <div id="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-logo-seal" id="hero-logo-seal">
+      <img class="hero-logo" id="hero-logo-img" alt="CR">
+    </div>
+    <div class="hero-brand">KUERRE</div>
+    <div id="hero-nombres" class="hero-nombres"></div>
+    <div class="hero-divider"><span class="hero-divider-star">✦</span></div>
+    <div id="hero-fecha" class="hero-fecha"></div>
+    <div id="hero-idea"></div>
+  </div>
+</section>
+
+<section id="gallery-section">
+  <div class="gallery-header">
+    <div class="gallery-header-eyebrow">Galería del evento</div>
+    <div class="gallery-header-title" id="gallery-title"></div>
+  </div>
+  <div id="gallery-closed-notice" class="gallery-closed-notice" style="display:none">El evento ya finalizó — las fotos siguen disponibles para ver</div>
+  <div class="gallery-count" id="gallery-count"></div>
+  <div id="gallery-grid"></div>
+</section>
+
+<div id="tv-mode">
+  <div id="tv-slide"></div>
+  <div id="tv-no-fotos" style="display:none">
+    <div class="nf-title" id="tv-no-fotos-nombre"></div>
+    <div class="nf-sub">Esperando las primeras fotos...</div>
+  </div>
+  <div id="tv-phrase">
+    <div class="tp-row tp-sm"><div class="tp-inner" id="tp-top"></div></div>
+    <div class="tp-row tp-big"><div class="tp-inner" id="tp-main"></div></div>
+    <div class="tp-row tp-med"><div class="tp-inner" id="tp-bot"></div></div>
+  </div>
+  <div id="tv-ticker"><div id="tv-ticker-inner"></div></div>
+  <div id="tv-overlay">
+    <img id="tv-logo" alt="CR">
+    <div id="tv-nombre"></div>
+    <div id="tv-qr-wrap">
+      <img id="tv-qr-img" alt="QR">
+      <div id="tv-qr-label">Escaneá para subir fotos</div>
+    </div>
+  </div>
+</div>
+
+<div id="upload-label">subí tu foto</div>
+<button id="btn-upload" title="Subir foto" onclick="openActionModal()">
+  <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none">
+  +
+</button>
+<div id="upload-progress">Subiendo foto...</div>
+
+<div id="social-float">
+  <a id="logo-float" class="sfloat-btn" href="https://KUERRE.com.ar" target="_blank">
+    <img id="logo-float-img" alt="CR">
+  </a>
+  <a id="ig-float" class="sfloat-btn" href="https://www.instagram.com/cristian.romero.producciones" target="_blank">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" width="26" height="26"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-linecap="round" stroke-width="2.5"/></svg>
+  </a>
+</div>
+
+<div id="upload-hint"><span>cargá tu foto</span><div class="hint-arrow"></div></div>
+<div id="toast"></div>
+
+<!-- Action choice modal -->
+<div id="action-modal" style="display:none">
+  <div id="action-box">
+    <div class="am-title">¿Qué querés compartir?</div>
+    <button class="am-btn" onclick="choosePhoto()">
+      <span class="am-btn-icon">📸</span>
+      <span><span class="am-btn-label">Subir una foto</span><span class="am-btn-sub">Elegí una imagen de tu cámara o galería</span></span>
+    </button>
+    <button class="am-btn" onclick="chooseFrase()">
+      <span class="am-btn-icon">💬</span>
+      <span><span class="am-btn-label">Escribir una frase</span><span class="am-btn-sub">Dejá un mensaje para el festejo</span></span>
+    </button>
+    <button class="am-cancel" onclick="closeActionModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Frase input modal -->
+<div id="frase-modal" style="display:none">
+  <div id="frase-box">
+    <div class="am-title">Escribí tu frase</div>
+    <textarea id="frase-input" placeholder="Ej: ¡Qué noche más especial! 🎉" maxlength="150" oninput="onFraseInput()"></textarea>
+    <div id="frase-counter">0 / 150</div>
+    <div id="frase-error"></div>
+    <button id="frase-submit" onclick="submitFrase()">Enviar frase</button>
+    <button class="am-cancel" onclick="closeFraseModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Welcome Modal -->
+<div id="welcome-modal" style="display:none">
+  <div id="welcome-box">
+    <div class="wm-eyebrow">Bienvenido/a</div>
+    <div class="wm-title">¡Participá<br>del festejo!</div>
+    <div class="wm-rules">
+      <div class="wm-rule">
+        <div class="wm-rule-icon">📸</div>
+        <div class="wm-rule-text"><strong>Subí tus fotos</strong>Tocá el botón <strong style="display:inline;font-size:inherit">+</strong> y compartí tus mejores momentos.</div>
+      </div>
+      <div class="wm-rule">
+        <div class="wm-rule-icon">❤️</div>
+        <div class="wm-rule-text"><strong>Dale me gusta</strong>Tocá el corazón en las fotos que más te gusten.</div>
+      </div>
+      <div class="wm-rule">
+        <div class="wm-rule-icon">🏆</div>
+        <div class="wm-rule-text"><strong>¡La más votada gana!</strong>La foto con más corazones se lleva el premio.</div>
+      </div>
+    </div>
+    <button id="welcome-btn" onclick="closeWelcome()">¡Empezar!</button>
+  </div>
+</div>
+
+<div id="lightbox">
+  <img id="lb-img" alt="">
+  <button id="lb-close" onclick="closeLightbox()">✕</button>
+  <button id="lb-prev" onclick="lbPrev()">‹</button>
+  <button id="lb-next" onclick="lbNext()">›</button>
+</div>
+
+<script>
+const WORKER_URL = 'https://KUERRE-worker.cristian-romero-digital.workers.dev';
+const params = new URLSearchParams(window.location.search);
+const EVENT_ID = params.get('e') || '';
+
+let settings = (() => { try { return JSON.parse(localStorage.getItem('KUERRE_settings')) || {}; } catch(e) { return {}; } })();
+fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/KUERRE_settings',{headers:{Authorization:'crd2025'}}).then(r=>r.json()).then(function(d){ settings=Object.assign({},settings,{logo_url:d.logoUrl||'',whatsapp:d.waSuffix||'',website:d.entregaWebUrl||'',instagram:d.instagram||'',entregaIgUrl:d.entregaIgUrl||''}); applyBranding(); }).catch(function(){});
+
+let evento = null;
+let fotos = [];
+let frases = [];
+let slides = [];
+let lbIndex = 0;
+let slideshowIndex = 0;
+let slideshowTimer = null;
+let refreshTimer = null;
+let isUploading = false;
+const IS_TV = window.innerWidth > 1024 && window.innerHeight > 600 && !('ontouchstart' in window);
+
+// ── CURSOR ──
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+const IS_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+if (!IS_TV && !IS_TOUCH) {
+  document.body.classList.add('custom-cursor');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px'; cur.style.top = e.clientY + 'px';
+    ring.style.left = e.clientX + 'px'; ring.style.top = e.clientY + 'px';
+  });
+}
+
+// ── INIT ──
+async function init() {
+  if (!EVENT_ID) { showUnavailable(); return; }
+  try {
+    const res = await fetch(`${WORKER_URL}/eventos/${EVENT_ID}`);
+    if (!res.ok) { showUnavailable(); return; }
+    evento = await res.json();
+    if (evento.error) { showUnavailable(); return; }
+  } catch(e) { showUnavailable(); return; }
+
+  applyBranding();
+  if (IS_TV) setupTV();
+  else setupMobile();
+  document.getElementById('loading-screen').classList.add('hidden');
+}
+
+function isClosed() {
+  if (evento.estado !== 'activo') return true;
+  if (evento.cierre_auto && new Date() > new Date(evento.cierre_auto)) return true;
+  return false;
+}
+
+function applyBranding() {
+  const logo = settings.logo_url || '';
+  if (logo) {
+    const tvLogo = document.getElementById('tv-logo');
+    tvLogo.src = logo; tvLogo.style.display = 'block';
+    document.getElementById('logo-float-img').src = logo;
+    document.getElementById('logo-float').style.display = 'flex';
+  }
+  const igUrl = settings.entregaIgUrl || (settings.instagram ? 'https://www.instagram.com/'+settings.instagram : '');
+  if (igUrl) document.getElementById('ig-float').href = igUrl;
+}
+
+// ── WELCOME MODAL ──
+function showWelcome() {
+  const m = document.getElementById('welcome-modal');
+  m.style.display = 'flex';
+}
+function closeWelcome() {
+  const m = document.getElementById('welcome-modal');
+  m.style.opacity = '0';
+  m.style.transition = 'opacity .25s';
+  setTimeout(() => { m.style.display = 'none'; }, 260);
+}
+
+// ── MOBILE MODE ──
+function setupMobile() {
+  showWelcome();
+  document.getElementById('hero-nombres').textContent = evento.nombre;
+  document.getElementById('hero-fecha').textContent = formatDate(evento.fecha);
+  document.getElementById('gallery-title').textContent = evento.nombre;
+  if (evento.portada) document.getElementById('hero-bg').style.backgroundImage = `url('${evento.portada}')`;
+  if (!isClosed()) {
+    const uploadBtn = document.getElementById('btn-upload');
+    uploadBtn.style.display = 'flex';
+    const uploadHint = document.getElementById('upload-hint');
+    uploadHint.style.display = 'flex';
+    uploadBtn.addEventListener('click', () => { uploadHint.style.display = 'none'; }, { once: true });
+    document.getElementById('file-input').addEventListener('change', handleFileSelect);
+  } else {
+    document.getElementById('gallery-closed-notice').style.display = 'block';
+  }
+  loadFotos();
+  refreshTimer = setInterval(loadFotos, 15000);
+  const IDEAS = [
+    '📸 Hacé una foto con los protagonistas',
+    '💃 Capturá un momento de baile',
+    '🥂 Andá al brindis y sacale una foto',
+    '🤗 Fotografiá un abrazo especial',
+    '👯 Armá una foto grupal con tus amigos',
+    '✨ Capturá algún detalle de la decoración',
+    '😄 Sacá tu mejor pose de la noche',
+    '🎉 Capturá un momento espontáneo',
+    '👨‍👩‍👧 Hacé una foto con toda la familia',
+    '🌟 Capturá el momento más divertido'
+  ];
+  let ideaIdx = 0;
+  const ideaEl = document.getElementById('hero-idea');
+  ideaEl.textContent = IDEAS[0];
+  setTimeout(() => ideaEl.classList.add('visible'), 100);
+  setInterval(() => {
+    ideaEl.classList.remove('visible');
+    ideaEl.classList.add('out');
+    setTimeout(() => {
+      ideaIdx = (ideaIdx + 1) % IDEAS.length;
+      ideaEl.textContent = IDEAS[ideaIdx];
+      ideaEl.classList.remove('out');
+      ideaEl.classList.add('visible');
+    }, 580);
+  }, 3500);
+  if (!isClosed()) {
+    setTimeout(() => {
+      window.scrollBy({ top: 90, behavior: 'smooth' });
+      setTimeout(() => window.scrollBy({ top: -90, behavior: 'smooth' }), 900);
+    }, 2200);
+  }
+}
+
+// ── TV MODE ──
+function setupTV() {
+  document.getElementById('tv-mode').classList.add('active');
+  document.getElementById('hero').classList.add('hidden');
+  document.getElementById('gallery-section').classList.add('hidden');
+  document.getElementById('social-float').style.display = 'none';
+  const eventUrl = window.location.origin + window.location.pathname + '?e=' + EVENT_ID;
+  document.getElementById('tv-qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(eventUrl) + '&format=png';
+  document.getElementById('tv-nombre').textContent = evento.nombre;
+  document.getElementById('tv-no-fotos-nombre').textContent = evento.nombre;
+  loadSlidesTV();
+  refreshTimer = setInterval(loadSlidesTV, 15000);
+}
+
+async function loadSlidesTV() {
+  try {
+    const [fotosRes, frasesRes] = await Promise.all([
+      fetch(`${WORKER_URL}/eventos/${EVENT_ID}/fotos`),
+      fetch(`${WORKER_URL}/eventos/${EVENT_ID}/frases`)
+    ]);
+    const fotosData = await fotosRes.json();
+    const frasesData = await frasesRes.json();
+    const prevCount = slides.length;
+    if (fotosData.files) fotos = fotosData.files;
+    if (frasesData.frases) frases = frasesData.frases;
+    buildSlides();
+    if (slides.length > 0) {
+      document.getElementById('tv-no-fotos').style.display = 'none';
+      if (prevCount === 0) startSlideshow();
+    } else {
+      document.getElementById('tv-no-fotos').style.display = 'flex';
+    }
+  } catch(e) {}
+}
+
+function buildSlides() {
+  slides = [];
+  const max = Math.max(fotos.length, frases.length);
+  for (let i = 0; i < max; i++) {
+    if (i < fotos.length) slides.push({ type: 'foto', url: fotos[i].url, name: fotos[i].name });
+    if (i < frases.length) slides.push({ type: 'frase', texto: frases[i].texto });
+  }
+  if (!slides.length && fotos.length) slides = fotos.map(f => ({ type: 'foto', url: f.url, name: f.name }));
+}
+
+// ── FOTOS ──
+function getSessionId() {
+  let s = localStorage.getItem('qrf_session');
+  if (!s) {
+    s = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+    localStorage.setItem('qrf_session', s);
+  }
+  return s;
+}
+
+async function loadFotos() {
+  try {
+    const res = await fetch(`${WORKER_URL}/eventos/${EVENT_ID}/fotos?session=${encodeURIComponent(getSessionId())}`);
+    const data = await res.json();
+    if (data.files) { fotos = data.files; renderGallery(); }
+  } catch(e) {}
+}
+
+async function loadFotosTV() {
+  try {
+    const res = await fetch(`${WORKER_URL}/eventos/${EVENT_ID}/fotos`);
+    const data = await res.json();
+    if (data.files) {
+      const prev = fotos.length;
+      fotos = data.files;
+      if (fotos.length > 0) {
+        document.getElementById('tv-no-fotos').style.display = 'none';
+        if (prev === 0) startSlideshow();
+      } else {
+        document.getElementById('tv-no-fotos').style.display = 'flex';
+      }
+    }
+  } catch(e) {}
+}
+
+function renderGallery() {
+  const grid = document.getElementById('gallery-grid');
+  const count = document.getElementById('gallery-count');
+  if (!fotos.length) {
+    grid.innerHTML = '<div class="gallery-empty">Todavía no hay fotos. ¡Sé el primero en subir una!</div>';
+    count.textContent = '';
+    return;
+  }
+  count.textContent = fotos.length + (fotos.length === 1 ? ' foto' : ' fotos');
+  const maxLikes = Math.max(0, ...fotos.map(f => f.likes || 0));
+  grid.innerHTML = fotos.map((f, i) => {
+    const fid = f.foto_id || '';
+    const liked = !!f.liked;
+    const likes = f.likes || 0;
+    const fill = liked ? '#ff4d6d' : 'none';
+    const stroke = liked ? '#ff4d6d' : 'rgba(255,255,255,.9)';
+    return `<div class="gallery-item" onclick="openLightbox(${i})">
+      <img src="${f.url}" alt="${f.name}" loading="lazy">
+      <div class="photo-heart${liked ? ' liked' : ''}" onclick="event.stopPropagation();likePhoto('${fid}',${i})">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="${fill}" stroke="${stroke}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        ${likes ? `<span>${likes}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const _liking = new Set();
+
+async function likePhoto(fotoId, idx) {
+  if (!fotoId || _liking.has(fotoId)) return;
+  _liking.add(fotoId);
+  const f = fotos[idx];
+  const wasLiked = !!f.liked;
+  f.liked = !wasLiked;
+  f.likes = wasLiked ? Math.max(0, (f.likes || 0) - 1) : (f.likes || 0) + 1;
+  updateHeartUI(idx, f);
+  updateWinnerCrown();
+  try {
+    const res = await fetch(`${WORKER_URL}/eventos/${EVENT_ID}/fotos/${fotoId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: getSessionId() })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      f.liked = data.liked;
+      f.likes = data.likes;
+      updateHeartUI(idx, f);
+      updateWinnerCrown();
+    }
+  } catch(e) {
+    f.liked = wasLiked;
+    f.likes = wasLiked ? (f.likes || 0) + 1 : Math.max(0, (f.likes || 0) - 1);
+    updateHeartUI(idx, f);
+    updateWinnerCrown();
+  } finally {
+    _liking.delete(fotoId);
+  }
+}
+
+function updateHeartUI(idx, f) {
+  const items = document.querySelectorAll('.gallery-item');
+  if (!items[idx]) return;
+  const heart = items[idx].querySelector('.photo-heart');
+  if (!heart) return;
+  const liked = !!f.liked;
+  heart.className = 'photo-heart' + (liked ? ' liked' : '');
+  const fill = liked ? '#ff4d6d' : 'none';
+  const stroke = liked ? '#ff4d6d' : 'rgba(255,255,255,.9)';
+  heart.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="${fill}" stroke="${stroke}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>${f.likes ? `<span>${f.likes}</span>` : ''}`;
+}
+
+function updateWinnerCrown() {}
+
+// ── TV SLIDESHOW ──
+function startSlideshow() {
+  if (slideshowTimer) clearInterval(slideshowTimer);
+  showSlide(0);
+  slideshowTimer = setInterval(() => {
+    if (slides.length) showSlide((slideshowIndex + 1) % slides.length);
+  }, 6000);
+}
+
+function showSlide(index) {
+  slideshowIndex = index;
+  const item = slides[index];
+  if (!item) return;
+  if (item.type === 'frase') showPhraseSlide(item.texto);
+  else showPhotoSlide(item);
+}
+
+function showPhotoSlide(foto) {
+  document.getElementById('tv-phrase').style.display = 'none';
+  const slide = document.getElementById('tv-slide');
+  slide.classList.add('fade-out');
+  setTimeout(() => {
+    slide.style.backgroundImage = `url('${foto.url}')`;
+    slide.classList.remove('fade-out');
+  }, 400);
+}
+
+function showPhraseSlide(texto) {
+  document.getElementById('tv-slide').classList.add('fade-out');
+  const ph = document.getElementById('tv-phrase');
+  ph.style.display = 'flex';
+  function setRow(id, text, dur, anim) {
+    const el = document.getElementById(id);
+    el.innerHTML = `<span>${text}</span><span>${text}</span>`;
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = `${anim} ${dur}s linear infinite`;
+  }
+  const nombreEv = (evento && evento.nombre ? evento.nombre : 'KUERRE').toUpperCase();
+  const topText  = Array(8).fill(nombreEv).join('  ·  ');
+  const mainText = Array(5).fill(texto).join('  ✦  ');
+  const botText  = Array(5).fill(texto).join('  ·  ');
+  const dur = Math.max(14, texto.length * 0.28);
+  setRow('tp-top',  topText,  dur * 1.6, 'tp-rev');
+  setRow('tp-main', mainText, dur,       'tp-fwd');
+  setRow('tp-bot',  botText,  dur * 1.3, 'tp-rev');
+}
+
+// ── ACTION MODAL ──
+function openActionModal() {
+  document.getElementById('action-modal').style.display = 'flex';
+}
+function closeActionModal() {
+  document.getElementById('action-modal').style.display = 'none';
+}
+function choosePhoto() {
+  closeActionModal();
+  document.getElementById('file-input').click();
+}
+function chooseFrase() {
+  closeActionModal();
+  document.getElementById('frase-input').value = '';
+  document.getElementById('frase-counter').textContent = '0 / 150';
+  document.getElementById('frase-error').style.display = 'none';
+  document.getElementById('frase-submit').disabled = true;
+  document.getElementById('frase-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('frase-input').focus(), 50);
+}
+function closeFraseModal() {
+  document.getElementById('frase-modal').style.display = 'none';
+}
+function onFraseInput() {
+  const val = document.getElementById('frase-input').value;
+  document.getElementById('frase-counter').textContent = val.length + ' / 150';
+  document.getElementById('frase-submit').disabled = val.trim().length < 3;
+  document.getElementById('frase-error').style.display = 'none';
+}
+const _MALAS = [
+  // Pene
+  'pija','poronga','verga','chota','garcha',
+  // Vagina
+  'concha','cajeta',
+  // Trasero / cuerpo
+  'orto','culo','teta',
+  // Sexo
+  'garchar','culear','coger','pete','petera','petero','chuparla','chupame','chupala',
+  // Masturbación
+  'pajero','pajera','pajerear','paja',
+  // Testículos
+  'bolas','pelotas','huevos',
+  // Insultos
+  'forro','forrear','boludo','boluda','pelotudo','pelotuda',
+  'sorete','gil','garca','cagon','cagona','puto','puta','trola',
+  'choto','degenerado','degenerada','baboso','satiro','lacra',
+  // Compuestos
+  'rompebolas','rompepelotas','hinchapelotas','tocapelotas','chupapija',
+  // Frases (con espacio — se buscan con includes directo)
+  'hijo de puta','hdp','la concha','la puta','la re puta','la reput',
+  'me chupa','andate a la mierda','cerr el orto',
+  // Exclamaciones
+  'mierda','carajo','cagar',
+];
+function _hasBadWord(text) {
+  // Normalizar: minúsculas, sin acentos, leet básico
+  const norm = text.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e')
+    .replace(/4/g,'a').replace(/\$/g,'s').replace(/@/g,'a').replace(/!/g,'i');
+  return _MALAS.some(w => norm.includes(w));
+}
+async function submitFrase() {
+  const texto = document.getElementById('frase-input').value.trim();
+  if (texto.length < 3) return;
+  if (_hasBadWord(texto)) {
+    const err = document.getElementById('frase-error');
+    err.textContent = 'La frase contiene palabras no permitidas.';
+    err.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('frase-submit');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  try {
+    const res = await fetch(`${WORKER_URL}/eventos/${EVENT_ID}/frases`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texto })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      closeFraseModal();
+      showToast('¡Frase enviada! 🎉');
+    } else {
+      const err = document.getElementById('frase-error');
+      err.textContent = data.error || 'Error al enviar';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Enviar frase';
+    }
+  } catch(e) {
+    const err = document.getElementById('frase-error');
+    err.textContent = 'Error de conexión, intentá de nuevo.';
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Enviar frase';
+  }
+}
+
+// ── UPLOAD ──
+async function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file || isUploading) return;
+  if (!file.type.startsWith('image/')) { showToast('Solo se permiten imágenes'); return; }
+  if (file.size > 15 * 1024 * 1024) { showToast('La imagen es demasiado grande (máx 15MB)'); return; }
+
+  isUploading = true;
+  document.getElementById('upload-progress').style.display = 'block';
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  try {
+    const res = await fetch(`${WORKER_URL}/eventos/${EVENT_ID}/fotos`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok) {
+      const msg = evento.moderacion
+        ? 'Foto enviada. Quedará visible tras revisión.'
+        : '¡Foto subida! Aparecerá en la galería en breve.';
+      showToast(msg);
+      setTimeout(loadFotos, 3000);
+    } else {
+      showToast(data.error || 'Error al subir. Intenta de nuevo.');
+    }
+  } catch(err) {
+    showToast('Error de conexión. Intenta de nuevo.');
+  } finally {
+    isUploading = false;
+    document.getElementById('upload-progress').style.display = 'none';
+    e.target.value = '';
+  }
+}
+
+// ── LIGHTBOX ──
+function openLightbox(i) {
+  lbIndex = i;
+  document.getElementById('lb-img').src = fotos[i].url;
+  document.getElementById('lightbox').classList.add('active');
+  document.getElementById('tv-mode').style.pointerEvents = 'none';
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); document.getElementById('tv-mode').style.pointerEvents = ''; }
+function lbPrev() { lbIndex = (lbIndex - 1 + fotos.length) % fotos.length; document.getElementById('lb-img').src = fotos[lbIndex].url; }
+function lbNext() { lbIndex = (lbIndex + 1) % fotos.length; document.getElementById('lb-img').src = fotos[lbIndex].url; }
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('active')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') lbPrev();
+  if (e.key === 'ArrowRight') lbNext();
+});
+
+// ── HELPERS ──
+function showUnavailable() {
+  document.getElementById('loading-screen').classList.add('hidden');
+  document.getElementById('unavailable').style.display = 'flex';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(day)} de ${meses[parseInt(m)-1]} de ${y}`;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+
+
