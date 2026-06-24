@@ -9,8 +9,21 @@ export default {
     const method = request.method;
 
     try {
+      const CORE_OPTIONS = {
+        brand: 'KUERRE',
+        modules: {
+          qr_fiestas:   true,
+          invitaciones: true,
+          premiere:     true,
+          contratos:    true,
+          crclub:       false,
+          presupuesto:  false,
+          portfolio:    false,
+        }
+      };
+
       // ── kuerre-core: eventos, fotos, frases, likes, admin auth + UI ──────────
-      const response = await mountCoreRouter(request, env, url);
+      const response = await mountCoreRouter(request, env, url, CORE_OPTIONS);
       if (response) return response;
 
       // ── KV directo (branding settings read/write) ─────────────────────────
