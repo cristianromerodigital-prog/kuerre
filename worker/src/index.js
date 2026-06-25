@@ -68,46 +68,66 @@ export default {
         });
       }
 
-      // ── Google Drive video: extrae URL directa de streaming y redirige ──────
+      // ── Google Drive video proxy (bypasses CORS + virus warning) ───────────
       if (path.startsWith('/api/gdrive/')) {
         const fileId = path.split('/api/gdrive/')[1]?.split('/')[0];
         if (!fileId) return json({ error: 'No file ID' }, 400);
+        const rangeHeader = request.headers.get('Range') || '';
         const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
-        // Paso 1: pedir la página de vista para extraer la URL de streaming real
-        const viewResp = await fetch(`https://drive.google.com/file/d/${fileId}/view`, {
-          headers: { 'User-Agent': ua }
+        const baseHeaders = { 'User-Agent': ua, 'Accept': '*/*' };
+        if (rangeHeader) baseHeaders['Range'] = rangeHeader;
+
+        // Paso 1: primera request (sin redireccion para capturar cookies)
+        const resp1 = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`, {
+          headers: baseHeaders, redirect: 'manual'
         });
-        const html = await viewResp.text();
-        // Buscar URL de streaming directa (redirector.googlevideo.com)
-        const streamMatch = html.match(/https:\/\/[^"'\\]+redirector\.googlevideo\.com[^"'\\]+/);
-        if (streamMatch) {
-          const streamUrl = streamMatch[0].replace(/\\u003d/g,'=').replace(/\\u0026/g,'&').replace(/\\/g,'');
-          return Response.redirect(streamUrl, 302);
+
+        // Redirect directo al archivo → devolver la URL al browser
+        if (resp1.status === 302 || resp1.status === 301) {
+          const loc = resp1.headers.get('location');
+          if (loc) {
+            const rh = new Headers({ 'Access-Control-Allow-Origin': '*', 'Location': loc });
+            return new Response(null, { status: 302, headers: rh });
+          }
         }
-        // Fallback: uc?export=download con bypass de confirmación
-        const dlResp = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`, {
-          headers: { 'User-Agent': ua }, redirect: 'follow'
+
+        // Google devolvio HTML (warning de virus para archivos grandes)
+        const cookies = resp1.headers.get('set-cookie') || '';
+        const html = await resp1.text();
+        const confirmM = html.match(/confirm=([^&"'\s]+)/);
+        if (!confirmM) return new Response('Drive: no se encontro token de confirmacion', { status: 502 });
+
+        const confirm = confirmM[1];
+        const uuidM = html.match(/uuid=([^&"'\s]+)/);
+        const confirmUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${confirm}${uuidM ? '&uuid=' + uuidM[1] : ''}`;
+        const confirmHeaders = { ...baseHeaders };
+        if (cookies) confirmHeaders['Cookie'] = cookies.split(';')[0]; // NID cookie
+
+        const resp2 = await fetch(confirmUrl, { headers: confirmHeaders, redirect: 'manual' });
+
+        // Si redirige al archivo real
+        if (resp2.status === 302 || resp2.status === 301) {
+          const loc = resp2.headers.get('location');
+          if (loc) {
+            const rh = new Headers({ 'Access-Control-Allow-Origin': '*', 'Location': loc });
+            return new Response(null, { status: 302, headers: rh });
+          }
+        }
+
+        // Proxy del stream con soporte Range completo
+        const finalResp = resp2.status === 200 || resp2.status === 206
+          ? resp2
+          : await fetch(confirmUrl, { headers: confirmHeaders, redirect: 'follow' });
+
+        const vh = new Headers({
+          'Access-Control-Allow-Origin': '*',
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=1800',
         });
-        const dlCt = dlResp.headers.get('content-type') || '';
-        if (dlCt.includes('text/html')) {
-          const dlHtml = await dlResp.text();
-          const confirm = (dlHtml.match(/confirm=([^&"'\s]+)/) || [])[1];
-          if (!confirm) return new Response('No se pudo obtener URL de Drive', { status: 502 });
-          const confirmResp = await fetch(
-            `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${confirm}`,
-            { headers: { 'User-Agent': ua }, redirect: 'follow' }
-          );
-          const loc = confirmResp.headers.get('location') || confirmResp.url;
-          if (loc && !loc.includes('drive.google.com')) return Response.redirect(loc, 302);
-          const h = new Headers({ 'Access-Control-Allow-Origin':'*', 'Accept-Ranges':'bytes' });
-          const ct2 = confirmResp.headers.get('content-type'); if(ct2) h.set('Content-Type',ct2);
-          return new Response(confirmResp.body, { status: confirmResp.status, headers: h });
-        }
-        const loc = dlResp.headers.get('location') || dlResp.url;
-        if (loc && !loc.includes('drive.google.com')) return Response.redirect(loc, 302);
-        const h = new Headers({ 'Access-Control-Allow-Origin':'*', 'Accept-Ranges':'bytes' });
-        const ct2 = dlResp.headers.get('content-type'); if(ct2) h.set('Content-Type',ct2);
-        return new Response(dlResp.body, { status: dlResp.status, headers: h });
+        const fct = finalResp.headers.get('content-type'); if (fct) vh.set('Content-Type', fct);
+        const fcl = finalResp.headers.get('content-length'); if (fcl) vh.set('Content-Length', fcl);
+        const fcr = finalResp.headers.get('content-range'); if (fcr) vh.set('Content-Range', fcr);
+        return new Response(finalResp.body, { status: finalResp.status, headers: vh });
       }
 
       if (path === '/api/health') return json({ ok: true, worker: 'kuerre-worker', ts: new Date().toISOString() });
