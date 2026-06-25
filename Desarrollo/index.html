@@ -392,8 +392,12 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
             var vid = document.getElementById('hero-video');
             var fb  = document.getElementById('hero-fallback-img');
             if (!vid) return;
-            vid.addEventListener('canplay', function(){ vid.style.display='block'; if(fb) fb.style.display='none'; }, { once:true });
-            vid.addEventListener('error',   function(){ vid.style.display='none';  if(fb) fb.style.display='block'; }, { once:true });
+            vid.addEventListener('canplay', function(){
+              vid.style.display='block';
+              if(fb) fb.style.display='none';
+              vid.play().catch(function(){});
+            }, { once:true });
+            vid.addEventListener('error', function(){ vid.style.display='none'; if(fb) fb.style.display='block'; }, { once:true });
           })();
           </script>
           <!-- Nav bar -->
