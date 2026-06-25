@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='15';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='16';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>KUERRE — Servicios Digitales para Eventos</title>
 <meta name="description" content="QR Fiestas, entrega Premiere e Invitaciones Digitales para tus eventos. Servicios digitales premium para casamientos y quinceañeras.">
@@ -701,40 +701,19 @@ function closeMobileMenu() {
     }
     if (cfg && cfg.hero_video_url) {
       const url = cfg.hero_video_url;
+      const vid = document.getElementById('hero-video');
       const fallback = document.getElementById('hero-fallback-img');
-      if (url.includes('drive.google.com')) {
-        // Extraer ID y usar iframe preview de Drive
-        const m = url.match(/id=([a-zA-Z0-9_-]+)/) || url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        const id = m ? m[1] : null;
-        if (id) {
-          const fr = document.getElementById('hero-video-iframe');
-          const drivePreviewUrl = 'https://drive.google.com/file/d/' + id + '/preview?autoplay=1';
-          fr.style.display = 'block';
+      if (vid) {
+        vid.src = url;
+        vid.addEventListener('canplay', () => {
+          vid.style.display = 'block';
           if (fallback) fallback.style.display = 'none';
-          // Cargar iframe en el primer gesto real del usuario (Chrome requiere isTrusted)
-          let started = false;
-          function startVideo() {
-            if (started) return;
-            started = true;
-            fr.src = drivePreviewUrl;
-            ['scroll','click','touchstart','keydown'].forEach(e => window.removeEventListener(e, startVideo));
-          }
-          ['scroll','click','touchstart','keydown'].forEach(e => window.addEventListener(e, startVideo, { once: true, passive: true }));
-        }
-      } else {
-        const vid = document.getElementById('hero-video');
-        if (vid) {
-          vid.src = url;
-          vid.addEventListener('canplay', () => {
-            vid.style.display = 'block';
-            if (fallback) fallback.style.display = 'none';
-          }, { once: true });
-          vid.addEventListener('error', () => {
-            vid.style.display = 'none';
-            if (fallback) fallback.style.display = 'block';
-          }, { once: true });
-          vid.load();
-        }
+        }, { once: true });
+        vid.addEventListener('error', () => {
+          vid.style.display = 'none';
+          if (fallback) fallback.style.display = 'block';
+        }, { once: true });
+        vid.load();
       }
     }
   } catch(e) {}
