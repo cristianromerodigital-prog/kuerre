@@ -418,7 +418,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.44</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.45</div>
     </div>
   </aside>
 
@@ -3673,12 +3673,10 @@ async function init() {
     const cloud = await fetchFromCloud('crd_messages');
     S.set('crd_messages', cloud || []);
   }
-  // Settings: sincronizar del cloud pero preservar logoUrl/logoFilter local si el cloud no los tiene
+  // Settings: sincronizar del cloud (logoUrl/logoFilter nunca se guardan acá — son base64 de 5MB)
   const cloudSettings = await fetchFromCloud('crd_settings');
   if (cloudSettings) {
-    const local = S.get('crd_settings') || {};
-    if (!cloudSettings.logoUrl && local.logoUrl) cloudSettings.logoUrl = local.logoUrl;
-    if (!cloudSettings.logoFilter && local.logoFilter) cloudSettings.logoFilter = local.logoFilter;
+    delete cloudSettings.logoUrl; delete cloudSettings.logoFilter; // limpiar si quedaron del ciclo anterior
     localStorage.setItem('crd_settings', JSON.stringify(cloudSettings));
   } else if (!S.get('crd_settings')) S.set('crd_settings', {availability:'Tomando fechas para 2025 y 2026',waSuffix: CONFIG.WA_DEFAULT,countdownDate:new Date(Date.now()+30*24*60*60*1000).toISOString(),countdownMsg:'Solo 2 fechas libres este mes',priceSilver:'',priceGold:'',pricePlatinum:''});
   // Invitaciones: siempre sincronizar del cloud (fuente de verdad)
@@ -4744,13 +4742,7 @@ function saveLogoConfig() {
     previewLogoFilter();
     return;
   }
-  S.set('crd_site_logo', logoSrc);
-  S.set('crd_site_logo_filter', filter);
-  // Sync logo a crd_settings (que sí llega a CF y es visible en todos los browsers)
-  const setts = S.get('crd_settings') || {};
-  setts.logoUrl = logoSrc;
-  setts.logoFilter = filter;
-  S.set('crd_settings', setts);
+  // Logo solo va al Worker vía syncLogoToCrclub — no en localStorage ni en crd_settings (base64 = 5MB)
   syncLogoToCrclub(logoSrc);
   applySidebarLogo(logoSrc);
   if(urlInp) urlInp.value = '';
