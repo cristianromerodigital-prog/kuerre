@@ -418,7 +418,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.43</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.44</div>
     </div>
   </aside>
 
@@ -3648,6 +3648,9 @@ async function fetchFromCloud(key) {
 }
 
 async function init() {
+  // El logo base64 en localStorage revienta el cupo de 5MB — siempre limpiar al arrancar
+  localStorage.removeItem('crd_site_logo');
+  localStorage.removeItem('crd_site_logo_light');
   _fetchClientes().catch(function(){});
   // Ensure defaults — for keys not in localStorage, try cloud first
   if (!S.get('crd_testimonials')) {
