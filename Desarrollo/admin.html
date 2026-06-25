@@ -418,7 +418,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.41</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.42</div>
     </div>
   </aside>
 
@@ -3615,7 +3615,7 @@ function showPage(id) {
   if (id === 'dashboard') renderDashboard();
   if (id === 'photos') renderPhotosPage();
   if (id === 'video') loadVideoPage();
-  if (id === 'content') { loadContentPage(); }
+  if (id === 'content') { initContentIfEmpty(); loadContentPage(); }
   if (id === 'invites') renderInvitesPage();
   if (id === 'fiestas') loadFiestasPage();
   if (id === 'clientes') loadClientesPage();
@@ -5058,6 +5058,11 @@ const CONTENT_DEFAULTS = {
     btn_url: 'https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE'
   }
 };
+
+function initContentIfEmpty() {
+  const c = getContent();
+  if (!c.global) setContent(CONTENT_DEFAULTS);
+}
 
 function loadContentPage() {
   const c = getContent();
