@@ -49,14 +49,17 @@ export default {
 
       // ── Site config ────────────────────────────────────────────────────────
       if (path === '/site/config' && method === 'GET') {
-        const [raw, logoRaw] = await Promise.all([
+        const [raw, logoRaw, videoRaw] = await Promise.all([
           env.KV.get('kuerre_settings'),
-          env.KV.get('crd_site_logo')
+          env.KV.get('crd_site_logo'),
+          env.KV.get('crd_hero_video_url')
         ]);
         const s = raw ? JSON.parse(raw) : {};
         const logoFromKv = logoRaw ? JSON.parse(logoRaw) : '';
+        const videoUrl = videoRaw ? JSON.parse(videoRaw) : '';
         return json({
           logo_url: s.logoUrl || (typeof logoFromKv === 'string' ? logoFromKv : '') || '',
+          hero_video_url: typeof videoUrl === 'string' ? videoUrl : '',
           whatsapp: s.waSuffix || '',
           website: s.entregaWebUrl || '',
           instagram: s.instagram || '',
