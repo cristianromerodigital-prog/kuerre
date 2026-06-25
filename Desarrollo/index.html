@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <script>
-var KVER='1.36';
+var KVER='1.37';
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/kuerre/sw.js').catch(function(){});
 !function(){if(location.search.indexOf('v='+KVER)<0){var u=new URL(location.href);u.searchParams.set('v',KVER);location.replace(u.toString());}}();
 </script>
@@ -341,15 +341,15 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 
 <!-- TOPBAR -->
 <div id="topbar">
-  <span class="topbar-left">Buenos Aires, Argentina</span>
+  <span class="topbar-left" id="topbar-text">Buenos Aires, Argentina</span>
   <div class="topbar-social">
-    <a href="https://instagram.com/kuerre.digital" target="_blank" aria-label="Instagram">
+    <a href="https://instagram.com/kuerre.digital" target="_blank" aria-label="Instagram" id="topbar-ig-link">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
     </a>
     <a href="https://wa.me/541162557763" target="_blank" aria-label="WhatsApp">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.126.554 4.12 1.524 5.851L.057 23.633a.5.5 0 0 0 .61.61l5.782-1.467A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.956 0-3.784-.535-5.348-1.464l-.383-.229-3.962 1.005 1.005-3.831-.253-.404A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
     </a>
-    <span id="site-version" style="font-size:9px;opacity:0.35;letter-spacing:1px;font-family:'Inter',sans-serif;margin-left:6px;color:inherit">v1.36</span>
+    <span id="site-version" style="font-size:9px;opacity:0.35;letter-spacing:1px;font-family:'Inter',sans-serif;margin-left:6px;color:inherit">v1.37</span>
   </div>
 </div>
 
@@ -365,7 +365,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
     <li><a href="#qr-fiestas">QR Fiestas</a></li>
     <li><a href="#premiere">Premiere</a></li>
     <li><a href="#servicios">Servicios</a></li>
-    <li><a href="https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE" target="_blank" class="nav-cta">Consultar</a></li>
+    <li><a href="https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE" target="_blank" class="nav-cta" id="nav-cta-link">Consultar</a></li>
   </ul>
   <button class="hamburger" id="hamburger" aria-label="Menú" onclick="toggleMobileMenu()">
     <span></span><span></span><span></span>
@@ -378,24 +378,24 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   <a class="mobile-link" href="#qr-fiestas" onclick="closeMobileMenu()">QR Fiestas</a>
   <a class="mobile-link" href="#premiere" onclick="closeMobileMenu()">Premiere</a>
   <a class="mobile-link" href="#servicios" onclick="closeMobileMenu()">Servicios</a>
-  <a class="mobile-cta" href="https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE" target="_blank" onclick="closeMobileMenu()">Consultar</a>
+  <a class="mobile-cta" href="https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE" target="_blank" onclick="closeMobileMenu()" id="mobile-cta-link">Consultar</a>
 </div>
 
 <!-- HERO -->
 <section id="hero">
-  <div class="hero-bg"></div>
+  <div class="hero-bg" id="hero-bg"></div>
   <div class="hero-split">
     <!-- Texto -->
     <div class="hero-glass">
-      <div class="hero-eyebrow">Servicios digitales para eventos</div>
-      <h1 class="hero-title">Hacé que tu evento<br>viva para siempre</h1>
-      <p class="hero-sub">Galería colaborativa en tiempo real, entrega cinematográfica e invitación digital. Todo lo que tu evento necesita, en un solo lugar.</p>
+      <div class="hero-eyebrow" id="hero-eyebrow">Servicios digitales para eventos</div>
+      <h1 class="hero-title" id="hero-title">Hacé que tu evento<br>viva para siempre</h1>
+      <p class="hero-sub" id="hero-desc">Galería colaborativa en tiempo real, entrega cinematográfica e invitación digital. Todo lo que tu evento necesita, en un solo lugar.</p>
       <div class="hero-actions">
-        <a href="https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE" target="_blank" class="btn-primary">
+        <a href="https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE" target="_blank" class="btn-primary" id="hero-btn1">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.554 4.12 1.524 5.851L.057 23.633a.5.5 0 0 0 .61.61l5.782-1.467A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.956 0-3.784-.535-5.348-1.464l-.383-.229-3.962 1.005 1.005-3.831-.253-.404A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
           Consultá por WhatsApp
         </a>
-        <a href="#servicios" class="btn-secondary">Ver servicios</a>
+        <a href="#servicios" class="btn-secondary" id="hero-btn2">Ver servicios</a>
       </div>
     </div>
     <!-- Phone mockup hero -->
@@ -443,10 +443,10 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 
 <!-- TRUST BAR -->
 <div class="trust-bar">
-  <div class="trust-item"><div class="trust-num">+100</div><div class="trust-label">Eventos realizados</div></div>
-  <div class="trust-item"><div class="trust-num">3</div><div class="trust-label">Servicios digitales</div></div>
-  <div class="trust-item"><div class="trust-num">0</div><div class="trust-label">Apps que instalar</div></div>
-  <div class="trust-item"><div class="trust-num">24h</div><div class="trust-label">Tiempo de respuesta</div></div>
+  <div class="trust-item"><div class="trust-num" id="trust-num-0">+100</div><div class="trust-label" id="trust-label-0">Eventos realizados</div></div>
+  <div class="trust-item"><div class="trust-num" id="trust-num-1">3</div><div class="trust-label" id="trust-label-1">Servicios digitales</div></div>
+  <div class="trust-item"><div class="trust-num" id="trust-num-2">0</div><div class="trust-label" id="trust-label-2">Apps que instalar</div></div>
+  <div class="trust-item"><div class="trust-num" id="trust-num-3">24h</div><div class="trust-label" id="trust-label-3">Tiempo de respuesta</div></div>
 </div>
 
 <!-- FEATURE: INVITACIONES -->
