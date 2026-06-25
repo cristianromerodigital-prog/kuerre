@@ -272,7 +272,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 </style>
 <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 
-<!-- ═══ KUERRE VISUAL OVERRIDE ═══ -->
+<!-- ═══ KUERRE VISUAL OVERRIDE — SOLO COLORES ═══ -->
 <style>
 /* ── LOGO ── */
 #sidebar-logo-img { display: none !important; }
@@ -280,12 +280,45 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .sidebar-logo-text span { display: none !important; }
 .sidebar-logo::before { content: 'KUERRE'; display: block; font-family: 'DM Sans',sans-serif; font-size: 16px; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; color: #9060b8; }
 
-/* ── ACENTO PÚRPURA (tema oscuro intacto) ── */
+/* ── VARIABLES DE COLOR ── */
 :root {
-  --gold:  #9060b8;
-  --gold2: #b080d8;
-  --cyan:  #9060b8;
+  --gold:   #9060b8;
+  --gold2:  #00e0a8;
+  --black:  #fafafa;
+  --black2: #fafafa;
+  --black3: #0c1a1c;
+  --black4: #111f22;
 }
+
+/* ── BACKGROUNDS ── */
+body          { background: #fafafa !important; }
+#login-screen { background: #fafafa !important; }
+.sidebar      { background: #fafafa !important; }
+.topbar       { background: #0a1214 !important; border-bottom-color: rgba(192,144,224,.1) !important; }
+.main         { background: #fafafa !important; }
+
+/* ── COLORES DE TEXTO Y ACENTO ── */
+.login-logo span        { color: #9060b8 !important; }
+.login-btn              { background: #9060b8 !important; color: #fafafa !important; }
+.login-btn:hover        { background: #00e0a8 !important; }
+.login-input:focus      { border-color: #9060b8 !important; }
+
+.nav-section-label      { color: rgba(192,144,224,.4) !important; }
+.sidebar-item           { color: rgba(255,255,255,.45) !important; }
+.sidebar-item:hover     { color: #fff !important; background: rgba(192,144,224,.06) !important; }
+.sidebar-item.active    { color: #9060b8 !important; background: rgba(192,144,224,.1) !important; }
+
+/* ── TABS / ACCIONES ── */
+.tab.active             { color: #9060b8 !important; border-bottom-color: #9060b8 !important; }
+.cnt-tab.active, .cnt-subtab.active { background: #9060b8 !important; color: #fafafa !important; }
+.btn-add                { background: rgba(192,144,224,.18) !important; color: #9060b8 !important; border-color: rgba(192,144,224,.3) !important; }
+.btn-add:hover          { background: rgba(192,144,224,.28) !important; }
+
+/* ── SETTINGS TITLE ── */
+.settings-section-title { color: #9060b8 !important; }
+
+/* ── INPUTS FOCUS ── */
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #9060b8 !important; }
 </style>
 <!-- ═══ / KUERRE VISUAL OVERRIDE ═══ -->
 </head>
@@ -1431,8 +1464,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div id="video-tab-url">
                 <div class="form-group">
                   <label class="form-label">URL del video</label>
-                  <input class="form-input" id="video-url-input" placeholder="https://res.cloudinary.com/... o cualquier URL directa de .mp4" oninput="previewVideoUrl(this.value)">
-                  <p id="video-url-hint" style="font-size:11px;color:var(--gray);margin-top:8px;line-height:1.7;letter-spacing:0.5px">Pegá una URL directa de .mp4 o .webm</p>
+                  <div style="display:flex;gap:8px">
+                    <input class="form-input" id="video-url-input" placeholder="URL directa .mp4 o ID de Drive..." style="flex:1" oninput="previewVideoUrl(this.value)">
+                    <button class="btn-sm" onclick="pickVideoDrive()">Drive</button>
+                  </div>
+                  <p id="video-url-hint" style="font-size:11px;color:var(--gray);margin-top:8px;line-height:1.7;letter-spacing:0.5px">Pegá una URL .mp4 o seleccioná desde Drive</p>
                 </div>
                 <video id="video-url-preview" style="width:100%;max-height:140px;object-fit:cover;display:none;border:1px solid rgba(255,255,255,0.07)" muted autoplay loop playsinline></video>
               </div>
@@ -4747,30 +4783,41 @@ function switchVideoTab(tab, btn) {
   pendingVideoData = null;
 }
 
+function driveUrlToVideoSrc(input) {
+  const m = input.match(/\/d\/([a-zA-Z0-9_-]+)/) || input.match(/id=([a-zA-Z0-9_-]+)/);
+  const id = m ? m[1] : (/^[a-zA-Z0-9_-]{25,}$/.test(input.trim()) ? input.trim() : null);
+  return id ? 'https://drive.google.com/uc?export=download&id=' + id : null;
+}
+
+function pickVideoDrive() {
+  openDriveBrowser(selectedUrl => {
+    const src = driveUrlToVideoSrc(selectedUrl) || selectedUrl;
+    document.getElementById('video-url-input').value = src;
+    previewVideoUrl(src);
+  });
+}
+
 function previewVideoUrl(rawUrl) {
   const prev = document.getElementById('video-url-preview');
-  const input = document.getElementById('video-url-input');
   const hint = document.getElementById('video-url-hint');
   if (!rawUrl.trim()) { prev.style.display='none'; return; }
 
   let url = rawUrl.trim();
 
-  // Google Drive link → can't be used for video (browser blocks it)
-  if (url.includes('drive.google.com')) {
-    if(hint) hint.innerHTML = '<span style="color:var(--red)">⚠️ Google Drive <strong>no funciona para videos</strong> — el navegador lo bloquea.<br>Subí el video a <a href="https://cloudinary.com" target="_blank" style="color:var(--cyan)">Cloudinary</a> y copiá la URL directa (.mp4).</span>';
-    prev.style.display = 'none';
-    return;
+  // Convertir link de Drive al formato de descarga directa
+  if (url.includes('drive.google.com') && !url.includes('export=download')) {
+    const converted = driveUrlToVideoSrc(url);
+    if (converted) { url = converted; document.getElementById('video-url-input').value = url; }
   }
 
-  // YouTube / Vimeo embed links — not supported as direct video src
+  // YouTube / Vimeo — no soportados
   if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) {
-    if(hint) hint.innerHTML = '<span style="color:var(--red)">⚠️ YouTube/Vimeo no se pueden usar como video de fondo.<br>Necesitás un archivo .mp4 directo. Subí a <a href="https://cloudinary.com" target="_blank" style="color:var(--cyan)">Cloudinary</a>.</span>';
+    if(hint) hint.innerHTML = '<span style="color:var(--red)">⚠️ YouTube/Vimeo no se pueden usar como video de fondo.</span>';
     prev.style.display = 'none';
     return;
   }
 
-  // Direct video URL
-  if(hint) hint.innerHTML = '<span style="color:var(--green)">✓ URL directa detectada</span>';
+  if(hint) hint.innerHTML = '<span style="color:var(--green)">✓ URL lista — probá el preview</span>';
   prev.src = url;
   prev.style.display = 'block';
   prev.load();
@@ -4807,9 +4854,14 @@ function saveHeroVideo() {
 
   if (!src) { toast('Cargá un video primero','error'); return; }
 
-  // Block Drive/YouTube
-  if (src.includes('drive.google.com') || src.includes('youtube.com') || src.includes('youtu.be')) {
-    toast('Drive y YouTube no funcionan como video de fondo. Usá Cloudinary con una URL .mp4 directa.','error');
+  // Convertir Drive link si todavía no está en formato download
+  if (src.includes('drive.google.com') && !src.includes('export=download')) {
+    const converted = driveUrlToVideoSrc(src);
+    if (converted) src = converted; else { toast('URL de Drive inválida','error'); return; }
+  }
+  // Block YouTube
+  if (src.includes('youtube.com') || src.includes('youtu.be')) {
+    toast('YouTube no se puede usar como video de fondo.','error');
     return;
   }
 
