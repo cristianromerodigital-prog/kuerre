@@ -49,14 +49,15 @@ export default {
 
       // ── Site config ────────────────────────────────────────────────────────
       if (path === '/site/config' && method === 'GET') {
+        const safeJson = (v) => { try { return v ? JSON.parse(v) : null; } catch { return v || null; } };
         const [raw, logoRaw, videoRaw] = await Promise.all([
           env.KV.get('kuerre_settings'),
           env.KV.get('crd_site_logo'),
           env.KV.get('crd_hero_video_url')
         ]);
-        const s = raw ? JSON.parse(raw) : {};
-        const logoFromKv = logoRaw ? JSON.parse(logoRaw) : '';
-        const videoUrl = videoRaw ? JSON.parse(videoRaw) : '';
+        const s = safeJson(raw) || {};
+        const logoFromKv = safeJson(logoRaw) || '';
+        const videoUrl = safeJson(videoRaw) || '';
         return json({
           logo_url: s.logoUrl || (typeof logoFromKv === 'string' ? logoFromKv : '') || '',
           hero_video_url: typeof videoUrl === 'string' ? videoUrl : '',
@@ -71,7 +72,7 @@ export default {
 
       return json({ error: 'Not found' }, 404);
     } catch (e) {
-      const status = (e.message?.includes('token') || e.message?.includes('Unauthorized')) ? 401 : 500;
+      const status = e.message?.includes('Unauthorized') ? 401 : 500;
       return json({ error: e.message || 'Internal error' }, status);
     }
   },
