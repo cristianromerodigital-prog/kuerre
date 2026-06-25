@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='21';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='22';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>KUERRE — Servicios Digitales para Eventos</title>
 <meta name="description" content="QR Fiestas, entrega Premiere e Invitaciones Digitales para tus eventos. Servicios digitales premium para casamientos y quinceañeras.">
@@ -384,10 +384,12 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           </div>
           <!-- Video area — rectángulo central -->
           <div style="flex:1;position:relative;overflow:hidden;background:#000">
-            <!-- Iframe sobredimensionado para cubrir el padding interno del player de Drive -->
-            <iframe id="hero-video-iframe" src="" allowfullscreen style="display:none;position:absolute;top:-8%;left:-8%;width:116%;height:116%;border:none;pointer-events:auto"></iframe>
-            <!-- Solo tapa el ícono externo de Drive (esquina top-right) -->
-            <div id="hero-video-overlay-icon" style="display:none;position:absolute;top:0;right:0;width:44px;height:36px;background:#000;z-index:10;pointer-events:none"></div>
+            <!-- iframe centrado: Drive player tiene min-width ~300px, se centra y recorta con overflow:hidden -->
+            <iframe id="hero-video-iframe" src="" allowfullscreen style="display:none;position:absolute;top:0;left:50%;transform:translateX(-50%);width:300px;height:100%;border:none"></iframe>
+            <!-- Gradiente top: tapa iconos superiores de Drive -->
+            <div id="hero-video-overlay-icon" style="display:none;position:absolute;top:0;left:0;right:0;height:36px;background:linear-gradient(to bottom,#000 50%,transparent);z-index:10;pointer-events:none"></div>
+            <!-- Gradiente bottom: tapa barra de controles de Drive -->
+            <div id="hero-video-overlay-bottom" style="display:none;position:absolute;bottom:0;left:0;right:0;height:44px;background:linear-gradient(to top,#000 50%,transparent);z-index:10;pointer-events:none"></div>
             <img id="hero-fallback-img" src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=440&auto=format&q=80" alt="Evento" style="width:100%;height:100%;object-fit:cover;display:block">
           </div>
           <!-- Nav bar -->
@@ -727,6 +729,8 @@ function closeMobileMenu() {
           if (fallback) fallback.style.display = 'none';
           const iconOverlay = document.getElementById('hero-video-overlay-icon');
           if (iconOverlay) iconOverlay.style.display = 'block';
+          const bottomOverlay = document.getElementById('hero-video-overlay-bottom');
+          if (bottomOverlay) bottomOverlay.style.display = 'block';
         }
       }
     }
