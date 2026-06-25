@@ -769,7 +769,8 @@ function closeMobileMenu() {
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => { const p = document.getElementById('preloader'); if(p) p.classList.add('hidden'); }, 1000);
+  var remaining = Math.max(0, 1000 - performance.now());
+  setTimeout(() => { var p = document.getElementById('preloader'); if(p) p.classList.add('hidden'); }, remaining);
 });
 function toggleFaq(el) {
   const isOpen = el.classList.contains('open');
