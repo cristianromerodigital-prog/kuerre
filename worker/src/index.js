@@ -103,32 +103,42 @@ export default {
           }
         }
 
-        // Request con confirmación (directa o cacheada)
+        // Request con confirmación — capturar redirect a CDN de Google
         const fetchHeaders = { ...baseHeaders };
         if (rangeHeader) fetchHeaders['Range'] = rangeHeader;
-        let finalResp = await fetch(confirmUrl, { headers: fetchHeaders });
 
-        // Si el token expiró (502/403), limpiar cache y reintentar
-        if (finalResp.status === 403 || finalResp.status === 502) {
+        const tryFetch = async (url) => {
+          // Primero intentar capturar la URL CDN sin proxy
+          const r = await fetch(url, { headers: fetchHeaders, redirect: 'manual' });
+          const loc = r.headers.get('location');
+          if ((r.status === 301 || r.status === 302) && loc) {
+            // Browser descarga directo desde CDN de Google — máxima velocidad
+            return new Response(null, { status: 302, headers: new Headers({ 'Location': loc, 'Access-Control-Allow-Origin': '*' }) });
+          }
+          // Fallback: stream a través del Worker
+          const fallback = await fetch(url, { headers: fetchHeaders, redirect: 'follow' });
+          const vh = new Headers({ 'Access-Control-Allow-Origin':'*', 'Accept-Ranges':'bytes', 'Cache-Control':'public, max-age=3600' });
+          const fct = fallback.headers.get('content-type'); if(fct) vh.set('Content-Type', fct);
+          const fcl = fallback.headers.get('content-length'); if(fcl) vh.set('Content-Length', fcl);
+          const fcr = fallback.headers.get('content-range'); if(fcr) vh.set('Content-Range', fcr);
+          return new Response(fallback.body, { status: fallback.status, headers: vh });
+        };
+
+        const result = await tryFetch(confirmUrl);
+
+        // Si 403/502 el token venció, refrescar y reintentar
+        if (result.status === 403 || result.status === 502) {
           await env.KV.delete(kvKey);
-          const resp0 = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`, { headers: baseHeaders, redirect: 'follow' });
-          const html = await resp0.text();
-          const m = html.match(/confirm=([^&"'\s]+)/);
-          if (m) {
-            const newUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${m[1]}`;
+          const r2 = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`, { headers: baseHeaders, redirect: 'follow' });
+          const h2 = await r2.text();
+          const m2 = h2.match(/confirm=([^&"'\s]+)/);
+          if (m2) {
+            const newUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${m2[1]}`;
             await env.KV.put(kvKey, newUrl, { expirationTtl: 480 });
-            finalResp = await fetch(newUrl, { headers: fetchHeaders });
+            return await tryFetch(newUrl);
           }
         }
-
-        const videoHeaders = new Headers();
-        videoHeaders.set('Access-Control-Allow-Origin', '*');
-        videoHeaders.set('Accept-Ranges', 'bytes');
-        videoHeaders.set('Cache-Control', 'public, max-age=3600');
-        const fct = finalResp.headers.get('content-type'); if(fct) videoHeaders.set('Content-Type', fct);
-        const fcl = finalResp.headers.get('content-length'); if(fcl) videoHeaders.set('Content-Length', fcl);
-        const fcr = finalResp.headers.get('content-range'); if(fcr) videoHeaders.set('Content-Range', fcr);
-        return new Response(finalResp.body, { status: finalResp.status, headers: videoHeaders });
+        return result;
       }
 
       if (path === '/api/health') return json({ ok: true, worker: 'kuerre-worker', ts: new Date().toISOString() });
