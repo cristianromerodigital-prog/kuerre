@@ -59,7 +59,13 @@ body { background:var(--bg); color:var(--white); font-family:'Inter',sans-serif;
 .nav-brand { display:flex; align-items:center; gap:0; text-decoration:none; flex-shrink:0; }
 .nav-brand img { height:44px; width:auto; max-width:180px; object-fit:contain; object-position:left center; display:block; margin-right:-14px; }
 .nav-brand span { font-size:17px; font-weight:500; letter-spacing:.06em; color:#111; }
-#navbar-logo-suffix { letter-spacing:.15em; font-size:16px; font-weight:500; }
+#navbar-logo-suffix { display:inline-flex; overflow:hidden; }
+.nav-letter {
+  display:inline-block; font-size:16px; font-weight:500; letter-spacing:.15em; color:#111;
+  opacity:0; transform:translateX(-20px);
+  animation:letter-in 0.4s cubic-bezier(0.2,0.8,0.4,1) forwards;
+}
+@keyframes letter-in { to { opacity:1; transform:translateX(0); } }
 .nav-links { display:flex; list-style:none; align-items:center; gap:0; }
 .nav-links a { display:block; padding:22px 14px; color:rgba(0,0,0,.5);
   font-size:10px; letter-spacing:2px; text-transform:uppercase; text-decoration:none;
@@ -746,7 +752,12 @@ function closeMobileMenu() {
       img.onload = () => {
         img.style.display = 'block';
         if(txt) txt.style.display = 'none';
-        if(sfx) sfx.style.display = 'inline';
+        if(sfx) {
+          sfx.innerHTML = [...'UERRE'].map((l,i) =>
+            `<span class="nav-letter" style="animation-delay:${(i*0.09).toFixed(2)}s">${l}</span>`
+          ).join('');
+          sfx.style.display = 'inline-flex';
+        }
       };
     }
   } catch(e) {}
