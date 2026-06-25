@@ -418,7 +418,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.42</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.43</div>
     </div>
   </aside>
 
@@ -3212,7 +3212,7 @@ async function crclubDeleteReward(id, name) {
 }
 
 // ── CLOUDFLARE SYNC ──
-const CF_SYNC_KEYS = ["crd_portfolio","crd_testimonials","crd_posts","crd_settings","crd_content","crd_site_photos","crd_hero_video_url","crd_invites","crd_messages","crd_inv_base","crd_presupuesto","crd_presupuesto_boda","crd_editable","crd_opcionales","crd_entregas","crd_pedidos","crd_contratos_cfg","crd_site_logo"];
+const CF_SYNC_KEYS = ["crd_portfolio","crd_testimonials","crd_posts","crd_settings","crd_content","crd_site_photos","crd_hero_video_url","crd_invites","crd_messages","crd_inv_base","crd_presupuesto","crd_presupuesto_boda","crd_editable","crd_opcionales","crd_entregas","crd_pedidos","crd_contratos_cfg"];
 
 async function syncToCloud(key, value) {
   if (!CF_SYNC_KEYS.includes(key)) return;
@@ -3701,13 +3701,14 @@ async function init() {
     }
   }
 
-  // Logo sidebar: aplicar siempre al arrancar (desde localStorage o desde crd_settings de CF)
-  const _logoLocal = S.get('crd_site_logo');
+  // Logo sidebar — solo aplicar al DOM, nunca guardar en localStorage (base64 es demasiado grande)
+  const _logoLocal = localStorage.getItem('crd_site_logo');
   if (_logoLocal) {
-    applySidebarLogo(_logoLocal);
+    try { applySidebarLogo(JSON.parse(_logoLocal)); } catch(e) { applySidebarLogo(_logoLocal); }
+    localStorage.removeItem('crd_site_logo'); // limpiar si quedó del ciclo anterior
   } else {
     const _setts = S.get('crd_settings') || {};
-    if (_setts.logoUrl) { S.set('crd_site_logo', _setts.logoUrl); applySidebarLogo(_setts.logoUrl); }
+    if (_setts.logoUrl) applySidebarLogo(_setts.logoUrl);
   }
 
   if (!localStorage.getItem('crd_inv_base')) {
