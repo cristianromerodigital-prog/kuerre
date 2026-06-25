@@ -385,7 +385,9 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           <!-- Video area — rectángulo central -->
           <div style="flex:1;position:relative;overflow:hidden;background:#000">
             <video id="hero-video" autoplay muted loop playsinline preload="auto" src="https://kuerre-worker.cristian-romero-digital.workers.dev/api/hero-video" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
-            <img id="hero-fallback-img" src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=440&auto=format&q=80" alt="Evento" style="width:100%;height:100%;object-fit:cover;display:block">
+            <div id="hero-fallback-img" style="width:100%;height:100%;background:#060d0f;display:flex;align-items:center;justify-content:center;">
+              <img id="hero-phone-logo" src="" alt="" style="max-width:55%;max-height:55%;object-fit:contain;display:none;">
+            </div>
           </div>
           <script>
           (function(){
@@ -397,7 +399,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
               if(fb) fb.style.display='none';
               vid.play().catch(function(){});
             }, { once:true });
-            vid.addEventListener('error', function(){ vid.style.display='none'; if(fb) fb.style.display='block'; }, { once:true });
+            vid.addEventListener('error', function(){ vid.style.display='none'; if(fb) fb.style.display='flex'; }, { once:true });
           })();
           </script>
           <!-- Nav bar -->
@@ -714,6 +716,8 @@ function closeMobileMenu() {
   try {
     const cfg = await fetch('https://kuerre-worker.cristian-romero-digital.workers.dev/site/config').then(r => r.json());
     if (cfg && cfg.logo_url) {
+      const phoneLogo = document.getElementById('hero-phone-logo');
+      if (phoneLogo) { phoneLogo.src = cfg.logo_url; phoneLogo.style.display = 'block'; }
       const img = document.getElementById('navbar-logo-img');
       const txt = document.getElementById('navbar-logo-text');
       const sfx = document.getElementById('navbar-logo-suffix');
