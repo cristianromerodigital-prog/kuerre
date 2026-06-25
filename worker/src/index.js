@@ -140,7 +140,7 @@ export default {
         const rangeHeader = request.headers.get('Range');
         const commonHeaders = {
           'Accept-Ranges': 'bytes',
-          'Cache-Control': 'no-cache',
+          'Cache-Control': 'public, max-age=3600',
           'Access-Control-Allow-Origin': '*',
         };
 
