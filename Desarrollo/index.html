@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <script>
-var KVER='1.37';
+var KVER='1.38';
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/kuerre/sw.js').catch(function(){});
 !function(){if(location.search.indexOf('v='+KVER)<0){var u=new URL(location.href);u.searchParams.set('v',KVER);location.replace(u.toString());}}();
 </script>
@@ -349,7 +349,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
     <a href="https://wa.me/541162557763" target="_blank" aria-label="WhatsApp">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.126.554 4.12 1.524 5.851L.057 23.633a.5.5 0 0 0 .61.61l5.782-1.467A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.956 0-3.784-.535-5.348-1.464l-.383-.229-3.962 1.005 1.005-3.831-.253-.404A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
     </a>
-    <span id="site-version" style="font-size:9px;opacity:0.35;letter-spacing:1px;font-family:'Inter',sans-serif;margin-left:6px;color:inherit">v1.37</span>
+    <span id="site-version" style="font-size:9px;opacity:0.35;letter-spacing:1px;font-family:'Inter',sans-serif;margin-left:6px;color:inherit">v1.38</span>
   </div>
 </div>
 
@@ -405,7 +405,8 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
         <div class="phone-lg-screen" style="display:flex;flex-direction:column">
           <!-- Status bar -->
           <div style="height:28px;background:#000;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:5">
-            <span style="font-size:9px;color:rgba(255,255,255,.9);font-weight:600;font-family:sans-serif">9:41</span>
+            <span id="phone-clock" style="font-size:9px;color:rgba(255,255,255,.9);font-weight:600;font-family:sans-serif">9:41</span>
+            <script>(function(){function t(){var n=new Date(),h=n.getHours(),m=n.getMinutes();document.getElementById('phone-clock').textContent=h+':'+(m<10?'0':'')+m;}t();setInterval(t,10000);})();</script>
             <div style="display:flex;gap:5px;align-items:center">
               <svg width="13" height="9" viewBox="0 0 13 9" fill="white"><rect x="0" y="3" width="2" height="6" rx=".5"/><rect x="3.5" y="1.5" width="2" height="7.5" rx=".5"/><rect x="7" y="0" width="2" height="9" rx=".5"/><rect x="10.5" y="0" width="2" height="9" rx=".5" opacity=".3"/></svg>
               <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x=".5" y=".5" width="14" height="9" rx="2" stroke="white" stroke-opacity=".35"/><rect x="14.5" y="3" width="2.5" height="4" rx="1" fill="white" fill-opacity=".4"/><rect x="1.5" y="1.5" width="10" height="7" rx="1.5" fill="white"/></svg>
@@ -452,20 +453,20 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 <!-- FEATURE: INVITACIONES -->
 <div id="invitaciones" class="feature-split">
   <div class="feat-content" style="background:#fafafa">
-    <span class="feat-label">Invitación Digital</span>
-    <h2 class="feat-title">Animada, musical<br>e interactiva</h2>
-    <p class="feat-desc">Cuenta regresiva en vivo, música de fondo, mapa interactivo, confirmación de asistencia y mucho más. Sin papel, con estilo.</p>
+    <span class="feat-label" id="inv-label">Invitación Digital</span>
+    <h2 class="feat-title" id="inv-title">Animada, musical<br>e interactiva</h2>
+    <p class="feat-desc" id="inv-desc">Cuenta regresiva en vivo, música de fondo, mapa interactivo, confirmación de asistencia y mucho más. Sin papel, con estilo.</p>
     <ul class="feat-list">
-      <li>Cuenta regresiva al evento en tiempo real</li>
-      <li>Música de fondo elegible por el cliente</li>
-      <li>Confirmación de asistencia integrada</li>
-      <li>Link a Google Maps con la ubicación</li>
-      <li>Compartible por WhatsApp, Instagram y email</li>
+      <li id="inv-feat-0">Cuenta regresiva al evento en tiempo real</li>
+      <li id="inv-feat-1">Música de fondo elegible por el cliente</li>
+      <li id="inv-feat-2">Confirmación de asistencia integrada</li>
+      <li id="inv-feat-3">Link a Google Maps con la ubicación</li>
+      <li id="inv-feat-4">Compartible por WhatsApp, Instagram y email</li>
     </ul>
-    <a href="https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Invitaci%C3%B3n%20Digital" target="_blank" class="btn-primary" style="width:fit-content">Consultar precio</a>
+    <a href="https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Invitaci%C3%B3n%20Digital" target="_blank" class="btn-primary" id="inv-btn" style="width:fit-content">Consultar precio</a>
   </div>
   <div class="feat-visual">
-    <div class="feat-visual-bg" style="background-image:url('https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&q=80')"></div>
+    <div class="feat-visual-bg" id="inv-bg" style="background-image:url('https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(5,5,20,.55)"></div>
     <div class="phone-lg">
       <div class="phone-lg-notch"></div>
@@ -497,7 +498,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 <!-- FEATURE: QR FIESTAS -->
 <div id="qr-fiestas" class="feature-split">
   <div class="feat-visual">
-    <div class="feat-visual-bg" style="background-image:url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&auto=format&q=80')"></div>
+    <div class="feat-visual-bg" id="qr-bg" style="background-image:url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(10,6,20,.45)"></div>
     <div class="phone-lg">
       <div class="phone-lg-notch"></div>
@@ -518,37 +519,37 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
     </div>
   </div>
   <div class="feat-content">
-    <span class="feat-label">QR Fiestas</span>
-    <h2 class="feat-title">La galería colaborativa<br>de tu evento</h2>
-    <p class="feat-desc">Tus invitados escanean un QR y en segundos están subiendo fotos desde su celular. Una galería que crece sola durante la fiesta.</p>
+    <span class="feat-label" id="qr-label">QR Fiestas</span>
+    <h2 class="feat-title" id="qr-title">La galería colaborativa<br>de tu evento</h2>
+    <p class="feat-desc" id="qr-desc">Tus invitados escanean un QR y en segundos están subiendo fotos desde su celular. Una galería que crece sola durante la fiesta.</p>
     <ul class="feat-list">
-      <li>Sin descargar ninguna aplicación — solo el navegador</li>
-      <li>Galería en tiempo real visible para todos los invitados</li>
-      <li>Descarga masiva de todas las fotos al finalizar</li>
-      <li>QR imprimible para colocar en las mesas</li>
-      <li>Disponible 30 días después del evento</li>
+      <li id="qr-feat-0">Sin descargar ninguna aplicación — solo el navegador</li>
+      <li id="qr-feat-1">Galería en tiempo real visible para todos los invitados</li>
+      <li id="qr-feat-2">Descarga masiva de todas las fotos al finalizar</li>
+      <li id="qr-feat-3">QR imprimible para colocar en las mesas</li>
+      <li id="qr-feat-4">Disponible 30 días después del evento</li>
     </ul>
-    <a href="https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20QR%20Fiestas" target="_blank" class="btn-primary" style="width:fit-content">Consultar precio</a>
+    <a href="https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20QR%20Fiestas" target="_blank" class="btn-primary" id="qr-btn" style="width:fit-content">Consultar precio</a>
   </div>
 </div>
 
 <!-- FEATURE: PREMIERE -->
 <div id="premiere" class="feature-split">
   <div class="feat-content" style="background:#fafafa">
-    <span class="feat-label">Premiere</span>
-    <h2 class="feat-title">La entrega que se siente<br>como un estreno</h2>
-    <p class="feat-desc">Tu primer vistazo a las fotos y el video presentado con una experiencia cinematográfica. Una página personalizada que sorprende desde el primer segundo.</p>
+    <span class="feat-label" id="pm-label">Premiere</span>
+    <h2 class="feat-title" id="pm-title">La entrega que se siente<br>como un estreno</h2>
+    <p class="feat-desc" id="pm-desc">Tu primer vistazo a las fotos y el video presentado con una experiencia cinematográfica. Una página personalizada que sorprende desde el primer segundo.</p>
     <ul class="feat-list">
-      <li>Página de entrega con diseño exclusivo para tu evento</li>
-      <li>Reproducción de video con estética de streaming</li>
-      <li>Galería de fotos con navegación elegante</li>
-      <li>Link privado para compartir solo con quien quieras</li>
-      <li>Acceso desde cualquier dispositivo</li>
+      <li id="pm-feat-0">Página de entrega con diseño exclusivo para tu evento</li>
+      <li id="pm-feat-1">Reproducción de video con estética de streaming</li>
+      <li id="pm-feat-2">Galería de fotos con navegación elegante</li>
+      <li id="pm-feat-3">Link privado para compartir solo con quien quieras</li>
+      <li id="pm-feat-4">Acceso desde cualquier dispositivo</li>
     </ul>
-    <a href="https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Premiere" target="_blank" class="btn-primary" style="width:fit-content">Consultar precio</a>
+    <a href="https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Premiere" target="_blank" class="btn-primary" id="pm-btn" style="width:fit-content">Consultar precio</a>
   </div>
   <div class="feat-visual">
-    <div class="feat-visual-bg" style="background-image:url('https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&q=80')"></div>
+    <div class="feat-visual-bg" id="pm-bg" style="background-image:url('https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(5,5,20,.55)"></div>
     <div class="phone-lg">
       <div class="phone-lg-notch"></div>
@@ -583,8 +584,8 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 
 <!-- SERVICIOS -->
 <section id="servicios" class="section">
-  <span class="sec-label">Nuestros servicios</span>
-  <h2 class="sec-title">Tres experiencias digitales,<br><em>un solo proveedor</em></h2>
+  <span class="sec-label" id="svc-eyebrow">Nuestros servicios</span>
+  <h2 class="sec-title" id="svc-title">Tres experiencias digitales,<br><em>un solo proveedor</em></h2>
   <div class="cards">
 
     <!-- Invitación Digital -->
@@ -605,9 +606,9 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           </div>
         </div>
       </div>
-      <div class="card-name">Invitación Digital</div>
-      <div class="card-desc">Invitación animada con cuenta regresiva, música de fondo, mapa interactivo y confirmación de asistencia. Sin papel, con estilo.</div>
-      <div class="card-price">Desde $12.000 <small>ARS</small></div>
+      <div class="card-name" id="svc-name-0">Invitación Digital</div>
+      <div class="card-desc" id="svc-desc-0">Invitación animada con cuenta regresiva, música de fondo, mapa interactivo y confirmación de asistencia. Sin papel, con estilo.</div>
+      <div class="card-price" id="svc-price-0">Desde $12.000 <small>ARS</small></div>
     </div>
 
     <!-- QR Fiestas -->
@@ -626,9 +627,9 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           </div>
         </div>
       </div>
-      <div class="card-name">QR Fiestas</div>
-      <div class="card-desc">Tus invitados escanean un QR y suben fotos en tiempo real. Una galería colaborativa con el espíritu del evento, disponible para todos.</div>
-      <div class="card-price">Desde $15.000 <small>ARS</small></div>
+      <div class="card-name" id="svc-name-1">QR Fiestas</div>
+      <div class="card-desc" id="svc-desc-1">Tus invitados escanean un QR y suben fotos en tiempo real. Una galería colaborativa con el espíritu del evento, disponible para todos.</div>
+      <div class="card-price" id="svc-price-1">Desde $15.000 <small>ARS</small></div>
     </div>
 
     <!-- Premiere -->
@@ -653,9 +654,9 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           </div>
         </div>
       </div>
-      <div class="card-name">Premiere</div>
-      <div class="card-desc">Tu primer vistazo a las fotos y el video presentado con experiencia cinematográfica. Una entrega que se siente como estreno de película.</div>
-      <div class="card-price">Desde $20.000 <small>ARS</small></div>
+      <div class="card-name" id="svc-name-2">Premiere</div>
+      <div class="card-desc" id="svc-desc-2">Tu primer vistazo a las fotos y el video presentado con experiencia cinematográfica. Una entrega que se siente como estreno de película.</div>
+      <div class="card-price" id="svc-price-2">Desde $20.000 <small>ARS</small></div>
     </div>
 
   </div>
@@ -663,23 +664,23 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 
 <!-- CÓMO FUNCIONA -->
 <section id="como-funciona" class="section">
-  <span class="sec-label">Proceso</span>
-  <h2 class="sec-title">Simple, rápido<br><em>y sin complicaciones</em></h2>
+  <span class="sec-label" id="cf-eyebrow">Proceso</span>
+  <h2 class="sec-title" id="cf-title">Simple, rápido<br><em>y sin complicaciones</em></h2>
   <div class="steps">
     <div class="step">
       <div class="step-num">01</div>
-      <div class="step-name">Consultás</div>
-      <div class="step-desc">Nos escribís por WhatsApp con la fecha y tipo de evento. Te respondemos el mismo día con disponibilidad y opciones.</div>
+      <div class="step-name" id="step-name-0">Consultás</div>
+      <div class="step-desc" id="step-desc-0">Nos escribís por WhatsApp con la fecha y tipo de evento. Te respondemos el mismo día con disponibilidad y opciones.</div>
     </div>
     <div class="step">
       <div class="step-num">02</div>
-      <div class="step-name">Personalizamos</div>
-      <div class="step-desc">Configuramos el servicio con los datos de tu evento: nombres, fecha, colores, música y todo el contenido que necesitás.</div>
+      <div class="step-name" id="step-name-1">Personalizamos</div>
+      <div class="step-desc" id="step-desc-1">Configuramos el servicio con los datos de tu evento: nombres, fecha, colores, música y todo el contenido que necesitás.</div>
     </div>
     <div class="step">
       <div class="step-num">03</div>
-      <div class="step-name">Lo recibís</div>
-      <div class="step-desc">Te enviamos el link listo para compartir. Tus invitados solo necesitan abrirlo en su celular, sin instalar nada.</div>
+      <div class="step-name" id="step-name-2">Lo recibís</div>
+      <div class="step-desc" id="step-desc-2">Te enviamos el link listo para compartir. Tus invitados solo necesitan abrirlo en su celular, sin instalar nada.</div>
     </div>
   </div>
 </section>
