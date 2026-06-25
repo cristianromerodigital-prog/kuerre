@@ -73,61 +73,38 @@ export default {
         const fileId = path.split('/api/gdrive/')[1]?.split('/')[0];
         if (!fileId) return json({ error: 'No file ID' }, 400);
         const rangeHeader = request.headers.get('Range') || '';
-        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
-        const baseHeaders = { 'User-Agent': ua, 'Accept': '*/*' };
-        if (rangeHeader) baseHeaders['Range'] = rangeHeader;
-
-        // Paso 1: primera request (sin redireccion para capturar cookies)
-        const resp1 = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`, {
-          headers: baseHeaders, redirect: 'manual'
-        });
-
-        // Redirect directo al archivo → devolver la URL al browser
-        if (resp1.status === 302 || resp1.status === 301) {
-          const loc = resp1.headers.get('location');
-          if (loc) {
-            const rh = new Headers({ 'Access-Control-Allow-Origin': '*', 'Location': loc });
-            return new Response(null, { status: 302, headers: rh });
+        const fetchHeaders = {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': '*/*',
+        };
+        if (rangeHeader) fetchHeaders['Range'] = rangeHeader;
+        const driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        const resp = await fetch(driveUrl, { headers: fetchHeaders, redirect: 'follow' });
+        const ct = resp.headers.get('content-type') || '';
+        let finalResp = resp;
+        // Google muestra página HTML de confirmación para archivos grandes
+        if (ct.includes('text/html')) {
+          const html = await resp.text();
+          const m = html.match(/confirm=([^&"'\s]+)/);
+          if (m) {
+            const confirmUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${m[1]}`;
+            finalResp = await fetch(confirmUrl, { headers: fetchHeaders });
+          } else {
+            return new Response('No se pudo obtener el video de Drive', { status: 502 });
           }
         }
-
-        // Google devolvio HTML (warning de virus para archivos grandes)
-        const cookies = resp1.headers.get('set-cookie') || '';
-        const html = await resp1.text();
-        const confirmM = html.match(/confirm=([^&"'\s]+)/);
-        if (!confirmM) return new Response('Drive: no se encontro token de confirmacion', { status: 502 });
-
-        const confirm = confirmM[1];
-        const uuidM = html.match(/uuid=([^&"'\s]+)/);
-        const confirmUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${confirm}${uuidM ? '&uuid=' + uuidM[1] : ''}`;
-        const confirmHeaders = { ...baseHeaders };
-        if (cookies) confirmHeaders['Cookie'] = cookies.split(';')[0]; // NID cookie
-
-        const resp2 = await fetch(confirmUrl, { headers: confirmHeaders, redirect: 'manual' });
-
-        // Si redirige al archivo real
-        if (resp2.status === 302 || resp2.status === 301) {
-          const loc = resp2.headers.get('location');
-          if (loc) {
-            const rh = new Headers({ 'Access-Control-Allow-Origin': '*', 'Location': loc });
-            return new Response(null, { status: 302, headers: rh });
-          }
-        }
-
-        // Proxy del stream con soporte Range completo
-        const finalResp = resp2.status === 200 || resp2.status === 206
-          ? resp2
-          : await fetch(confirmUrl, { headers: confirmHeaders, redirect: 'follow' });
-
-        const vh = new Headers({
-          'Access-Control-Allow-Origin': '*',
-          'Accept-Ranges': 'bytes',
-          'Cache-Control': 'public, max-age=1800',
-        });
-        const fct = finalResp.headers.get('content-type'); if (fct) vh.set('Content-Type', fct);
-        const fcl = finalResp.headers.get('content-length'); if (fcl) vh.set('Content-Length', fcl);
-        const fcr = finalResp.headers.get('content-range'); if (fcr) vh.set('Content-Range', fcr);
-        return new Response(finalResp.body, { status: finalResp.status, headers: vh });
+        const videoHeaders = new Headers();
+        videoHeaders.set('Access-Control-Allow-Origin', '*');
+        videoHeaders.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+        videoHeaders.set('Cache-Control', 'public, max-age=3600');
+        videoHeaders.set('Accept-Ranges', 'bytes');
+        const fct = finalResp.headers.get('content-type');
+        if (fct) videoHeaders.set('Content-Type', fct);
+        const fcl = finalResp.headers.get('content-length');
+        if (fcl) videoHeaders.set('Content-Length', fcl);
+        const fcr = finalResp.headers.get('content-range');
+        if (fcr) videoHeaders.set('Content-Range', fcr);
+        return new Response(finalResp.body, { status: finalResp.status, headers: videoHeaders });
       }
 
       if (path === '/api/health') return json({ ok: true, worker: 'kuerre-worker', ts: new Date().toISOString() });
