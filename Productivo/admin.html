@@ -418,7 +418,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.40</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.41</div>
     </div>
   </aside>
 
@@ -1495,215 +1495,244 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       ═══════════════════════════════════════ -->
       <div class="page" id="page-content">
         <h2 class="section-h" style="margin-bottom:4px">Editor de Contenido</h2>
-        <p style="font-size:12px;color:var(--gray);margin-bottom:28px;letter-spacing:1px">Editá los textos del sitio. Los cambios se guardan por sección.</p>
+        <p style="font-size:12px;color:var(--gray);margin-bottom:28px;letter-spacing:1px">Editá textos e imágenes del sitio. Se sincronizan automáticamente con el index.</p>
 
         <!-- TABS -->
         <div style="display:flex;gap:1px;background:rgba(255,255,255,0.06);margin-bottom:28px;flex-wrap:wrap">
-          <button class="cnt-tab active" onclick="switchContentTab('hero',this)">Hero</button>
-          <button class="cnt-tab" onclick="switchContentTab('about',this)">Sobre Mí</button>
-          <button class="cnt-tab" onclick="switchContentTab('services',this)">Servicios</button>
-          <button class="cnt-tab" onclick="switchContentTab('pricing',this)">Precios</button>
-          <button class="cnt-tab" onclick="switchContentTab('contact',this)">Contacto</button>
-          <button class="cnt-tab" onclick="switchContentTab('social',this)">Redes</button>
-          <button class="cnt-tab" onclick="switchContentTab('legal',this)">Legal</button>
-          <button class="cnt-tab" onclick="switchContentTab('cta',this)">Botones WA</button>
+          <button class="cnt-tab active" onclick="switchContentTab('global',this)">Global</button>
+          <button class="cnt-tab" onclick="switchContentTab('hero',this)">Hero</button>
+          <button class="cnt-tab" onclick="switchContentTab('trust',this)">Trust Bar</button>
+          <button class="cnt-tab" onclick="switchContentTab('invitaciones',this)">Invitaciones</button>
+          <button class="cnt-tab" onclick="switchContentTab('qr',this)">QR Fiestas</button>
+          <button class="cnt-tab" onclick="switchContentTab('premiere',this)">Premiere</button>
+          <button class="cnt-tab" onclick="switchContentTab('servicios',this)">Servicios</button>
+          <button class="cnt-tab" onclick="switchContentTab('como',this)">Cómo Funciona</button>
+          <button class="cnt-tab" onclick="switchContentTab('faq',this)">FAQ</button>
+          <button class="cnt-tab" onclick="switchContentTab('cta',this)">CTA Final</button>
+        </div>
+
+        <!-- ── GLOBAL ── -->
+        <div class="cnt-panel" id="cnt-global">
+          <div class="settings-section">
+            <div class="settings-section-title">Datos globales del sitio</div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Número WhatsApp (sin + ni espacios)</label><input class="form-input" id="cnt-global-wa" placeholder="541162557763"></div>
+              <div class="form-group"><label class="form-label">URL Instagram</label><input class="form-input" id="cnt-global-ig" placeholder="https://instagram.com/kuerre.digital"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Texto topbar izquierda</label><input class="form-input" id="cnt-global-topbar" placeholder="Buenos Aires, Argentina"></div>
+              <div class="form-group"><label class="form-label">Texto botón nav "Consultar"</label><input class="form-input" id="cnt-global-nav-cta" placeholder="Consultar"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">URL botón nav (WhatsApp)</label><input class="form-input" id="cnt-global-nav-cta-url" placeholder="https://wa.me/541162557763?text=..."></div>
+              <div class="form-group"><label class="form-label">Copyright footer</label><input class="form-input" id="cnt-global-footer" placeholder="© 2026 KUERRE · Servicios digitales para eventos"></div>
+            </div>
+          </div>
+          <button class="btn-add" onclick="saveContentSection('global')">Guardar Global</button>
         </div>
 
         <!-- ── HERO ── -->
-        <div class="cnt-panel" id="cnt-hero">
+        <div class="cnt-panel" id="cnt-hero" style="display:none">
           <div class="settings-section">
             <div class="settings-section-title">Sección Hero</div>
+            <div class="form-group"><label class="form-label">Eyebrow (texto pequeño arriba del título)</label><input class="form-input" id="cnt-hero-eyebrow" placeholder="Servicios digitales para eventos"></div>
+            <div class="form-group"><label class="form-label">Título principal (Enter = salto de línea)</label><textarea class="form-textarea" id="cnt-hero-title" style="min-height:60px" placeholder="Hacé que tu evento&#10;viva para siempre"></textarea></div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-hero-desc" placeholder="Galería colaborativa en tiempo real..."></textarea></div>
             <div class="form-row">
-              <div class="form-group"><label class="form-label">Eyebrow (texto pequeño arriba)</label><input class="form-input" id="cnt-hero-eyebrow" placeholder="Fotografía de Autor · Buenos Aires"></div>
-              <div class="form-group"><label class="form-label">Texto disponibilidad</label><input class="form-input" id="cnt-hero-avail" placeholder="Tomando fechas para 2025 y 2026"></div>
+              <div class="form-group"><label class="form-label">Texto botón principal</label><input class="form-input" id="cnt-hero-btn1" placeholder="Consultá por WhatsApp"></div>
+              <div class="form-group"><label class="form-label">URL botón principal (WhatsApp)</label><input class="form-input" id="cnt-hero-btn1-url" placeholder="https://wa.me/..."></div>
             </div>
-            <div class="form-group"><label class="form-label">Título principal</label><input class="form-input" id="cnt-hero-title" placeholder="Capturo los momentos que nunca deberían olvidarse"></div>
-            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-hero-desc" placeholder="Me especializo en quinceañeras y casamientos..."></textarea></div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Texto botón principal</label><input class="form-input" id="cnt-hero-btn1" placeholder="Consultar disponibilidad"></div>
-              <div class="form-group"><label class="form-label">Texto botón secundario</label><input class="form-input" id="cnt-hero-btn2" placeholder="Ver portfolio"></div>
-            </div>
+            <div class="form-group"><label class="form-label">Texto botón secundario</label><input class="form-input" id="cnt-hero-btn2" placeholder="Ver servicios"></div>
+            <div class="form-group"><label class="form-label">Imagen de fondo (URL)</label><input class="form-input" id="cnt-hero-bg" placeholder="https://images.unsplash.com/photo-..."></div>
           </div>
           <button class="btn-add" onclick="saveContentSection('hero')">Guardar Hero</button>
         </div>
 
-        <!-- ── SOBRE MÍ ── -->
-        <div class="cnt-panel" id="cnt-about" style="display:none">
+        <!-- ── TRUST BAR ── -->
+        <div class="cnt-panel" id="cnt-trust" style="display:none">
           <div class="settings-section">
-            <div class="settings-section-title">Sobre Mí</div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-about-eyebrow" placeholder="Mi historia"></div>
-              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-about-title" placeholder="Conocé un poco más..."></div>
+            <div class="settings-section-title">Trust Bar — 4 estadísticas</div>
+            <p style="font-size:12px;color:var(--gray);margin-bottom:16px;letter-spacing:1px">Número grande + etiqueta debajo para cada stat.</p>
+            <div class="form-row" style="margin-bottom:10px">
+              <div class="form-group"><label class="form-label">Número 1</label><input class="form-input" id="cnt-trust-num-0" placeholder="+100"></div>
+              <div class="form-group"><label class="form-label">Etiqueta 1</label><input class="form-input" id="cnt-trust-label-0" placeholder="Eventos realizados"></div>
             </div>
-            <div class="form-group"><label class="form-label">Párrafo 1</label><textarea class="form-textarea" id="cnt-about-p1"></textarea></div>
-            <div class="form-group"><label class="form-label">Párrafo 2</label><textarea class="form-textarea" id="cnt-about-p2"></textarea></div>
-            <div class="form-group"><label class="form-label">Párrafo 3</label><textarea class="form-textarea" id="cnt-about-p3"></textarea></div>
-            <div class="form-group"><label class="form-label">Párrafo 4</label><textarea class="form-textarea" id="cnt-about-p4"></textarea></div>
-            <div class="form-group"><label class="form-label">Texto del botón CTA</label><input class="form-input" id="cnt-about-btn" placeholder="Hablemos de tu evento"></div>
+            <div class="form-row" style="margin-bottom:10px">
+              <div class="form-group"><label class="form-label">Número 2</label><input class="form-input" id="cnt-trust-num-1" placeholder="3"></div>
+              <div class="form-group"><label class="form-label">Etiqueta 2</label><input class="form-input" id="cnt-trust-label-1" placeholder="Servicios digitales"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:10px">
+              <div class="form-group"><label class="form-label">Número 3</label><input class="form-input" id="cnt-trust-num-2" placeholder="0"></div>
+              <div class="form-group"><label class="form-label">Etiqueta 3</label><input class="form-input" id="cnt-trust-label-2" placeholder="Apps que instalar"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Número 4</label><input class="form-input" id="cnt-trust-num-3" placeholder="24h"></div>
+              <div class="form-group"><label class="form-label">Etiqueta 4</label><input class="form-input" id="cnt-trust-label-3" placeholder="Tiempo de respuesta"></div>
+            </div>
           </div>
+          <button class="btn-add" onclick="saveContentSection('trust')">Guardar Trust Bar</button>
+        </div>
+
+        <!-- ── INVITACIONES ── -->
+        <div class="cnt-panel" id="cnt-invitaciones" style="display:none">
           <div class="settings-section">
-            <div class="settings-section-title">Stats (números destacados)</div>
-            <div id="cnt-stats-list"></div>
-            <button class="btn-sm" onclick="addStat()" style="margin-top:10px">+ Agregar stat</button>
+            <div class="settings-section-title">Sección Invitaciones Digitales</div>
+            <div class="form-group"><label class="form-label">Label (texto pequeño)</label><input class="form-input" id="cnt-inv-label" placeholder="Invitación Digital"></div>
+            <div class="form-group"><label class="form-label">Título (Enter = salto de línea)</label><textarea class="form-textarea" id="cnt-inv-title" style="min-height:60px" placeholder="Animada, musical&#10;e interactiva"></textarea></div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-inv-desc"></textarea></div>
+            <div class="settings-section-title" style="margin-top:16px;font-size:10px">Features (5 ítems)</div>
+            <div class="form-group"><label class="form-label">Feature 1</label><input class="form-input" id="cnt-inv-feat-0"></div>
+            <div class="form-group"><label class="form-label">Feature 2</label><input class="form-input" id="cnt-inv-feat-1"></div>
+            <div class="form-group"><label class="form-label">Feature 3</label><input class="form-input" id="cnt-inv-feat-2"></div>
+            <div class="form-group"><label class="form-label">Feature 4</label><input class="form-input" id="cnt-inv-feat-3"></div>
+            <div class="form-group"><label class="form-label">Feature 5</label><input class="form-input" id="cnt-inv-feat-4"></div>
+            <div class="form-row" style="margin-top:8px">
+              <div class="form-group"><label class="form-label">Texto botón</label><input class="form-input" id="cnt-inv-btn" placeholder="Consultar precio"></div>
+              <div class="form-group"><label class="form-label">URL botón (WhatsApp)</label><input class="form-input" id="cnt-inv-btn-url" placeholder="https://wa.me/..."></div>
+            </div>
+            <div class="form-group"><label class="form-label">Imagen de fondo (URL)</label><input class="form-input" id="cnt-inv-bg" placeholder="https://images.unsplash.com/..."></div>
           </div>
-          <button class="btn-add" onclick="saveContentSection('about')">Guardar Sobre Mí</button>
+          <button class="btn-add" onclick="saveContentSection('invitaciones')">Guardar Invitaciones</button>
+        </div>
+
+        <!-- ── QR FIESTAS ── -->
+        <div class="cnt-panel" id="cnt-qr" style="display:none">
+          <div class="settings-section">
+            <div class="settings-section-title">Sección QR Fiestas</div>
+            <div class="form-group"><label class="form-label">Label (texto pequeño)</label><input class="form-input" id="cnt-qr-label" placeholder="QR Fiestas"></div>
+            <div class="form-group"><label class="form-label">Título (Enter = salto de línea)</label><textarea class="form-textarea" id="cnt-qr-title" style="min-height:60px" placeholder="La galería colaborativa&#10;de tu evento"></textarea></div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-qr-desc"></textarea></div>
+            <div class="settings-section-title" style="margin-top:16px;font-size:10px">Features (5 ítems)</div>
+            <div class="form-group"><label class="form-label">Feature 1</label><input class="form-input" id="cnt-qr-feat-0"></div>
+            <div class="form-group"><label class="form-label">Feature 2</label><input class="form-input" id="cnt-qr-feat-1"></div>
+            <div class="form-group"><label class="form-label">Feature 3</label><input class="form-input" id="cnt-qr-feat-2"></div>
+            <div class="form-group"><label class="form-label">Feature 4</label><input class="form-input" id="cnt-qr-feat-3"></div>
+            <div class="form-group"><label class="form-label">Feature 5</label><input class="form-input" id="cnt-qr-feat-4"></div>
+            <div class="form-row" style="margin-top:8px">
+              <div class="form-group"><label class="form-label">Texto botón</label><input class="form-input" id="cnt-qr-btn" placeholder="Consultar precio"></div>
+              <div class="form-group"><label class="form-label">URL botón (WhatsApp)</label><input class="form-input" id="cnt-qr-btn-url" placeholder="https://wa.me/..."></div>
+            </div>
+            <div class="form-group"><label class="form-label">Imagen de fondo (URL)</label><input class="form-input" id="cnt-qr-bg" placeholder="https://images.unsplash.com/..."></div>
+          </div>
+          <button class="btn-add" onclick="saveContentSection('qr')">Guardar QR Fiestas</button>
+        </div>
+
+        <!-- ── PREMIERE ── -->
+        <div class="cnt-panel" id="cnt-premiere" style="display:none">
+          <div class="settings-section">
+            <div class="settings-section-title">Sección Premiere</div>
+            <div class="form-group"><label class="form-label">Label (texto pequeño)</label><input class="form-input" id="cnt-pm-label" placeholder="Premiere"></div>
+            <div class="form-group"><label class="form-label">Título (Enter = salto de línea)</label><textarea class="form-textarea" id="cnt-pm-title" style="min-height:60px" placeholder="La entrega que se siente&#10;como un estreno"></textarea></div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-pm-desc"></textarea></div>
+            <div class="settings-section-title" style="margin-top:16px;font-size:10px">Features (5 ítems)</div>
+            <div class="form-group"><label class="form-label">Feature 1</label><input class="form-input" id="cnt-pm-feat-0"></div>
+            <div class="form-group"><label class="form-label">Feature 2</label><input class="form-input" id="cnt-pm-feat-1"></div>
+            <div class="form-group"><label class="form-label">Feature 3</label><input class="form-input" id="cnt-pm-feat-2"></div>
+            <div class="form-group"><label class="form-label">Feature 4</label><input class="form-input" id="cnt-pm-feat-3"></div>
+            <div class="form-group"><label class="form-label">Feature 5</label><input class="form-input" id="cnt-pm-feat-4"></div>
+            <div class="form-row" style="margin-top:8px">
+              <div class="form-group"><label class="form-label">Texto botón</label><input class="form-input" id="cnt-pm-btn" placeholder="Consultar precio"></div>
+              <div class="form-group"><label class="form-label">URL botón (WhatsApp)</label><input class="form-input" id="cnt-pm-btn-url" placeholder="https://wa.me/..."></div>
+            </div>
+            <div class="form-group"><label class="form-label">Imagen de fondo (URL)</label><input class="form-input" id="cnt-pm-bg" placeholder="https://images.unsplash.com/..."></div>
+          </div>
+          <button class="btn-add" onclick="saveContentSection('premiere')">Guardar Premiere</button>
         </div>
 
         <!-- ── SERVICIOS ── -->
-        <div class="cnt-panel" id="cnt-services" style="display:none">
+        <div class="cnt-panel" id="cnt-servicios" style="display:none">
           <div class="settings-section">
-            <div class="settings-section-title">Título de la sección</div>
+            <div class="settings-section-title">Encabezado de la sección</div>
             <div class="form-row">
-              <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-svc-eyebrow" placeholder="Qué ofrezco"></div>
-              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-svc-title" placeholder="Mis servicios"></div>
+              <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-svc-eyebrow" placeholder="Nuestros servicios"></div>
+              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-svc-title" placeholder="Tres experiencias digitales, un solo proveedor"></div>
             </div>
           </div>
-          <div id="cnt-services-list"></div>
-          <button class="btn-add" onclick="saveContentSection('services')">Guardar Servicios</button>
+          <div class="settings-section">
+            <div class="settings-section-title">Card 1 — Invitación Digital</div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="cnt-svc-name-0" placeholder="Invitación Digital"></div>
+              <div class="form-group"><label class="form-label">Precio (sin ARS)</label><input class="form-input" id="cnt-svc-price-0" placeholder="Desde $12.000"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-svc-desc-0"></textarea></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Card 2 — QR Fiestas</div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="cnt-svc-name-1" placeholder="QR Fiestas"></div>
+              <div class="form-group"><label class="form-label">Precio (sin ARS)</label><input class="form-input" id="cnt-svc-price-1" placeholder="Desde $15.000"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-svc-desc-1"></textarea></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Card 3 — Premiere</div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="cnt-svc-name-2" placeholder="Premiere"></div>
+              <div class="form-group"><label class="form-label">Precio (sin ARS)</label><input class="form-input" id="cnt-svc-price-2" placeholder="Desde $20.000"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-svc-desc-2"></textarea></div>
+          </div>
+          <button class="btn-add" onclick="saveContentSection('servicios')">Guardar Servicios</button>
         </div>
 
-        <!-- ── PRECIOS ── -->
-        <div class="cnt-panel" id="cnt-pricing" style="display:none">
-          <div style="display:flex;gap:1px;background:rgba(255,255,255,0.06);margin-bottom:20px;flex-wrap:wrap">
-            <button class="cnt-subtab active" onclick="switchPricingTab('xv',this)">Eventos de XV</button>
-            <button class="cnt-subtab" onclick="switchPricingTab('boda',this)">Casamientos</button>
-            <button class="cnt-subtab" onclick="switchPricingTab('book-xv',this)">Book de XV</button>
-            <button class="cnt-subtab" onclick="switchPricingTab('book-boda',this)">Book Pre-Boda</button>
+        <!-- ── CÓMO FUNCIONA ── -->
+        <div class="cnt-panel" id="cnt-como" style="display:none">
+          <div class="settings-section">
+            <div class="settings-section-title">Encabezado</div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-cf-eyebrow" placeholder="Proceso"></div>
+              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-cf-title" placeholder="Simple, rápido y sin complicaciones"></div>
+            </div>
           </div>
-          <div id="cnt-pricing-panels"></div>
-          <button class="btn-add" onclick="saveContentSection('pricing')">Guardar Precios</button>
+          <div class="settings-section">
+            <div class="settings-section-title">Paso 01</div>
+            <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="cnt-cf-step-name-0" placeholder="Consultás"></div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-cf-step-desc-0"></textarea></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Paso 02</div>
+            <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="cnt-cf-step-name-1" placeholder="Personalizamos"></div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-cf-step-desc-1"></textarea></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Paso 03</div>
+            <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="cnt-cf-step-name-2" placeholder="Lo recibís"></div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-cf-step-desc-2"></textarea></div>
+          </div>
+          <button class="btn-add" onclick="saveContentSection('como')">Guardar Cómo Funciona</button>
         </div>
 
-        <!-- ── CONTACTO ── -->
-        <div class="cnt-panel" id="cnt-contact" style="display:none">
+        <!-- ── FAQ ── -->
+        <div class="cnt-panel" id="cnt-faq" style="display:none">
           <div class="settings-section">
-            <div class="settings-section-title">Sección Contacto</div>
+            <div class="settings-section-title">Encabezado</div>
             <div class="form-row">
-              <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-contact-eyebrow" placeholder="Contacto"></div>
-              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-contact-title" placeholder="Hablemos de tu evento"></div>
+              <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-faq-eyebrow" placeholder="Preguntas frecuentes"></div>
+              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-faq-title" placeholder="¿Tenés dudas? Las respondemos todas"></div>
             </div>
-            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-contact-desc"></textarea></div>
           </div>
           <div class="settings-section">
-            <div class="settings-section-title">Datos de contacto</div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="cnt-email" placeholder="hola@cristian.com" type="email"></div>
-              <div class="form-group"><label class="form-label">Teléfono / WhatsApp</label><input class="form-input" id="cnt-phone" placeholder="+54 11 XXXX-XXXX"></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Ubicación</label><input class="form-input" id="cnt-location" placeholder="Buenos Aires, Argentina"></div>
-              <div class="form-group"><label class="form-label">Número WhatsApp (para botón flotante)</label><input class="form-input" id="cnt-wa-number" placeholder="5491100000000"></div>
-            </div>
+            <div class="settings-section-title">Preguntas y respuestas</div>
+            <div id="cnt-faq-list"></div>
+            <button class="btn-sm" onclick="addFaqItem()" style="margin-top:12px">+ Agregar pregunta</button>
           </div>
-          <button class="btn-add" onclick="saveContentSection('contact')">Guardar Contacto</button>
+          <button class="btn-add" onclick="saveContentSection('faq')">Guardar FAQ</button>
         </div>
 
-        <!-- ── REDES ── -->
-        <div class="cnt-panel" id="cnt-social" style="display:none">
-          <div class="settings-section">
-            <div class="settings-section-title">URLs de Redes Sociales</div>
-            <div class="form-group"><label class="form-label">Instagram</label><input class="form-input" id="cnt-ig" placeholder="https://instagram.com/TU_USUARIO"></div>
-            <div class="form-group"><label class="form-label">Facebook</label><input class="form-input" id="cnt-fb" placeholder="https://facebook.com/TU_PAGINA"></div>
-            <div class="form-group"><label class="form-label">WhatsApp (link directo)</label><input class="form-input" id="cnt-wa" placeholder="https://wa.me/5491100000000"></div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-section-title">Sección Redes en el sitio</div>
-            <div class="form-row">
-              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-social-title" placeholder="Descubrí más sobre mi trabajo en las redes"></div>
-            </div>
-            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-social-desc"></textarea></div>
-          </div>
-          <button class="btn-add" onclick="saveContentSection('social')">Guardar Redes</button>
-        </div>
-
-        <!-- ── LEGAL ── -->
-        <div class="cnt-panel" id="cnt-legal" style="display:none">
-          <p style="font-size:12px;color:var(--gray);margin-bottom:20px;letter-spacing:1px">El texto que escribas acá se muestra en un modal cuando el visitante hace clic en el link del footer.</p>
-          <div class="settings-section">
-            <div class="settings-section-title">Política de Privacidad</div>
-            <div class="form-group">
-              <label class="form-label">Nombre del link (footer)</label>
-              <input class="form-input" id="cnt-legal-privacy-label" placeholder="Política de Privacidad">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Contenido del modal</label>
-              <textarea class="form-textarea" id="cnt-legal-privacy-text" style="min-height:180px" placeholder="Escribí acá tu política de privacidad completa..."></textarea>
-              <p style="font-size:11px;color:var(--gray);margin-top:6px">Podés usar **negrita** y *cursiva*. Cada línea en blanco genera un nuevo párrafo.</p>
-            </div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-section-title">Términos y Condiciones</div>
-            <div class="form-group">
-              <label class="form-label">Nombre del link (footer)</label>
-              <input class="form-input" id="cnt-legal-terms-label" placeholder="Términos y Condiciones">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Contenido del modal</label>
-              <textarea class="form-textarea" id="cnt-legal-terms-text" style="min-height:180px" placeholder="Escribí acá tus términos y condiciones completos..."></textarea>
-            </div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-section-title">Copyright</div>
-            <div class="form-group">
-              <label class="form-label">Texto del pie de página</label>
-              <input class="form-input" id="cnt-legal-copyright" placeholder="© 2025 Cristian Romero Producciones. Todos los derechos reservados.">
-            </div>
-          </div>
-          <button class="btn-add" onclick="saveContentSection('legal')">Guardar Legal</button>
-        </div>
-        <!-- ── CTA MESSAGES ── -->
+        <!-- ── CTA FINAL ── -->
         <div class="cnt-panel" id="cnt-cta" style="display:none">
-          <p style="font-size:12px;color:var(--gray);margin-bottom:20px;letter-spacing:1px">Editá el mensaje que se envía por WhatsApp cuando alguien hace clic en cada botón del sitio.</p>
           <div class="settings-section">
-            <div class="settings-section-title">Mensajes de WhatsApp por botón</div>
-            <div class="form-group"><label class="form-label">Botón "Consultar disponibilidad" (Hero)</label><textarea class="form-textarea" id="cta-consultar" style="min-height:60px" placeholder="Hola! Me interesa consultar disponibilidad para mi evento."></textarea></div>
-            <div class="form-group"><label class="form-label">Botón "Hablemos de tu evento" (Sobre mí)</label><textarea class="form-textarea" id="cta-portfolio" style="min-height:60px" placeholder="Hola! Quisiera ver más trabajos y consultar sobre sus servicios."></textarea></div>
-            <div class="form-group"><label class="form-label">Botones "Consultar" (Precios)</label><textarea class="form-textarea" id="cta-precios" style="min-height:60px" placeholder="Hola! Quisiera consultar sobre precios y disponibilidad."></textarea></div>
-            <div class="form-group"><label class="form-label">Links de Servicios</label><textarea class="form-textarea" id="cta-servicios" style="min-height:60px" placeholder="Hola! Quisiera obtener más información sobre sus servicios."></textarea></div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-section-title">Destino de cada botón</div>
-            <p style="font-size:12px;color:var(--gray);margin-bottom:16px">Elegí si cada botón abre WhatsApp o desplaza al formulario de contacto.</p>
-            <div style="display:flex;flex-direction:column;gap:12px">
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--black3);border:1px solid rgba(255,255,255,0.06)">
-                <span style="font-size:13px;color:var(--white)">Consultar disponibilidad (Hero)</span>
-                <div style="display:flex;gap:1px">
-                  <button class="dest-btn active" id="dest-consultar-wa" onclick="setDest('consultar','wa',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:var(--gold);color:var(--black);border:none;cursor:pointer">WhatsApp</button>
-                  <button class="dest-btn" id="dest-consultar-form" onclick="setDest('consultar','form',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:none;color:var(--gray2);border:1px solid rgba(255,255,255,0.1);cursor:pointer">Formulario</button>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--black3);border:1px solid rgba(255,255,255,0.06)">
-                <span style="font-size:13px;color:var(--white)">Hablemos de tu evento (Sobre mí)</span>
-                <div style="display:flex;gap:1px">
-                  <button class="dest-btn active" id="dest-portfolio-wa" onclick="setDest('portfolio','wa',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:var(--gold);color:var(--black);border:none;cursor:pointer">WhatsApp</button>
-                  <button class="dest-btn" id="dest-portfolio-form" onclick="setDest('portfolio','form',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:none;color:var(--gray2);border:1px solid rgba(255,255,255,0.1);cursor:pointer">Formulario</button>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--black3);border:1px solid rgba(255,255,255,0.06)">
-                <span style="font-size:13px;color:var(--white)">Consultar (Precios)</span>
-                <div style="display:flex;gap:1px">
-                  <button class="dest-btn active" id="dest-precios-wa" onclick="setDest('precios','wa',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:var(--gold);color:var(--black);border:none;cursor:pointer">WhatsApp</button>
-                  <button class="dest-btn" id="dest-precios-form" onclick="setDest('precios','form',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:none;color:var(--gray2);border:1px solid rgba(255,255,255,0.1);cursor:pointer">Formulario</button>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--black3);border:1px solid rgba(255,255,255,0.06)">
-                <span style="font-size:13px;color:var(--white)">Links de Servicios</span>
-                <div style="display:flex;gap:1px">
-                  <button class="dest-btn active" id="dest-servicios-wa" onclick="setDest('servicios','wa',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:var(--gold);color:var(--black);border:none;cursor:pointer">WhatsApp</button>
-                  <button class="dest-btn" id="dest-servicios-form" onclick="setDest('servicios','form',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:none;color:var(--gray2);border:1px solid rgba(255,255,255,0.1);cursor:pointer">Formulario</button>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--black3);border:1px solid rgba(255,255,255,0.06)">
-                <span style="font-size:13px;color:var(--white)">Botón CONSULTAR (Nav / Header)</span>
-                <div style="display:flex;gap:1px">
-                  <button class="dest-btn active" id="dest-consultar_nav-wa" onclick="setDest('consultar_nav','wa',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:var(--gold);color:var(--black);border:none;cursor:pointer">WhatsApp</button>
-                  <button class="dest-btn" id="dest-consultar_nav-form" onclick="setDest('consultar_nav','form',this)" style="padding:7px 14px;font-size:10px;letter-spacing:1px;background:none;color:var(--gray2);border:1px solid rgba(255,255,255,0.1);cursor:pointer">Formulario</button>
-                </div>
-              </div>
+            <div class="settings-section-title">CTA Final</div>
+            <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-cta-title" placeholder="¿Listo para empezar?"></div>
+            <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-cta-desc"></textarea></div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Texto botón</label><input class="form-input" id="cnt-cta-btn" placeholder="Consultá por WhatsApp"></div>
+              <div class="form-group"><label class="form-label">URL botón (WhatsApp)</label><input class="form-input" id="cnt-cta-btn-url" placeholder="https://wa.me/..."></div>
             </div>
           </div>
-          <button class="btn-add" onclick="saveContentSection('cta')">Guardar mensajes</button>
+          <button class="btn-add" onclick="saveContentSection('cta')">Guardar CTA Final</button>
         </div>
+
       </div><!-- /page-content -->
 
 
@@ -3586,7 +3615,7 @@ function showPage(id) {
   if (id === 'dashboard') renderDashboard();
   if (id === 'photos') renderPhotosPage();
   if (id === 'video') loadVideoPage();
-  if (id === 'content') { loadContentPage(); setTimeout(loadDestinations, 100); }
+  if (id === 'content') { loadContentPage(); }
   if (id === 'invites') renderInvitesPage();
   if (id === 'fiestas') loadFiestasPage();
   if (id === 'clientes') loadClientesPage();
@@ -4942,439 +4971,309 @@ function switchContentTab(tab, btn) {
   document.getElementById('cnt-'+tab).style.display='block';
 }
 
-function switchPricingTab(tab, btn) {
-  document.querySelectorAll('.cnt-subtab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  renderPricingEditor(tab);
-}
+const CONTENT_DEFAULTS = {
+  global: {
+    wa_number: '541162557763',
+    ig_url: 'https://instagram.com/kuerre.digital',
+    topbar_left: 'Buenos Aires, Argentina',
+    nav_cta_text: 'Consultar',
+    nav_cta_url: 'https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE',
+    footer_copyright: '© 2026 KUERRE · Servicios digitales para eventos'
+  },
+  hero: {
+    eyebrow: 'Servicios digitales para eventos',
+    title: 'Hacé que tu evento\nviva para siempre',
+    desc: 'Galería colaborativa en tiempo real, entrega cinematográfica e invitación digital. Todo lo que tu evento necesita, en un solo lugar.',
+    btn1_text: 'Consultá por WhatsApp',
+    btn1_url: 'https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE',
+    btn2_text: 'Ver servicios',
+    bg_image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1600&auto=format&q=80'
+  },
+  trust: [
+    { num: '+100', label: 'Eventos realizados' },
+    { num: '3',    label: 'Servicios digitales' },
+    { num: '0',    label: 'Apps que instalar' },
+    { num: '24h',  label: 'Tiempo de respuesta' }
+  ],
+  invitaciones: {
+    label: 'Invitación Digital',
+    title: 'Animada, musical\ne interactiva',
+    desc: 'Cuenta regresiva en vivo, música de fondo, mapa interactivo, confirmación de asistencia y mucho más. Sin papel, con estilo.',
+    features: ['Cuenta regresiva al evento en tiempo real','Música de fondo elegible por el cliente','Confirmación de asistencia integrada','Link a Google Maps con la ubicación','Compartible por WhatsApp, Instagram y email'],
+    btn_text: 'Consultar precio',
+    btn_url: 'https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Invitaci%C3%B3n%20Digital',
+    bg_image: 'https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&q=80'
+  },
+  qr: {
+    label: 'QR Fiestas',
+    title: 'La galería colaborativa\nde tu evento',
+    desc: 'Tus invitados escanean un QR y en segundos están subiendo fotos desde su celular. Una galería que crece sola durante la fiesta.',
+    features: ['Sin descargar ninguna aplicación — solo el navegador','Galería en tiempo real visible para todos los invitados','Descarga masiva de todas las fotos al finalizar','QR imprimible para colocar en las mesas','Disponible 30 días después del evento'],
+    btn_text: 'Consultar precio',
+    btn_url: 'https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20QR%20Fiestas',
+    bg_image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&auto=format&q=80'
+  },
+  premiere: {
+    label: 'Premiere',
+    title: 'La entrega que se siente\ncomo un estreno',
+    desc: 'Tu primer vistazo a las fotos y el video presentado con una experiencia cinematográfica. Una página personalizada que sorprende desde el primer segundo.',
+    features: ['Página de entrega con diseño exclusivo para tu evento','Reproducción de video con estética de streaming','Galería de fotos con navegación elegante','Link privado para compartir solo con quien quieras','Acceso desde cualquier dispositivo'],
+    btn_text: 'Consultar precio',
+    btn_url: 'https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Premiere',
+    bg_image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&q=80'
+  },
+  servicios: {
+    eyebrow: 'Nuestros servicios',
+    title: 'Tres experiencias digitales,\nun solo proveedor',
+    cards: [
+      { name: 'Invitación Digital', desc: 'Invitación animada con cuenta regresiva, música de fondo, mapa interactivo y confirmación de asistencia. Sin papel, con estilo.', price: 'Desde $12.000' },
+      { name: 'QR Fiestas', desc: 'Tus invitados escanean un QR y suben fotos en tiempo real. Una galería colaborativa con el espíritu del evento, disponible para todos.', price: 'Desde $15.000' },
+      { name: 'Premiere', desc: 'Tu primer vistazo a las fotos y el video presentado con experiencia cinematográfica. Una entrega que se siente como estreno de película.', price: 'Desde $20.000' }
+    ]
+  },
+  como_funciona: {
+    eyebrow: 'Proceso',
+    title: 'Simple, rápido\ny sin complicaciones',
+    steps: [
+      { name: 'Consultás', desc: 'Nos escribís por WhatsApp con la fecha y tipo de evento. Te respondemos el mismo día con disponibilidad y opciones.' },
+      { name: 'Personalizamos', desc: 'Configuramos el servicio con los datos de tu evento: nombres, fecha, colores, música y todo el contenido que necesitás.' },
+      { name: 'Lo recibís', desc: 'Te enviamos el link listo para compartir. Tus invitados solo necesitan abrirlo en su celular, sin instalar nada.' }
+    ]
+  },
+  faq: {
+    eyebrow: 'Preguntas frecuentes',
+    title: '¿Tenés dudas?\nLas respondemos todas',
+    items: [
+      { q: '¿Cuánto tiempo antes debo contratar?', a: 'Recomendamos contactarnos con al menos 2 semanas de anticipación para tener tiempo de personalizar todo. Para fechas muy cercanas consultanos igual — hacemos lo posible para no dejar ningún evento sin servicio.' },
+      { q: '¿Los servicios se pueden combinar?', a: 'Sí, y es lo que recomendamos. Podés contratar uno, dos o los tres servicios para el mismo evento. Al combinarlos obtenés un precio especial.' },
+      { q: '¿Funciona en cualquier celular?', a: 'Sí. Todas las páginas están optimizadas para mobile — tus invitados solo necesitan abrir el link en su navegador, sea iPhone o Android. No hay nada que instalar.' },
+      { q: '¿Cuánto tiempo permanece activo el servicio?', a: 'Por defecto 30 días desde la fecha del evento. Podemos extender el período si necesitás que esté disponible más tiempo para que todos los invitados puedan verlo.' },
+      { q: '¿Puedo ver una demo antes de contratar?', a: '¡Claro! Consultanos por WhatsApp y te mandamos links de demo de cada servicio para que los explores antes de decidir. Sin compromiso.' }
+    ]
+  },
+  cta_final: {
+    title: '¿Listo para empezar?',
+    desc: 'Escribinos con la fecha y el tipo de evento. Te respondemos el mismo día con disponibilidad, opciones y presupuesto.',
+    btn_text: 'Consultá por WhatsApp',
+    btn_url: 'https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE'
+  }
+};
 
 function loadContentPage() {
   const c = getContent();
+  const d = CONTENT_DEFAULTS;
+  function fill(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
 
-  // HERO
+  // Global
+  const g = c.global || {};
+  fill('cnt-global-wa',        g.wa_number        || d.global.wa_number);
+  fill('cnt-global-ig',        g.ig_url           || d.global.ig_url);
+  fill('cnt-global-topbar',    g.topbar_left      || d.global.topbar_left);
+  fill('cnt-global-nav-cta',   g.nav_cta_text     || d.global.nav_cta_text);
+  fill('cnt-global-nav-cta-url', g.nav_cta_url    || d.global.nav_cta_url);
+  fill('cnt-global-footer',    g.footer_copyright || d.global.footer_copyright);
+
+  // Hero
   const h = c.hero || {};
-  ['eyebrow','avail','title','desc','btn1','btn2'].forEach(k => {
-    const el = document.getElementById('cnt-hero-'+k);
-    if(el) el.value = h[k] || '';
+  fill('cnt-hero-eyebrow',  h.eyebrow   || d.hero.eyebrow);
+  fill('cnt-hero-title',    h.title     || d.hero.title);
+  fill('cnt-hero-desc',     h.desc      || d.hero.desc);
+  fill('cnt-hero-btn1',     h.btn1_text || d.hero.btn1_text);
+  fill('cnt-hero-btn1-url', h.btn1_url  || d.hero.btn1_url);
+  fill('cnt-hero-btn2',     h.btn2_text || d.hero.btn2_text);
+  fill('cnt-hero-bg',       h.bg_image  || d.hero.bg_image);
+
+  // Trust
+  const t = c.trust && c.trust.length ? c.trust : d.trust;
+  [0,1,2,3].forEach(i => {
+    fill('cnt-trust-num-'   + i, (t[i] || d.trust[i]).num);
+    fill('cnt-trust-label-' + i, (t[i] || d.trust[i]).label);
   });
 
-  // ABOUT
-  const a = c.about || {};
-  ['eyebrow','title','p1','p2','p3','p4','btn'].forEach(k => {
-    const el = document.getElementById('cnt-about-'+k);
-    if(el) el.value = a[k] || '';
-  });
-  renderStatsEditor(a.stats || [{n:'300+',l:'Eventos cubiertos'},{n:'8+',l:'Años experiencia'},{n:'2',l:'Marcas propias'},{n:'100%',l:'Clientes felices'}]);
-
-  // SERVICES
-  const svc = c.services || {};
-  document.getElementById('cnt-svc-eyebrow').value = svc.eyebrow || 'Qué ofrezco';
-  document.getElementById('cnt-svc-title').value = svc.title || 'Mis servicios';
-  renderServicesEditor(svc.items || SERVICES_DEFAULT);
-
-  // PRICING — render first tab
-  renderPricingEditor('xv');
-
-  // CONTACT
-  const ct = c.contact || {};
-  ['eyebrow','title','desc','email','phone','location','wa-number'].forEach(k => {
-    const el = document.getElementById('cnt-'+k);
-    if(el) el.value = ct[k.replace('-','_')] || ct[k] || '';
+  // Feature sections
+  [['invitaciones','cnt-inv'],['qr','cnt-qr'],['premiere','cnt-pm']].forEach(([key, pfx]) => {
+    const s = c[key] || {};
+    const df = d[key];
+    fill(pfx + '-label',   s.label    || df.label);
+    fill(pfx + '-title',   s.title    || df.title);
+    fill(pfx + '-desc',    s.desc     || df.desc);
+    const feats = s.features && s.features.length ? s.features : df.features;
+    [0,1,2,3,4].forEach(i => fill(pfx + '-feat-' + i, feats[i] || ''));
+    fill(pfx + '-btn',     s.btn_text || df.btn_text);
+    fill(pfx + '-btn-url', s.btn_url  || df.btn_url);
+    fill(pfx + '-bg',      s.bg_image || df.bg_image);
   });
 
-  // SOCIAL
-  const sc = c.social || {};
-  ['ig','fb','wa','social-title','social-desc'].forEach(k => {
-    const el = document.getElementById('cnt-'+k);
-    if(el) el.value = sc[k.replace('-','_')] || sc[k] || '';
+  // Servicios
+  const svc = c.servicios || {};
+  fill('cnt-svc-eyebrow', svc.eyebrow || d.servicios.eyebrow);
+  fill('cnt-svc-title',   svc.title   || d.servicios.title);
+  const cards = svc.cards && svc.cards.length ? svc.cards : d.servicios.cards;
+  [0,1,2].forEach(i => {
+    fill('cnt-svc-name-'  + i, (cards[i] || d.servicios.cards[i]).name);
+    fill('cnt-svc-desc-'  + i, (cards[i] || d.servicios.cards[i]).desc);
+    fill('cnt-svc-price-' + i, (cards[i] || d.servicios.cards[i]).price);
   });
+
+  // Cómo Funciona
+  const cf = c.como_funciona || {};
+  fill('cnt-cf-eyebrow', cf.eyebrow || d.como_funciona.eyebrow);
+  fill('cnt-cf-title',   cf.title   || d.como_funciona.title);
+  const steps = cf.steps && cf.steps.length ? cf.steps : d.como_funciona.steps;
+  [0,1,2].forEach(i => {
+    fill('cnt-cf-step-name-' + i, (steps[i] || d.como_funciona.steps[i]).name);
+    fill('cnt-cf-step-desc-' + i, (steps[i] || d.como_funciona.steps[i]).desc);
+  });
+
+  // FAQ
+  const faq = c.faq || {};
+  fill('cnt-faq-eyebrow', faq.eyebrow || d.faq.eyebrow);
+  fill('cnt-faq-title',   faq.title   || d.faq.title);
+  renderFaqEditor(faq.items && faq.items.length ? faq.items : d.faq.items);
+
+  // CTA Final
+  const cta = c.cta_final || {};
+  fill('cnt-cta-title',   cta.title    || d.cta_final.title);
+  fill('cnt-cta-desc',    cta.desc     || d.cta_final.desc);
+  fill('cnt-cta-btn',     cta.btn_text || d.cta_final.btn_text);
+  fill('cnt-cta-btn-url', cta.btn_url  || d.cta_final.btn_url);
 }
 
-// ── STATS EDITOR ──
-function renderStatsEditor(stats) {
-  const container = document.getElementById('cnt-stats-list');
-  if(!container) return;
-  container.innerHTML = stats.map((s,i) => `
-    <div class="cnt-stat-row">
-      <input class="form-input" placeholder="300+" value="${s.n||''}" id="stat-n-${i}" style="font-size:13px">
-      <input class="form-input" placeholder="Eventos cubiertos" value="${s.l||''}" id="stat-l-${i}" style="font-size:13px">
-      <button onclick="removeStat(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>
+// ── FAQ EDITOR ──
+function renderFaqEditor(items) {
+  const container = document.getElementById('cnt-faq-list');
+  if (!container) return;
+  container.innerHTML = (items || []).map((item, i) => `
+    <div class="settings-section" style="margin-bottom:12px;padding:16px" id="faq-row-${i}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray)">Pregunta ${i+1}</span>
+        <button onclick="removeFaqItem(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;line-height:1">✕</button>
+      </div>
+      <div class="form-group"><label class="form-label">Pregunta</label><input class="form-input" id="faq-q-${i}" value="${(item.q||'').replace(/"/g,'&quot;')}"></div>
+      <div class="form-group"><label class="form-label">Respuesta</label><textarea class="form-textarea" id="faq-a-${i}">${item.a||''}</textarea></div>
     </div>`).join('');
-  container.dataset.count = stats.length;
+  container.dataset.count = (items || []).length;
 }
 
-function addStat() {
-  const c = getContent(); const a = c.about || {};
-  const stats = a.stats || [{n:'300+',l:'Eventos cubiertos'},{n:'8+',l:'Años experiencia'},{n:'2',l:'Marcas propias'},{n:'100%',l:'Clientes felices'}];
-  stats.push({n:'',l:''});
-  renderStatsEditor(stats);
+function addFaqItem() {
+  const current = collectFaqItems();
+  current.push({ q: '', a: '' });
+  renderFaqEditor(current);
 }
 
-function removeStat(idx) {
-  const count = parseInt(document.getElementById('cnt-stats-list').dataset.count);
-  const stats = [];
-  for(let i=0; i<count; i++) {
-    const n = document.getElementById('stat-n-'+i);
-    const l = document.getElementById('stat-l-'+i);
-    if(n && i !== idx) stats.push({n:n.value, l:l.value});
+function removeFaqItem(idx) {
+  const items = collectFaqItems().filter((_, i) => i !== idx);
+  renderFaqEditor(items);
+}
+
+function collectFaqItems() {
+  const count = parseInt((document.getElementById('cnt-faq-list') || {}).dataset.count || 0);
+  const items = [];
+  for (let i = 0; i < count; i++) {
+    const q = document.getElementById('faq-q-' + i);
+    const a = document.getElementById('faq-a-' + i);
+    if (q && a) items.push({ q: q.value.trim(), a: a.value.trim() });
   }
-  renderStatsEditor(stats);
-}
-
-function collectStats() {
-  const count = parseInt(document.getElementById('cnt-stats-list').dataset.count || 0);
-  const stats = [];
-  for(let i=0; i<count; i++) {
-    const n = document.getElementById('stat-n-'+i);
-    const l = document.getElementById('stat-l-'+i);
-    if(n && l) stats.push({n:n.value.trim(), l:l.value.trim()});
-  }
-  return stats;
-}
-
-// ── SERVICES EDITOR ──
-function renderServicesEditor(svcs) {
-  const container = document.getElementById('cnt-services-list');
-  if(!container) return;
-  container.innerHTML = svcs.map((s,i) => `
-    <div class="cnt-svc-card" draggable="true"
-      ondragstart="svcDragStart(event,${i})"
-      ondragover="svcDragOver(event)"
-      ondrop="svcDrop(event,${i})"
-      ondragleave="this.style.borderTop=''"
-      style="opacity:${s.hidden?0.45:1};cursor:grab">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="color:var(--gray);font-size:18px;cursor:grab;user-select:none">☰</span>
-          <div class="cnt-svc-card-header" style="margin-bottom:0">Servicio ${i+1} — ${s.title||''}</div>
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${s.hidden?'var(--red)':'var(--green)'}">
-          <input type="checkbox" id="svc-visible-${i}" ${s.hidden?'':'checked'} onchange="toggleServiceVisibility(${i})" style="width:16px;height:16px;cursor:pointer;accent-color:var(--gold)">
-          ${s.hidden?'Oculto':'Visible'}
-        </label>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="svc-title-${i}" value="${s.title||''}"></div>
-        <div class="form-group"><label class="form-label">Texto del link</label><input class="form-input" id="svc-link-${i}" value="${s.link||''}"></div>
-      </div>
-      <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="svc-desc-${i}" style="min-height:80px">${s.desc||''}</textarea></div>
-    </div>`).join('');
-  container.dataset.count = svcs.length;
-}
-
-function collectServices() {
-  const count = parseInt(document.getElementById('cnt-services-list').dataset.count || 0);
-  const svcs = [];
-  for(let i=0; i<count; i++) {
-    const cb = document.getElementById('svc-visible-'+i);
-    svcs.push({
-      id: SERVICES_DEFAULT[i]?.id || 'svc'+i,
-      title: (document.getElementById('svc-title-'+i)||{}).value || '',
-      desc: (document.getElementById('svc-desc-'+i)||{}).value || '',
-      link: (document.getElementById('svc-link-'+i)||{}).value || '',
-      hidden: cb ? !cb.checked : false
-    });
-  }
-  return svcs;
-}
-
-// ── SERVICE DRAG REORDER ──
-let svcDragSrc = null;
-function svcDragStart(e, i) {
-  svcDragSrc = i;
-  e.dataTransfer.effectAllowed = 'move';
-}
-function svcDragOver(e) {
-  e.preventDefault();
-  e.currentTarget.style.borderTop = '2px solid var(--gold)';
-}
-function svcDrop(e, i) {
-  e.preventDefault();
-  e.currentTarget.style.borderTop = '';
-  if(svcDragSrc === null || svcDragSrc === i) return;
-  // Re-collect current state
-  const count = parseInt(document.getElementById('cnt-services-list').dataset.count || 0);
-  const current = [];
-  for(let j=0; j<count; j++) {
-    current.push({
-      id: 'svc'+j,
-      title: (document.getElementById('svc-title-'+j)||{}).value || '',
-      desc: (document.getElementById('svc-desc-'+j)||{}).value || '',
-      link: (document.getElementById('svc-link-'+j)||{}).value || '',
-      hidden: !(document.getElementById('svc-visible-'+j)||{checked:true}).checked
-    });
-  }
-  // Reorder
-  const moved = current.splice(svcDragSrc, 1)[0];
-  current.splice(i, 0, moved);
-  renderServicesEditor(current);
-  svcDragSrc = null;
-}
-
-function toggleServiceVisibility(i) {
-  const cb = document.getElementById('svc-visible-'+i);
-  const card = cb?.closest('.cnt-svc-card');
-  const label = cb?.closest('label');
-  if(card) card.style.opacity = cb.checked ? '1' : '0.45';
-  if(label) {
-    label.style.color = cb.checked ? 'var(--green)' : 'var(--red)';
-    label.childNodes[label.childNodes.length-1].textContent = cb.checked ? ' Visible' : ' Oculto';
-  }
-}
-
-// ── PRICING EDITOR ──
-let currentPricingTab = 'xv';
-
-function normalizePackage(pkg) {
-  if(pkg.allItems) return pkg;
-  const all = [
-    ...(pkg.items||[]).map(t=>({text:t,type:'yes'})),
-    ...(pkg.starItems||[]).map(t=>({text:t,type:'star'})),
-    ...(pkg.notItems||[]).map(t=>({text:t,type:'no'}))
-  ];
-  return {...pkg, allItems: all};
-}
-
-function renderPricingEditor(tab) {
-  currentPricingTab = tab;
-  const c = getContent();
-  const rawData = (c.pricing && c.pricing[tab]) || PRICING_DEFAULT[tab] || [];
-  const pricingData = rawData.map(normalizePackage);
-  const container = document.getElementById('cnt-pricing-panels');
-  if(!container) return;
-
-  container.innerHTML = pricingData.map((pkg, pi) => `
-    <div class="cnt-pkg-card">
-      <div class="cnt-pkg-title">Paquete ${pi+1}</div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="pkg-name-${pi}" value="${pkg.name||''}"></div>
-        <div class="form-group"><label class="form-label">Etiqueta (tier)</label><input class="form-input" id="pkg-tier-${pi}" value="${pkg.tier||''}"></div>
-        <div class="form-group"><label class="form-label">Precio</label><input class="form-input" id="pkg-price-${pi}" value="${pkg.price||''}" placeholder="Consultar"></div>
-      </div>
-      <div style="margin-top:12px">
-        <label class="form-label" style="margin-bottom:8px;display:block">Items <span style="font-size:10px;color:var(--gray);font-weight:400">— arrastrá ☰ para reordenar</span></label>
-        <div id="pkg-items-${pi}" class="sortable-items">
-          ${(pkg.allItems||[]).map((item,ii) => `
-            <div class="cnt-item-row" draggable="true" ondragstart="itemDragStart(event,${pi},${ii})" ondragover="itemDragOver(event)" ondrop="itemDrop(event,${pi},${ii})" ondragleave="this.style.borderTop=''" style="cursor:grab">
-              <span style="color:var(--gray);padding:0 4px;font-size:16px;user-select:none">☰</span>
-              <input class="form-input" value="${item.text||''}" style="font-size:12px">
-              <select class="form-select" style="font-size:11px;padding:8px">
-                <option value="yes" ${item.type==='yes'?'selected':''}>✓ Incluido</option>
-                <option value="star" ${item.type==='star'?'selected':''}>⭐ Destacado</option>
-                <option value="no" ${item.type==='no'?'selected':''}>✗ No incluido</option>
-              </select>
-              <button onclick="this.closest('.cnt-item-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>
-            </div>`).join('')}
-        </div>
-        <button onclick="addItem(${pi})" class="btn-sm" style="margin-top:8px;font-size:10px">+ Agregar item</button>
-      </div>
-    </div>`).join('') + `
-    <button onclick="addPackage()" class="btn-sm" style="margin-bottom:12px">+ Agregar paquete</button>`;
-
-  container.dataset.count = pricingData.length;
-}
-
-let dragSrcPi = null, dragSrcIi = null;
-function itemDragStart(e, pi, ii) {
-  dragSrcPi = pi; dragSrcIi = ii;
-  e.dataTransfer.effectAllowed = 'move';
-}
-function itemDragOver(e) {
-  e.preventDefault();
-  e.currentTarget.style.borderTop = '2px solid var(--gold)';
-}
-function itemDrop(e, pi, ii) {
-  e.preventDefault();
-  e.currentTarget.style.borderTop = '';
-  if(dragSrcIi === null || dragSrcIi === ii) return;
-  const container = document.getElementById('pkg-items-'+pi);
-  if(!container) return;
-  const rows = [...container.querySelectorAll('.cnt-item-row')];
-  const src = rows[dragSrcIi];
-  const target = rows[ii];
-  if(src && target) {
-    if(dragSrcIi < ii) target.after(src);
-    else target.before(src);
-  }
-}
-
-
-function addItem(pi) {
-  const container = document.getElementById('pkg-items-'+pi);
-  if(!container) return;
-  const ii = container.querySelectorAll('.cnt-item-row').length;
-  const div = document.createElement('div');
-  div.className = 'cnt-item-row';
-  div.setAttribute('draggable','true');
-  div.style.cursor = 'grab';
-  div.ondragstart = (e) => itemDragStart(e, pi, ii);
-  div.ondragover = itemDragOver;
-  div.ondrop = (e) => itemDrop(e, pi, ii);
-  div.innerHTML = `
-    <span style="color:var(--gray);padding:0 6px;cursor:grab;font-size:16px;user-select:none">☰</span>
-    <input class="form-input" value="" style="font-size:12px" placeholder="Nuevo item">
-    <select class="form-select" style="font-size:11px;padding:8px">
-      <option value="yes">✓ Incluido</option>
-      <option value="star">⭐ Destacado</option>
-      <option value="no">✗ No incluido</option>
-    </select>
-    <button onclick="this.closest('.cnt-item-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>`;
-  container.appendChild(div);
-}
-
-function removeItem(pi, ii) {
-  const row = document.getElementById('item-'+pi+'-'+ii);
-  if(row) row.closest('.cnt-item-row').remove();
-}
-
-function addPackage() {
-  const c = getContent();
-  if(!c.pricing) c.pricing = {};
-  if(!c.pricing[currentPricingTab]) c.pricing[currentPricingTab] = JSON.parse(JSON.stringify(PRICING_DEFAULT[currentPricingTab]||[]));
-  c.pricing[currentPricingTab].push({name:'Nuevo paquete', tier:'', price:'', items:['Item 1'], notItems:[]});
-  setContent(c);
-  renderPricingEditor(currentPricingTab);
-}
-
-function collectPricingPackages() {
-  const count = parseInt(document.getElementById('cnt-pricing-panels').dataset.count || 0);
-  const pkgs = [];
-  for(let pi=0; pi<count; pi++) {
-    const name = (document.getElementById('pkg-name-'+pi)||{}).value || '';
-    const tier = (document.getElementById('pkg-tier-'+pi)||{}).value || '';
-    const price = (document.getElementById('pkg-price-'+pi)||{}).value || '';
-    const itemRows = document.getElementById('pkg-items-'+pi)?.querySelectorAll('.cnt-item-row') || [];
-    const items = [], notItems = [], starItems = [];
-    const allItems = [];
-    itemRows.forEach(row => {
-      const input = row.querySelector('input');
-      const sel = row.querySelector('select');
-      if(input && sel && input.value.trim()) {
-        allItems.push({text: input.value.trim(), type: sel.value});
-      }
-    });
-    pkgs.push({name, tier, price, allItems});
-  }
-  return pkgs;
+  return items;
 }
 
 // ── SAVE SECTIONS ──
 function saveContentSection(section) {
   const c = getContent();
+  function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 
-  if(section === 'hero') {
+  if (section === 'global') {
+    c.global = {
+      wa_number:        v('cnt-global-wa'),
+      ig_url:           v('cnt-global-ig'),
+      topbar_left:      v('cnt-global-topbar'),
+      nav_cta_text:     v('cnt-global-nav-cta'),
+      nav_cta_url:      v('cnt-global-nav-cta-url'),
+      footer_copyright: v('cnt-global-footer')
+    };
+  } else if (section === 'hero') {
     c.hero = {
-      eyebrow: document.getElementById('cnt-hero-eyebrow').value.trim(),
-      avail: document.getElementById('cnt-hero-avail').value.trim(),
-      title: document.getElementById('cnt-hero-title').value.trim(),
-      desc: document.getElementById('cnt-hero-desc').value.trim(),
-      btn1: document.getElementById('cnt-hero-btn1').value.trim(),
-      btn2: document.getElementById('cnt-hero-btn2').value.trim()
+      eyebrow:   v('cnt-hero-eyebrow'),
+      title:     v('cnt-hero-title'),
+      desc:      v('cnt-hero-desc'),
+      btn1_text: v('cnt-hero-btn1'),
+      btn1_url:  v('cnt-hero-btn1-url'),
+      btn2_text: v('cnt-hero-btn2'),
+      bg_image:  v('cnt-hero-bg')
     };
-  }
-  else if(section === 'about') {
-    c.about = {
-      eyebrow: document.getElementById('cnt-about-eyebrow').value.trim(),
-      title: document.getElementById('cnt-about-title').value.trim(),
-      p1: document.getElementById('cnt-about-p1').value.trim(),
-      p2: document.getElementById('cnt-about-p2').value.trim(),
-      p3: document.getElementById('cnt-about-p3').value.trim(),
-      p4: document.getElementById('cnt-about-p4').value.trim(),
-      btn: document.getElementById('cnt-about-btn').value.trim(),
-      stats: collectStats()
+  } else if (section === 'trust') {
+    c.trust = [0,1,2,3].map(i => ({
+      num:   v('cnt-trust-num-'   + i),
+      label: v('cnt-trust-label-' + i)
+    }));
+  } else if (section === 'invitaciones') {
+    c.invitaciones = {
+      label:    v('cnt-inv-label'),
+      title:    v('cnt-inv-title'),
+      desc:     v('cnt-inv-desc'),
+      features: [0,1,2,3,4].map(i => v('cnt-inv-feat-' + i)),
+      btn_text: v('cnt-inv-btn'),
+      btn_url:  v('cnt-inv-btn-url'),
+      bg_image: v('cnt-inv-bg')
     };
-  }
-  else if(section === 'services') {
-    c.services = {
-      eyebrow: document.getElementById('cnt-svc-eyebrow').value.trim(),
-      title: document.getElementById('cnt-svc-title').value.trim(),
-      items: collectServices()
+  } else if (section === 'qr') {
+    c.qr = {
+      label:    v('cnt-qr-label'),
+      title:    v('cnt-qr-title'),
+      desc:     v('cnt-qr-desc'),
+      features: [0,1,2,3,4].map(i => v('cnt-qr-feat-' + i)),
+      btn_text: v('cnt-qr-btn'),
+      btn_url:  v('cnt-qr-btn-url'),
+      bg_image: v('cnt-qr-bg')
     };
-  }
-  else if(section === 'pricing') {
-    if(!c.pricing) c.pricing = {};
-    c.pricing[currentPricingTab] = collectPricingPackages();
-  }
-  else if(section === 'contact') {
-    c.contact = {
-      eyebrow: document.getElementById('cnt-contact-eyebrow').value.trim(),
-      title: document.getElementById('cnt-contact-title').value.trim(),
-      desc: document.getElementById('cnt-contact-desc').value.trim(),
-      email: document.getElementById('cnt-email').value.trim(),
-      phone: document.getElementById('cnt-phone').value.trim(),
-      location: document.getElementById('cnt-location').value.trim(),
-      wa_number: document.getElementById('cnt-wa-number').value.trim()
+  } else if (section === 'premiere') {
+    c.premiere = {
+      label:    v('cnt-pm-label'),
+      title:    v('cnt-pm-title'),
+      desc:     v('cnt-pm-desc'),
+      features: [0,1,2,3,4].map(i => v('cnt-pm-feat-' + i)),
+      btn_text: v('cnt-pm-btn'),
+      btn_url:  v('cnt-pm-btn-url'),
+      bg_image: v('cnt-pm-bg')
     };
-  }
-  else if(section === 'social') {
-    c.social = {
-      ig: document.getElementById('cnt-ig').value.trim(),
-      fb: document.getElementById('cnt-fb').value.trim(),
-      wa: document.getElementById('cnt-wa').value.trim(),
-      social_title: document.getElementById('cnt-social-title').value.trim(),
-      social_desc: document.getElementById('cnt-social-desc').value.trim()
+  } else if (section === 'servicios') {
+    c.servicios = {
+      eyebrow: v('cnt-svc-eyebrow'),
+      title:   v('cnt-svc-title'),
+      cards:   [0,1,2].map(i => ({
+        name:  v('cnt-svc-name-'  + i),
+        desc:  v('cnt-svc-desc-'  + i),
+        price: v('cnt-svc-price-' + i)
+      }))
     };
-  }
-
-  if(section === 'cta') {
-    // Save destinations
-    const destKeys = ['consultar','portfolio','precios','servicios','consultar_nav'];
-    if(!c.cta_destinations) c.cta_destinations = {};
-    destKeys.forEach(k => {
-      const waBtn = document.getElementById('dest-'+k+'-wa');
-      if(waBtn) c.cta_destinations[k] = waBtn.classList.contains('active') ? 'wa' : 'form';
-    });
-    c.cta_messages = {
-      consultar: document.getElementById('cta-consultar').value.trim(),
-      portfolio: document.getElementById('cta-portfolio').value.trim(),
-      precios: document.getElementById('cta-precios').value.trim(),
-      servicios: document.getElementById('cta-servicios').value.trim()
+  } else if (section === 'como') {
+    c.como_funciona = {
+      eyebrow: v('cnt-cf-eyebrow'),
+      title:   v('cnt-cf-title'),
+      steps:   [0,1,2].map(i => ({
+        name: v('cnt-cf-step-name-' + i),
+        desc: v('cnt-cf-step-desc-' + i)
+      }))
     };
-  }
-  else if(section === 'legal') {
-    c.legal = {
-      privacy_label: document.getElementById('cnt-legal-privacy-label').value.trim(),
-      privacy_text: document.getElementById('cnt-legal-privacy-text').value.trim(),
-      terms_label: document.getElementById('cnt-legal-terms-label').value.trim(),
-      terms_text: document.getElementById('cnt-legal-terms-text').value.trim(),
-      copyright: document.getElementById('cnt-legal-copyright').value.trim()
+  } else if (section === 'faq') {
+    c.faq = {
+      eyebrow: v('cnt-faq-eyebrow'),
+      title:   v('cnt-faq-title'),
+      items:   collectFaqItems()
+    };
+  } else if (section === 'cta') {
+    c.cta_final = {
+      title:    v('cnt-cta-title'),
+      desc:     v('cnt-cta-desc'),
+      btn_text: v('cnt-cta-btn'),
+      btn_url:  v('cnt-cta-btn-url')
     };
   }
 
   setContent(c);
-  toast('Sección guardada ✓ — recargá el sitio para ver los cambios');
+  toast('Guardado ✓');
 }
 
-// ── BUTTON DESTINATIONS ──
-function setDest(key, dest, btn) {
-  // Deactivate both, activate clicked
-  const waBtn = document.getElementById('dest-'+key+'-wa');
-  const formBtn = document.getElementById('dest-'+key+'-form');
-  if(!waBtn || !formBtn) return;
-  waBtn.classList.remove('active');
-  formBtn.classList.remove('active');
-  waBtn.style.background='none'; waBtn.style.color='var(--gray2)'; waBtn.style.border='1px solid rgba(255,255,255,0.1)';
-  formBtn.style.background='none'; formBtn.style.color='var(--gray2)'; formBtn.style.border='1px solid rgba(255,255,255,0.1)';
-  btn.classList.add('active');
-  btn.style.background='var(--gold)'; btn.style.color='var(--black)'; btn.style.border='none';
-}
-
-function loadDestinations() {
-  let c = {};
-  try { c = JSON.parse(localStorage.getItem('crd_content')) || {}; } catch(e) {}
-  const dests = c.cta_destinations || {};
-  ['consultar','portfolio','precios','servicios','consultar_nav'].forEach(k => {
-    const dest = dests[k] || 'wa';
-    const waBtn = document.getElementById('dest-'+k+'-wa');
-    const formBtn = document.getElementById('dest-'+k+'-form');
-    if(!waBtn || !formBtn) return;
-    if(dest === 'form') {
-      setDest(k, 'form', formBtn);
-    } else {
-      setDest(k, 'wa', waBtn);
-    }
-  });
-}
 
 // ── GOOGLE REVIEWS IMPORT ──
 function importGoogleReviews() {

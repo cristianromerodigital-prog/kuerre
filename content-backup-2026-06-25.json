@@ -1,0 +1,106 @@
+{
+  "global": {
+    "wa_number": "541162557763",
+    "ig_url": "https://instagram.com/kuerre.digital",
+    "topbar_left": "Buenos Aires, Argentina",
+    "footer_copyright": "© 2026 KUERRE · Servicios digitales para eventos",
+    "nav_cta_text": "Consultar",
+    "nav_cta_url": "https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE"
+  },
+  "hero": {
+    "eyebrow": "Servicios digitales para eventos",
+    "title": "Hacé que tu evento\nviva para siempre",
+    "desc": "Galería colaborativa en tiempo real, entrega cinematográfica e invitación digital. Todo lo que tu evento necesita, en un solo lugar.",
+    "btn1_text": "Consultá por WhatsApp",
+    "btn1_url": "https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE",
+    "btn2_text": "Ver servicios",
+    "btn2_anchor": "#servicios",
+    "bg_image": "https://images.unsplash.com/photo-1519741497674-611481863552?w=1600&auto=format&q=80"
+  },
+  "trust": [
+    { "num": "+100", "label": "Eventos realizados" },
+    { "num": "3",    "label": "Servicios digitales" },
+    { "num": "0",    "label": "Apps que instalar" },
+    { "num": "24h",  "label": "Tiempo de respuesta" }
+  ],
+  "invitaciones": {
+    "label": "Invitación Digital",
+    "title": "Animada, musical\ne interactiva",
+    "desc": "Cuenta regresiva en vivo, música de fondo, mapa interactivo, confirmación de asistencia y mucho más. Sin papel, con estilo.",
+    "features": [
+      "Cuenta regresiva al evento en tiempo real",
+      "Música de fondo elegible por el cliente",
+      "Confirmación de asistencia integrada",
+      "Link a Google Maps con la ubicación",
+      "Compartible por WhatsApp, Instagram y email"
+    ],
+    "btn_text": "Consultar precio",
+    "btn_url": "https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Invitaci%C3%B3n%20Digital",
+    "bg_image": "https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&q=80"
+  },
+  "qr": {
+    "label": "QR Fiestas",
+    "title": "La galería colaborativa\nde tu evento",
+    "desc": "Tus invitados escanean un QR y en segundos están subiendo fotos desde su celular. Una galería que crece sola durante la fiesta.",
+    "features": [
+      "Sin descargar ninguna aplicación — solo el navegador",
+      "Galería en tiempo real visible para todos los invitados",
+      "Descarga masiva de todas las fotos al finalizar",
+      "QR imprimible para colocar en las mesas",
+      "Disponible 30 días después del evento"
+    ],
+    "btn_text": "Consultar precio",
+    "btn_url": "https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20QR%20Fiestas",
+    "bg_image": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&auto=format&q=80"
+  },
+  "premiere": {
+    "label": "Premiere",
+    "title": "La entrega que se siente\ncomo un estreno",
+    "desc": "Tu primer vistazo a las fotos y el video presentado con una experiencia cinematográfica. Una página personalizada que sorprende desde el primer segundo.",
+    "features": [
+      "Página de entrega con diseño exclusivo para tu evento",
+      "Reproducción de video con estética de streaming",
+      "Galería de fotos con navegación elegante",
+      "Link privado para compartir solo con quien quieras",
+      "Acceso desde cualquier dispositivo"
+    ],
+    "btn_text": "Consultar precio",
+    "btn_url": "https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Premiere",
+    "bg_image": "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&q=80"
+  },
+  "servicios": {
+    "eyebrow": "Nuestros servicios",
+    "title": "Tres experiencias digitales,\nun solo proveedor",
+    "cards": [
+      { "name": "Invitación Digital", "desc": "Invitación animada con cuenta regresiva, música de fondo, mapa interactivo y confirmación de asistencia. Sin papel, con estilo.", "price": "Desde $12.000" },
+      { "name": "QR Fiestas",         "desc": "Tus invitados escanean un QR y suben fotos en tiempo real. Una galería colaborativa con el espíritu del evento, disponible para todos.", "price": "Desde $15.000" },
+      { "name": "Premiere",           "desc": "Tu primer vistazo a las fotos y el video presentado con experiencia cinematográfica. Una entrega que se siente como estreno de película.", "price": "Desde $20.000" }
+    ]
+  },
+  "como_funciona": {
+    "eyebrow": "Proceso",
+    "title": "Simple, rápido\ny sin complicaciones",
+    "steps": [
+      { "name": "Consultás",     "desc": "Nos escribís por WhatsApp con la fecha y tipo de evento. Te respondemos el mismo día con disponibilidad y opciones." },
+      { "name": "Personalizamos","desc": "Configuramos el servicio con los datos de tu evento: nombres, fecha, colores, música y todo el contenido que necesitás." },
+      { "name": "Lo recibís",    "desc": "Te enviamos el link listo para compartir. Tus invitados solo necesitan abrirlo en su celular, sin instalar nada." }
+    ]
+  },
+  "faq": {
+    "eyebrow": "Preguntas frecuentes",
+    "title": "¿Tenés dudas?\nLas respondemos todas",
+    "items": [
+      { "q": "¿Cuánto tiempo antes debo contratar?",  "a": "Recomendamos contactarnos con al menos 2 semanas de anticipación para tener tiempo de personalizar todo. Para fechas muy cercanas consultanos igual — hacemos lo posible para no dejar ningún evento sin servicio." },
+      { "q": "¿Los servicios se pueden combinar?",     "a": "Sí, y es lo que recomendamos. Podés contratar uno, dos o los tres servicios para el mismo evento. Al combinarlos obtenés un precio especial." },
+      { "q": "¿Funciona en cualquier celular?",        "a": "Sí. Todas las páginas están optimizadas para mobile — tus invitados solo necesitan abrir el link en su navegador, sea iPhone o Android. No hay nada que instalar." },
+      { "q": "¿Cuánto tiempo permanece activo el servicio?", "a": "Por defecto 30 días desde la fecha del evento. Podemos extender el período si necesitás que esté disponible más tiempo para que todos los invitados puedan verlo." },
+      { "q": "¿Puedo ver una demo antes de contratar?","a": "¡Claro! Consultanos por WhatsApp y te mandamos links de demo de cada servicio para que los explores antes de decidir. Sin compromiso." }
+    ]
+  },
+  "cta_final": {
+    "title": "¿Listo para empezar?",
+    "desc": "Escribinos con la fecha y el tipo de evento. Te respondemos el mismo día con disponibilidad, opciones y presupuesto.",
+    "btn_text": "Consultá por WhatsApp",
+    "btn_url": "https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE"
+  }
+}
