@@ -32,7 +32,8 @@ export default {
         const auth = request.headers.get('Authorization') || '';
         const key = kvMatch[1];
         if (method === 'GET') {
-          if (auth !== 'crd2025') return json({ error: 'Unauthorized' }, 401);
+          const cfAuth = env.CF_AUTH_TOKEN || '';
+          if (!cfAuth || auth !== cfAuth) return json({ error: 'Unauthorized' }, 401);
           const val = await env.KV.get(key);
           if (val === null) return json({ error: 'Not found' }, 404);
           try { return json(JSON.parse(val)); } catch { return new Response(val, { headers: { 'Content-Type': 'text/plain' } }); }
@@ -48,10 +49,14 @@ export default {
 
       // ── Site config ────────────────────────────────────────────────────────
       if (path === '/site/config' && method === 'GET') {
-        const raw = await env.KV.get('kuerre_settings');
+        const [raw, logoRaw] = await Promise.all([
+          env.KV.get('kuerre_settings'),
+          env.KV.get('crd_site_logo')
+        ]);
         const s = raw ? JSON.parse(raw) : {};
+        const logoFromKv = logoRaw ? JSON.parse(logoRaw) : '';
         return json({
-          logo_url: s.logoUrl || '',
+          logo_url: s.logoUrl || (typeof logoFromKv === 'string' ? logoFromKv : '') || '',
           whatsapp: s.waSuffix || '',
           website: s.entregaWebUrl || '',
           instagram: s.instagram || '',
