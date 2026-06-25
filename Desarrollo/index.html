@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='14';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='15';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>KUERRE — Servicios Digitales para Eventos</title>
 <meta name="description" content="QR Fiestas, entrega Premiere e Invitaciones Digitales para tus eventos. Servicios digitales premium para casamientos y quinceañeras.">
@@ -708,16 +708,18 @@ function closeMobileMenu() {
         const id = m ? m[1] : null;
         if (id) {
           const fr = document.getElementById('hero-video-iframe');
-          fr.src = 'https://drive.google.com/file/d/' + id + '/preview?autoplay=1';
+          const drivePreviewUrl = 'https://drive.google.com/file/d/' + id + '/preview?autoplay=1';
           fr.style.display = 'block';
           if (fallback) fallback.style.display = 'none';
-          // Tiny auto-scroll para activar autoplay del iframe
-          fr.addEventListener('load', () => {
-            setTimeout(() => {
-              window.scrollBy({ top: 2, behavior: 'smooth' });
-              setTimeout(() => window.scrollBy({ top: -2, behavior: 'smooth' }), 400);
-            }, 800);
-          }, { once: true });
+          // Cargar iframe en el primer gesto real del usuario (Chrome requiere isTrusted)
+          let started = false;
+          function startVideo() {
+            if (started) return;
+            started = true;
+            fr.src = drivePreviewUrl;
+            ['scroll','click','touchstart','keydown'].forEach(e => window.removeEventListener(e, startVideo));
+          }
+          ['scroll','click','touchstart','keydown'].forEach(e => window.addEventListener(e, startVideo, { once: true, passive: true }));
         }
       } else {
         const vid = document.getElementById('hero-video');
