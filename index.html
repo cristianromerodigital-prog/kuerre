@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='31';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='32';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>KUERRE — Servicios Digitales para Eventos</title>
 <meta name="description" content="QR Fiestas, entrega Premiere e Invitaciones Digitales para tus eventos. Servicios digitales premium para casamientos y quinceañeras.">
@@ -316,7 +316,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 #preloader-logo-img { max-width:130px; max-height:80px; object-fit:contain; display:none; }
 #preloader-logo-text { font-family:'Inter',sans-serif; font-size:22px; font-weight:300; letter-spacing:8px; color:#fff; text-transform:uppercase; }
 .preloader-bar { width:160px; height:1px; background:rgba(255,255,255,0.1); overflow:hidden; }
-.preloader-bar-fill { height:100%; background:linear-gradient(90deg,#00c896,#00a0e0); animation:preload-bar 1.8s ease forwards; }
+.preloader-bar-fill { height:100%; background:linear-gradient(90deg,#00c896,#00a0e0); animation:preload-bar 1s ease forwards; }
 @keyframes preload-bar { from { width:0 } to { width:100% } }
 </style>
 </head>
@@ -752,8 +752,8 @@ function closeMobileMenu() {
   } catch(e) {}
 })();
 
-window.addEventListener('load', () => {
-  setTimeout(() => { const p = document.getElementById('preloader'); if(p) p.classList.add('hidden'); }, 1800);
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { const p = document.getElementById('preloader'); if(p) p.classList.add('hidden'); }, 1000);
 });
 function toggleFaq(el) {
   const isOpen = el.classList.contains('open');
