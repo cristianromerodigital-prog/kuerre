@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='20';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='21';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>KUERRE — Servicios Digitales para Eventos</title>
 <meta name="description" content="QR Fiestas, entrega Premiere e Invitaciones Digitales para tus eventos. Servicios digitales premium para casamientos y quinceañeras.">
@@ -386,9 +386,8 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           <div style="flex:1;position:relative;overflow:hidden;background:#000">
             <!-- Iframe sobredimensionado para cubrir el padding interno del player de Drive -->
             <iframe id="hero-video-iframe" src="" allowfullscreen style="display:none;position:absolute;top:-8%;left:-8%;width:116%;height:116%;border:none;pointer-events:auto"></iframe>
-            <!-- Overlays para tapar los iconos del player de Drive -->
-            <div id="hero-video-overlay-icon" style="display:none;position:absolute;top:0;right:0;width:100%;height:40px;background:linear-gradient(to bottom,#000 60%,transparent);z-index:10;pointer-events:none"></div>
-            <div style="display:none;position:absolute;bottom:0;left:0;width:100%;height:40px;background:linear-gradient(to top,#000 60%,transparent);z-index:10;pointer-events:none" id="hero-video-overlay-bottom"></div>
+            <!-- Solo tapa el ícono externo de Drive (esquina top-right) -->
+            <div id="hero-video-overlay-icon" style="display:none;position:absolute;top:0;right:0;width:44px;height:36px;background:#000;z-index:10;pointer-events:none"></div>
             <img id="hero-fallback-img" src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=440&auto=format&q=80" alt="Evento" style="width:100%;height:100%;object-fit:cover;display:block">
           </div>
           <!-- Nav bar -->
@@ -728,8 +727,6 @@ function closeMobileMenu() {
           if (fallback) fallback.style.display = 'none';
           const iconOverlay = document.getElementById('hero-video-overlay-icon');
           if (iconOverlay) iconOverlay.style.display = 'block';
-          const bottomOverlay = document.getElementById('hero-video-overlay-bottom');
-          if (bottomOverlay) bottomOverlay.style.display = 'block';
         }
       }
     }
