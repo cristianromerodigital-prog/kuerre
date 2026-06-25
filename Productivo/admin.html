@@ -418,7 +418,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.46</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.47</div>
     </div>
   </aside>
 
@@ -4865,7 +4865,7 @@ function handleVideoFileDrop(e) {
   }
 }
 
-function saveHeroVideo() {
+async function saveHeroVideo() {
   let src = currentVideoTab === 'url'
     ? (document.getElementById('video-url-input').value||'').trim()
     : pendingVideoData?.src;
@@ -4883,6 +4883,30 @@ function saveHeroVideo() {
     return;
   }
 
+  // Drive URL → descarga y pisa R2 via Worker
+  const mv = src.match(/id=([a-zA-Z0-9_-]+)/);
+  if (mv) {
+    const fileId = mv[1];
+    const btn = document.querySelector('[onclick="saveHeroVideo()"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Subiendo a R2...'; }
+    try {
+      const res = await fetch(CONFIG.CF_URL + '/api/hero-video/from-drive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': CONFIG.CF_AUTH },
+        body: JSON.stringify({ fileId })
+      });
+      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || res.status); }
+      toast('Video subido a R2 ✓ — ya se ve en el sitio');
+      loadVideoPage();
+    } catch(e) {
+      toast('Error subiendo a R2: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Aplicar video al sitio'; }
+    }
+    return;
+  }
+
+  // URL directa (Cloudinary etc.) → guardar en localStorage + KV como antes
   try {
     localStorage.setItem('crd_hero_video_url', src); syncToCloud('crd_hero_video_url', src);
     toast('Video aplicado al sitio ✓');
@@ -4904,21 +4928,22 @@ function clearHeroVideo() {
 }
 
 function loadVideoPage() {
-  const src = localStorage.getItem('crd_hero_video_url');
   const vid = document.getElementById('video-current-preview');
   const empty = document.getElementById('video-current-empty');
-  if (src && vid) {
-    vid.src = src; vid.style.display = 'block';
+  if (vid) {
+    // Mostrar lo mismo que ve el sitio: el endpoint del Worker
+    vid.src = CONFIG.CF_URL + '/api/hero-video?t=' + Date.now();
+    vid.style.display = 'block';
     if(empty) empty.style.display = 'none';
-  } else {
-    if(vid) vid.style.display = 'none';
-    if(empty) empty.style.display = 'block';
+    vid.onerror = () => { vid.style.display='none'; if(empty) empty.style.display='block'; };
   }
   // Reset inputs
   const urlInput = document.getElementById('video-url-input');
   if(urlInput) urlInput.value = '';
   const urlPrev = document.getElementById('video-url-preview');
   if(urlPrev) { urlPrev.src=''; urlPrev.style.display='none'; }
+  const hint = document.getElementById('video-url-hint');
+  if(hint) hint.textContent = 'Pegá una URL .mp4 o seleccioná desde Drive';
   pendingVideoData = null;
 }
 

@@ -86,6 +86,13 @@ export default {
       const response = await mountCoreRouter(request, env, url, CORE_OPTIONS);
       if (response) return response;
 
+      // ── crd_content: lectura pública para index.html ──────────────────────
+      if (path === '/crd_content' && method === 'GET') {
+        const val = await env.KV.get('crd_content');
+        if (val === null) return json({}, 200);
+        try { return json(JSON.parse(val)); } catch { return json({}, 200); }
+      }
+
       // ── KV directo (branding settings read/write) ─────────────────────────
       const kvMatch = path.match(/^\/([a-z][a-z0-9_]+)$/);
       if (kvMatch) {
@@ -176,6 +183,30 @@ export default {
         const heroFileId = mv ? mv[1] : null;
         if (!heroFileId) return new Response('', { status: 204, headers: { 'Access-Control-Allow-Origin': '*' } });
         return proxyGdrive(heroFileId, request, env);
+      }
+
+      // ── Hero video: descarga desde Drive y pisa R2 ────────────────────────
+      if (path === '/api/hero-video/from-drive' && method === 'POST') {
+        const cfAuth = env.CF_AUTH_TOKEN || '';
+        if (!cfAuth || request.headers.get('Authorization') !== cfAuth)
+          return json({ error: 'Unauthorized' }, 401);
+        const { fileId } = await request.json();
+        if (!fileId) return json({ error: 'fileId requerido' }, 400);
+
+        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36';
+        let driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        let resp = await fetch(driveUrl, { headers: { 'User-Agent': ua }, redirect: 'follow' });
+        const ct = resp.headers.get('content-type') || '';
+        if (ct.includes('text/html')) {
+          const html = await resp.text();
+          const m = html.match(/confirm=([^&"'\s]+)/);
+          if (!m) return json({ error: 'Drive: no se pudo obtener confirm token' }, 502);
+          driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${m[1]}`;
+          resp = await fetch(driveUrl, { headers: { 'User-Agent': ua }, redirect: 'follow' });
+        }
+        const contentType = resp.headers.get('content-type') || 'video/mp4';
+        await env.MEDIA.put('hero-video.mp4', resp.body, { httpMetadata: { contentType } });
+        return json({ ok: true });
       }
 
       // ── Google Drive video proxy (bypasses CORS + virus warning) ───────────
