@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='17';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='18';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>KUERRE — Servicios Digitales para Eventos</title>
 <meta name="description" content="QR Fiestas, entrega Premiere e Invitaciones Digitales para tus eventos. Servicios digitales premium para casamientos y quinceañeras.">
@@ -374,7 +374,11 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
       <div class="phone-lg" style="width:220px;height:440px">
         <div class="phone-lg-notch"></div>
         <div class="phone-lg-screen">
-          <iframe id="hero-video-iframe" src="" allowfullscreen style="display:none;position:absolute;inset:0;width:100%;height:100%;border:none"></iframe>
+          <!-- Iframe escalado para llenar el celular y ocultar controles de Drive -->
+          <iframe id="hero-video-iframe" src="" allowfullscreen
+            style="display:none;position:absolute;left:-20%;top:-5%;width:140%;height:140%;border:none;transform-origin:top left"></iframe>
+          <!-- Overlay para tapar ícono externo de Drive (top-right) -->
+          <div id="hero-video-overlay-icon" style="display:none;position:absolute;top:0;right:0;width:56px;height:48px;background:#1c1c1e;border-radius:0 31px 0 0;z-index:10;pointer-events:none"></div>
           <img id="hero-fallback-img"
                src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=440&auto=format&q=80"
                alt="Evento" style="width:100%;height:100%;object-fit:cover">
@@ -709,6 +713,8 @@ function closeMobileMenu() {
           fr.src = 'https://drive.google.com/file/d/' + id + '/preview';
           fr.style.display = 'block';
           if (fallback) fallback.style.display = 'none';
+          const iconOverlay = document.getElementById('hero-video-overlay-icon');
+          if (iconOverlay) iconOverlay.style.display = 'block';
         }
       }
     }
