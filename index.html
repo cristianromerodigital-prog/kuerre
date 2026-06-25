@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<script>!function(){var v='7';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
+<script>!function(){var v='8';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>KUERRE — Servicios Digitales para Eventos</title>
 <meta name="description" content="QR Fiestas, entrega Premiere e Invitaciones Digitales para tus eventos. Servicios digitales premium para casamientos y quinceañeras.">
@@ -59,6 +59,7 @@ body { background:var(--bg); color:var(--white); font-family:'Inter',sans-serif;
 .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
 .nav-brand img { height:48px; width:auto; max-width:200px; object-fit:contain; display:block; }
 .nav-brand span { font-size:17px; font-weight:600; letter-spacing:.06em; color:#111; }
+#navbar-logo-suffix { letter-spacing:.12em; }
 .nav-links { display:flex; list-style:none; align-items:center; gap:0; }
 .nav-links a { display:block; padding:22px 14px; color:rgba(0,0,0,.5);
   font-size:10px; letter-spacing:2px; text-transform:uppercase; text-decoration:none;
@@ -316,8 +317,9 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 <!-- NAV -->
 <nav id="navbar">
   <a class="nav-brand" href="#">
-    <img id="navbar-logo-img" src="" alt="KUERRE" style="display:none">
+    <img id="navbar-logo-img" src="" alt="K" style="display:none">
     <span id="navbar-logo-text">KUERRE</span>
+    <span id="navbar-logo-suffix" style="display:none">UERRE</span>
   </a>
   <ul class="nav-links">
     <li><a href="#invitaciones">Invitaciones</a></li>
@@ -681,8 +683,13 @@ function closeMobileMenu() {
     if (cfg && cfg.logo_url) {
       const img = document.getElementById('navbar-logo-img');
       const txt = document.getElementById('navbar-logo-text');
+      const sfx = document.getElementById('navbar-logo-suffix');
       img.src = cfg.logo_url;
-      img.onload = () => { img.style.display = 'block'; if(txt) txt.style.display = 'none'; };
+      img.onload = () => {
+        img.style.display = 'block';
+        if(txt) txt.style.display = 'none';
+        if(sfx) sfx.style.display = 'inline';
+      };
     }
   } catch(e) {}
 })();
