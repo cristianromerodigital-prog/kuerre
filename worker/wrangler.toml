@@ -12,6 +12,10 @@ binding = "KV"
 id = "d6467ee2136446f48c6bc2527d1e68a4"
 preview_id = "6f56db7b0902447d9bd4fcf35fbb17d1"
 
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "kuerre-media"
+
 [[rules]]
 type = "Text"
 globs = ["**/*.html"]

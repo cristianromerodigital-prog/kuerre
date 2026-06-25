@@ -128,8 +128,32 @@ export default {
         });
       }
 
-      // ── Hero video shortcut — URL estable, arranca en paralelo al config ──
+      // ── Hero video — sirve desde R2, fallback a Drive proxy ──────────────
       if (path === '/api/hero-video') {
+        const r2obj = await env.MEDIA.get('hero-video.mp4');
+        if (r2obj) {
+          const rangeHeader = request.headers.get('Range');
+          const resHeaders = {
+            'Content-Type': r2obj.httpMetadata?.contentType || 'video/mp4',
+            'Accept-Ranges': 'bytes',
+            'Cache-Control': 'public, max-age=86400',
+            'Access-Control-Allow-Origin': '*',
+          };
+          if (!rangeHeader) {
+            resHeaders['Content-Length'] = String(r2obj.size);
+            return new Response(r2obj.body, { status: 200, headers: resHeaders });
+          }
+          const m = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+          if (!m) return new Response('Range Not Satisfiable', { status: 416 });
+          const offset = parseInt(m[1]);
+          const end = m[2] ? parseInt(m[2]) : r2obj.size - 1;
+          const length = end - offset + 1;
+          const rangedObj = await env.MEDIA.get('hero-video.mp4', { range: { offset, length } });
+          resHeaders['Content-Range'] = `bytes ${offset}-${end}/${r2obj.size}`;
+          resHeaders['Content-Length'] = String(length);
+          return new Response(rangedObj?.body ?? null, { status: 206, headers: resHeaders });
+        }
+        // Fallback: Drive proxy (mientras no haya video en R2)
         const safeStr = (v) => { if (!v) return ''; try { return JSON.parse(v); } catch { return v || ''; } };
         const videoUrl = safeStr(await env.KV.get('crd_hero_video_url'));
         const mv = videoUrl.match(/id=([a-zA-Z0-9_-]+)/) || videoUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
