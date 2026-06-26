@@ -8533,10 +8533,13 @@ async function fiestasFetch(path, opts = {}) {
 
 async function loadFiestasPage() {
   fiestasFetch('/eventos/admin/vision-stats').then(r => r.json()).then(d => {
-    const pct = Math.round(d.count / d.limit * 100);
-    const color = pct > 80 ? '#ff4444' : pct > 60 ? '#f0a500' : 'var(--cyan)';
-    document.getElementById('vision-stats').innerHTML =
-      `<span style="color:${color};font-size:22px;font-weight:500">${d.count}</span> / ${d.limit} validaciones usadas este mes (${pct}%) · <span style="color:var(--green)">${d.remaining} restantes</span>`;
+    let html = `<span style="color:var(--cyan);font-size:22px;font-weight:500">${d.count}</span> fotos moderadas este mes`;
+    if (d.costEstimado !== undefined) html += ` · costo estimado: <span style="color:var(--gold)">$${d.costEstimado}</span>`;
+    if (d.creditBalance !== null && d.creditBalance !== undefined) {
+      const balColor = d.creditBalance < 1 ? '#ff4444' : d.creditBalance < 2 ? '#f0a500' : 'var(--green)';
+      html += ` · saldo OpenAI: <span style="color:${balColor};font-weight:500">$${Number(d.creditBalance).toFixed(2)}</span>`;
+    }
+    document.getElementById('vision-stats').innerHTML = html;
   }).catch(() => {
     document.getElementById('vision-stats').textContent = 'No se pudo cargar el contador.';
   });
