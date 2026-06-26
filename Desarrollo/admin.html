@@ -9171,12 +9171,20 @@ async function loadCalendarioPage() {
     }).then(function(r){ return r.json(); });
     _calEventos = [];
     for (const c of (d.solicitudes || [])) {
-      if (c.fecha) _calEventos.push({ fecha: c.fecha, tipo: 'evento', nombre: c.nombre_display, lugar: c.salon || '', id: c.id });
+      if (c.fecha) {
+        var evHora = '', evLugar = c.salon || '';
+        try {
+          const dj2 = typeof c.data_json === 'string' ? JSON.parse(c.data_json) : (c.data_json || {});
+          if (c.tipo === 'BODA') { evHora = dj2.fiesta?.horarioInicio || ''; evLugar = dj2.fiesta?.lugar || dj2.fiesta?.salon || c.salon || ''; }
+          else { evHora = dj2.evento?.horaInicio || ''; evLugar = dj2.evento?.salon || c.salon || ''; }
+        } catch(e) {}
+        _calEventos.push({ fecha: c.fecha, hora: evHora, tipo: 'evento', nombre: c.nombre_display, lugar: evLugar, id: c.id });
+      }
       if (c.book_fecha) _calEventos.push({ fecha: c.book_fecha, hora: c.book_hora || '', tipo: 'book', nombre: c.nombre_display, lugar: c.book_zona || '', id: c.id });
       try {
         const dj = typeof c.data_json === 'string' ? JSON.parse(c.data_json) : (c.data_json || {});
-        if (dj.civil?.fecha) _calEventos.push({ fecha: dj.civil.fecha, hora: dj.civil.horario || '', tipo: 'civil', nombre: c.nombre_display, lugar: dj.civil.direccion || '', id: c.id });
-        if (dj.religiosa?.fecha) _calEventos.push({ fecha: dj.religiosa.fecha, hora: dj.religiosa.horario || '', tipo: 'religiosa', nombre: c.nombre_display, lugar: dj.religiosa.direccion || '', id: c.id });
+        if (dj.civil?.fecha) _calEventos.push({ fecha: dj.civil.fecha, hora: dj.civil.horario || '', tipo: 'civil', nombre: c.nombre_display, lugar: dj.civil.lugar || dj.civil.direccion || '', id: c.id });
+        if (dj.religiosa?.fecha) _calEventos.push({ fecha: dj.religiosa.fecha, hora: dj.religiosa.horario || '', tipo: 'religiosa', nombre: c.nombre_display, lugar: dj.religiosa.lugar || dj.religiosa.direccion || '', id: c.id });
       } catch(e) {}
     }
     renderCalendar();
