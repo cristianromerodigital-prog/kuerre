@@ -620,7 +620,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div class="settings-section-title">URL base del sitio (GitHub Pages)</div>
           <div style="display:flex;gap:10px;align-items:flex-end">
             <div class="form-group" style="flex:1;margin-bottom:0">
-              <label class="form-label">URL donde está alojado invite.html</label>
+              <label class="form-label">URL donde está alojado invite.html <i class="tip" data-tip="Dirección web pública donde está el archivo invite.html. Se usa para generar los links de invitación que se comparten con los clientes.">?</i></label>
               <input class="form-input" id="inv-base-url" placeholder="https://usuario.github.io/repo/invite.html" oninput="saveInvBaseUrl(this.value)">
             </div>
           </div>
@@ -1224,7 +1224,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="page" id="page-settings">
         <h2 class="section-h" style="margin-bottom:24px">Configuración del Sitio</h2>
         <div class="settings-section">
-          <div class="settings-section-title">Disponibilidad & Urgencia</div>
+          <div class="settings-section-title">Disponibilidad & Urgencia <i class="tip" data-tip="Textos que generan urgencia en el sitio. El texto de disponibilidad aparece en el hero. El countdown muestra una cuenta regresiva hacia la próxima fecha disponible.">?</i></div>
           <div class="settings-row">
             <div class="form-group">
               <label class="form-label">Texto de disponibilidad (Hero)</label>
@@ -1271,32 +1271,32 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
         </div>
         <div class="settings-section">
-          <div class="settings-section-title">Formulario de Solicitud — Fondo</div>
+          <div class="settings-section-title">Formulario de Solicitud — Fondo <i class="tip" data-tip="Imagen de fondo que se muestra en formulario.html (el formulario público que completan los clientes interesados). Usá una URL directa a una imagen .jpg o .webp.">?</i></div>
           <p style="font-size:11px;color:var(--gray);margin-bottom:16px;letter-spacing:.5px">URL de la imagen de fondo que se muestra en formulario.html.</p>
           <div class="form-group"><label class="form-label">URL imagen de fondo</label><input class="form-input" id="set-formulario-fondo" placeholder="https://...imagen.jpg"></div>
         </div>
         <div class="settings-section">
-          <div class="settings-section-title">Entregas — Botones Sociales</div>
+          <div class="settings-section-title">Entregas — Botones Sociales <i class="tip" data-tip="Links que aparecen como botones flotantes en las páginas de entrega al cliente (visualizador de fotos). Permiten al cliente seguirte en redes o visitar tu sitio.">?</i></div>
           <p style="font-size:11px;color:var(--gray);margin-bottom:16px;letter-spacing:.5px">URLs que aparecen como botones flotantes en las páginas de entrega al cliente.</p>
           <div class="settings-row">
             <div class="form-group"><label class="form-label">Instagram (URL completa)</label><input class="form-input" id="set-entrega-ig" placeholder="https://instagram.com/cristian.romero.digital"></div>
             <div class="form-group"><label class="form-label">Sitio Web (URL completa)</label><input class="form-input" id="set-entrega-web" placeholder="https://cristian-romero-digital.pages.dev"></div>
           </div>
         </div>
-          <div class="settings-section-title" style="margin-top:24px">EmailJS — Formulario de Contacto</div>
+          <div class="settings-section-title" style="margin-top:24px">EmailJS — Formulario de Contacto <i class="tip" data-tip="Claves para enviar emails desde el formulario de contacto del sitio. Se obtienen en emailjs.com → Account → API Keys. Sin estas claves el formulario no envía mensajes.">?</i></div>
           <p style="font-size:12px;color:var(--gray2);margin-bottom:16px;line-height:1.6">Keys para el formulario de contacto del sitio público. Encontralas en emailjs.com → Account → API Keys.</p>
           <div class="form-group"><label class="form-label">Public Key</label><input class="form-input" id="set-emailjs-key" placeholder="odUJtdh1Z0U27ZkaN"></div>
           <div class="form-group"><label class="form-label">Service ID</label><input class="form-input" id="set-emailjs-service" placeholder="service_35rtklk"></div>
           <div class="form-group"><label class="form-label">Template ID (contacto)</label><input class="form-input" id="set-emailjs-template" placeholder="template_bdpe4yq"></div>
         <div class="settings-section">
-          <div class="settings-section-title">Seguridad</div>
+          <div class="settings-section-title">Seguridad <i class="tip" data-tip="Cambiá la contraseña de acceso al admin. Mínimo 6 caracteres. El cambio es inmediato.">?</i></div>
           <div class="settings-row">
             <div class="form-group"><label class="form-label">Nueva contraseña</label><input class="form-input" type="password" id="set-newpass" placeholder="Mínimo 6 caracteres"></div>
             <div class="form-group"><label class="form-label">Confirmar contraseña</label><input class="form-input" type="password" id="set-confpass" placeholder="Repetir contraseña"></div>
           </div>
         </div>
         <div class="settings-section">
-          <div class="settings-section-title">Logo del Sitio</div>
+          <div class="settings-section-title">Logo del Sitio <i class="tip" data-tip="Logo que aparece en el sitio, presupuesto e invitaciones. Subí una imagen en formato PNG transparente. El color se puede ajustar con filtros CSS.">?</i></div>
           <p style="font-size:12px;color:var(--gray2);margin-bottom:20px;line-height:1.6">Un solo logo. El color se adapta con CSS filter. Se aplica en sitio, presupuesto e invitaciones.</p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
             <div style="background:#111;border:1px solid rgba(255,255,255,0.07);padding:12px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90px;gap:8px">
@@ -1791,15 +1791,15 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
           <div id="ct-cfg-body" style="display:none;margin-top:14px">
             <div class="form-group">
-              <label class="form-label">URL del Web App (Apps Script)</label>
+              <label class="form-label">URL del Web App (Apps Script) <i class="tip" data-tip="URL del script de Google Apps Script que procesa los contratos y genera el documento en Drive. La obtenés desde Apps Script → Implementar → Administrar implementaciones.">?</i></label>
               <input class="form-input" id="ct-apps-url" placeholder="https://script.google.com/macros/s/.../exec">
             </div>
             <div class="form-group" style="margin-top:10px">
-              <label class="form-label">ID carpeta raíz de Drive</label>
+              <label class="form-label">ID carpeta raíz de Drive <i class="tip" data-tip="ID de la carpeta principal en Google Drive donde se crean las subcarpetas de cada cliente. El ID está en la URL de la carpeta: drive.google.com/drive/folders/ESTE_ID">?</i></label>
               <input class="form-input" id="ct-drive-root-id" placeholder="ID de la carpeta padre en Google Drive">
             </div>
             <div class="form-group" style="margin-top:10px">
-              <label class="form-label">ID hoja de servicios (Google Sheet)</label>
+              <label class="form-label">ID hoja de servicios (Google Sheet) <i class="tip" data-tip="ID de la hoja de cálculo de Google Sheets que contiene los servicios y precios disponibles para seleccionar en el contrato.">?</i></label>
               <input class="form-input" id="ct-presupuestos-id" placeholder="ID del Google Sheet con los servicios">
             </div>
             <button class="btn-sm btn-sec" style="margin-top:12px" onclick="ctSaveCfg()">Guardar configuración</button>
@@ -2121,7 +2121,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <h2 class="section-h" style="margin-bottom:4px">Entregas a Clientes</h2>
         <p style="font-size:12px;color:var(--gray);margin-bottom:24px;letter-spacing:1px">Genera links de entrega para que el cliente vea sus fotos y videos directo desde Drive.</p>
         <div class="settings-section">
-          <div class="settings-section-title">Nueva entrega</div>
+          <div class="settings-section-title">Nueva entrega <i class="tip" data-tip="Creá un visualizador de fotos para entregar al cliente. Configurás la carpeta de Drive con las fotos, una portada y un mensaje de bienvenida. El cliente accede con un link privado.">?</i></div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Nombres / Evento</label><input class="form-input" id="ent-nombres" placeholder="Pablo &amp; Vero" oninput="updateEntregaPreview()"></div>
             <div class="form-group"><label class="form-label">Tipo</label>
@@ -2135,17 +2135,17 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="form-group"><label class="form-label">Frase (opcional)</label><input class="form-input" id="ent-frase" placeholder="Una frase emotiva..." oninput="updateEntregaPreview()"></div>
           </div>
           <div class="form-group">
-            <label class="form-label">Mensaje de bienvenida Premiere (opcional)</label>
+            <label class="form-label">Mensaje de bienvenida (opcional) <i class="tip" data-tip="Texto personalizado que ve el cliente al entrar al visualizador. Ideal para un agradecimiento o mensaje emotivo.">?</i></label>
             <textarea class="form-input" id="ent-welcome-msg" rows="2" placeholder="Muchas gracias por confiar en nosotros. Fue un honor acompañarlos en este día tan especial. ✦" style="resize:vertical;min-height:64px"></textarea>
             <p style="font-size:10px;color:var(--gray);margin-top:5px;letter-spacing:.5px">Aparece en la pantalla inicial cuando el cliente abre su Premiere.</p>
           </div>
           <div class="form-group">
-            <label class="form-label">Carpeta de Drive (URL o ID)</label>
+            <label class="form-label">Carpeta de Drive (URL o ID) <i class="tip" data-tip="Carpeta de Google Drive con las fotos finales del cliente. Podés pegar la URL completa o solo el ID (la parte después de /folders/).">?</i></label>
             <input class="form-input" id="ent-folder" placeholder="https://drive.google.com/drive/folders/..." oninput="updateEntregaPreview()">
             <p style="font-size:10px;color:var(--gray);margin-top:6px;letter-spacing:1px">La carpeta debe estar compartida como "Cualquiera con el enlace puede ver"</p>
           </div>
           <div class="form-group">
-            <label class="form-label">Foto de portada — ID del archivo en Drive (opcional)</label>
+            <label class="form-label">Foto de portada — ID del archivo en Drive (opcional) <i class="tip" data-tip="ID de la imagen que aparece como portada del visualizador. El ID está en la URL al abrir el archivo en Drive: drive.google.com/file/d/ESTE_ID">?</i></label>
             <div style="display:flex;gap:8px;align-items:center">
               <input class="form-input" id="ent-portada" placeholder="ID del archivo en Drive" oninput="updateEntregaPreview()">
               <button class="btn-sm" onclick="pickPortadaDrive()" style="white-space:nowrap">Elegir desde Drive</button>
@@ -2158,7 +2158,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             </label>
           </div>
           <div class="form-group" style="margin-top:12px">
-            <label class="form-label">Color del hero (overlay)</label>
+            <label class="form-label">Color del overlay <i class="tip" data-tip="Color que se superpone sobre la foto de portada para dar estética. Neutro es el más limpio; los otros agregan un tono de color.">?</i></label>
             <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
               <div class="overlay-opt active" data-overlay="violeta" onclick="setEntOverlay('violeta',this)" title="Violeta / Cyan" style="width:64px;cursor:pointer;text-align:center">
                 <div style="height:36px;border-radius:4px;background:linear-gradient(135deg,rgba(123,47,212,.9),rgba(0,212,232,.7));border:2px solid var(--gold)"></div>
@@ -2336,7 +2336,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <span>GAS Config</span>
           </div>
           <div class="form-row" style="margin-top:12px;align-items:flex-end">
-            <div class="form-group" style="flex:1"><label class="form-label">URL del Google Apps Script</label><input class="form-input" id="fi-gas-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+            <div class="form-group" style="flex:1"><label class="form-label">URL del Google Apps Script <i class="tip" data-tip="Script que gestiona las fotos del evento QR: obtiene estadísticas de moderación y configuración del evento.">?</i></label><input class="form-input" id="fi-gas-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
             <button class="btn-sm" onclick="fiestasSaveGasUrl()" style="white-space:nowrap;padding:10px 16px">Guardar</button>
           </div>
         </div>
