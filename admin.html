@@ -2007,17 +2007,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
       </div>
 
-      <!-- SOLICITUDES -->
-      <div class="settings-section" style="margin-top:32px;margin-bottom:16px">
-        <div class="settings-section-title" style="display:flex;justify-content:space-between;align-items:center">
-          <span>Solicitudes de clientes <span id="ct-sol-badge" style="display:none;background:var(--gold);color:var(--black);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:8px"></span></span>
-          <button class="btn-sm btn-sec" onclick="ctRefreshSolicitudes()" style="font-size:9px;letter-spacing:1.5px">↻ Actualizar</button>
-        </div>
-        <div style="margin-top:6px;font-size:10px;color:var(--gray)">
-          Link del formulario para clientes: <span id="ct-form-url" style="color:var(--cyan);word-break:break-all"></span>
-        </div>
-        <div id="ct-sol-list" style="margin-top:14px"><div style="color:var(--gray);font-size:12px">Cargando...</div></div>
-      </div>
 
       <!-- HISTORIAL -->
       <div class="settings-section" style="margin-top:32px">
@@ -2226,6 +2215,18 @@ tr:hover td{background:rgba(255,255,255,0.02);}
            CLIENTES
            ═══════════════════════════════════════════════════════════════ -->
       <div class="page" id="page-clientes">
+        <!-- SOLICITUDES -->
+        <div class="settings-section" style="margin-bottom:32px">
+          <div class="settings-section-title" style="display:flex;justify-content:space-between;align-items:center">
+            <span>Solicitudes de clientes <span id="ct-sol-badge" style="display:none;background:var(--gold);color:var(--black);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:8px"></span></span>
+            <button class="btn-sm btn-sec" onclick="ctRefreshSolicitudes()" style="font-size:9px;letter-spacing:1.5px">↻ Actualizar</button>
+          </div>
+          <div style="margin-top:6px;font-size:10px;color:var(--gray)">
+            Link del formulario para clientes: <span id="ct-form-url" style="color:var(--cyan);word-break:break-all"></span>
+          </div>
+          <div id="ct-sol-list" style="margin-top:14px"><div style="color:var(--gray);font-size:12px">Cargando...</div></div>
+        </div>
+
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
           <p style="font-size:12px;color:var(--gray2);letter-spacing:1px">Registros del formulario de alta · cada cliente genera automáticamente Fiesta QR, Invitación y Entrega.</p>
           <button class="btn-sm btn-sec" onclick="loadClientesPage()">↻ Actualizar</button>
@@ -3617,7 +3618,7 @@ function showPage(id) {
   if (id === 'content') { initContentIfEmpty(); loadContentPage(); }
   if (id === 'invites') renderInvitesPage();
   if (id === 'fiestas') loadFiestasPage();
-  if (id === 'clientes') loadClientesPage();
+  if (id === 'clientes') { loadClientesPage(); ctInitSolicitudes(); }
   if (id === 'contratos') initContratosPage();
   if (id === 'presupuesto') {
     Promise.all([
@@ -7362,7 +7363,6 @@ function initContratosPage() {
   if (saved && saved.url) document.getElementById('ct-apps-url').value = saved.url;
   document.getElementById('ct-dia-firma').valueAsDate = new Date();
   if (ctSvcData.length === 0 && ctGetUrl()) ctCargarServicios();
-  ctInitSolicitudes();
   // Historial: abrir y cargar automáticamente
   const histBody  = document.getElementById('ct-hist-body');
   const histArrow = document.getElementById('ct-hist-arrow');
@@ -7884,9 +7884,8 @@ function ctClearDraft() {
 function ctInitSolicitudes() {
   const url = ctGetUrl();
   if (!url) return;
-  const formUrl = url.replace('/exec', '/exec') + '?action=form';
   const el = document.getElementById('ct-form-url');
-  if (el) el.textContent = url + '?action=form';
+  if (el) el.textContent = location.origin + '/solicitud.html';
   ctRefreshSolicitudes();
 }
 
