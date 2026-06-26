@@ -3696,6 +3696,7 @@ async function cmSaveBook() {
       const idx = _clientes.findIndex(function(x){ return x.id === _clienteActual.id; });
       if (idx !== -1) { _clientes[idx].book_fecha = fecha; _clientes[idx].book_hora = hora; _clientes[idx].book_zona = zona; }
       document.getElementById('cm-resumen').innerHTML = cmBuildResumen(_clienteActual);
+      calSyncEvento({ tipo: 'book', fecha, hora, lugar: zona, nombre: _clienteActual.nombre_display });
       toast('Book guardado ✓');
     }
   } catch(e) { toast('Error al guardar', 'error'); }
@@ -8269,6 +8270,12 @@ async function ctGenerar() {
           body: JSON.stringify(payload)
         }).then(function(r){ return r.json(); }).then(function(d){
           if (d.ok) {
+            // Auto-sync evento al Google Calendar
+            let evFecha = '';
+            if (data.tipo === 'BODA') evFecha = data.fiesta?.fecha || '';
+            else if (data.tipo === 'XV') evFecha = data.evento?.fecha || '';
+            else evFecha = data.evento?.fecha || '';
+            if (evFecha) calSyncEvento({ tipo: 'evento', fecha: evFecha, hora: '', lugar: '', nombre: payload.tipo === 'BODA' ? (data.novia?.nombre||'') + ' & ' + (data.novio?.nombre||'') : payload.tipo === 'XV' ? 'XV ' + (data.quinceanera?.nombre||'') : 'Cumple ' + (data.cliente?.nombre||'') });
             // Guardar número de contrato en D1
             fetch(CLIENTES_WORKER + '/solicitudes/' + d.id + '/contrato', {
               method: 'PATCH', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
@@ -9186,6 +9193,19 @@ function renderProximas() {
   }).join('');
 }
 
+function calSyncEvento(ev) {
+  const url = ctGetUrl();
+  if (!url || !ev?.fecha) return;
+  const iconos = { evento: '🎉 Evento — ', book: '📸 Book — ', civil: '⚖️ Civil — ', religiosa: '⛪ Religiosa — ' };
+  const payload = {
+    titulo: (iconos[ev.tipo] || '📅 ') + ev.nombre,
+    fecha: ev.fecha, hora: ev.hora || '09:00',
+    tipo: ev.tipo, nombre: ev.nombre, lugar: ev.lugar || ''
+  };
+  fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncCalendar', events: [payload] }) })
+    .catch(function(){});
+}
+
 async function calSyncGAS() {
   const url = ctGetUrl();
   if (!url) { toast('Configurá la URL del Apps Script primero en Contratos → Configuración', 'error'); return; }
@@ -9266,10 +9286,12 @@ async function calAgGuardar() {
       toast('Fecha agendada ✓');
       document.getElementById('cal-agendar-modal').style.display = 'none';
       const idx = _clientes.findIndex(function(c){ return c.id === clienteId; });
+      const nombre = idx !== -1 ? _clientes[idx].nombre_display : clienteId;
       if (idx !== -1) {
         if (tipo === 'evento') _clientes[idx].fecha = fecha;
         if (tipo === 'book') { _clientes[idx].book_fecha = fecha; _clientes[idx].book_hora = hora; _clientes[idx].book_zona = lugar; }
       }
+      calSyncEvento({ tipo, fecha, hora, lugar, nombre });
       await loadCalendarioPage();
     } else toast(r.error || 'Error', 'error');
   } catch(e) { toast('Error de conexión', 'error'); }
