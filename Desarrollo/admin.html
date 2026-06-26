@@ -2433,6 +2433,22 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div id="cm-entrega-url" style="font-size:10px;color:var(--gray2);word-break:break-all;margin-top:8px"></div>
             </div>
 
+            <!-- PDF de contrato -->
+            <div style="border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:20px">
+              <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gray2);margin-bottom:12px">PDF de Contrato <i class="tip" data-tip="Subí el PDF del contrato firmado. Se guarda en la carpeta del cliente en Drive y queda disponible desde acá.">?</i></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+                <label class="btn-sm btn-sec" style="cursor:pointer">
+                  Subir PDF
+                  <input type="file" accept=".pdf" style="display:none" onchange="cmSubirPDF(this)">
+                </label>
+                <span id="cm-pdf-status" style="font-size:11px;color:var(--gray2)"></span>
+              </div>
+              <div id="cm-pdf-link" style="display:none;margin-top:6px">
+                <a id="cm-pdf-a" href="#" target="_blank" class="btn-sm btn-sec">Abrir PDF ↗</a>
+                <span id="cm-pdf-name" style="font-size:10px;color:var(--gray2);margin-left:8px"></span>
+              </div>
+            </div>
+
             <div style="display:flex;justify-content:flex-end">
               <button class="btn-sm btn-danger" onclick="cmEliminar()">Eliminar cliente</button>
             </div>
@@ -3619,6 +3635,8 @@ function abrirClienteModal(id) {
   document.getElementById('cm-book-fecha').value = s.book_fecha || '';
   document.getElementById('cm-book-hora').value  = s.book_hora  || '';
   document.getElementById('cm-book-zona').value  = s.book_zona  || '';
+  document.getElementById('cm-pdf-status').textContent = '';
+  cmMostrarPDF(s.contrato_pdf_url || '', 'Contrato PDF');
   if (s.drive_cliente_id) {
     cmMostrarDriveLinks({ cliente: s.drive_cliente_id, fiesta: s.drive_fiesta_id, invitacion: '', entrega: s.drive_entrega_id, contrato: '' });
   } else {
@@ -3700,6 +3718,57 @@ async function cmSaveBook() {
       toast('Book guardado ✓');
     }
   } catch(e) { toast('Error al guardar', 'error'); }
+}
+
+async function cmSubirPDF(input) {
+  if (!_clienteActual || !input.files.length) return;
+  const file = input.files[0];
+  const url = ctGetUrl();
+  if (!url) { toast('Configurá la URL del Apps Script primero', 'error'); return; }
+  const status = document.getElementById('cm-pdf-status');
+  status.textContent = 'Subiendo...';
+  try {
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+    const res = await fetch(url, {
+      method: 'POST', redirect: 'follow',
+      body: JSON.stringify({
+        action: 'subirContratoPDF',
+        base64,
+        nombre: file.name,
+        driveClienteId: _clienteActual.drive_cliente_id || ''
+      })
+    }).then(function(r){ return r.json(); });
+    if (!res.ok) { status.textContent = 'Error al subir'; return; }
+    await fetch(CLIENTES_WORKER + '/solicitudes/' + _clienteActual.id + '/contrato-pdf', {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contrato_pdf_url: res.url })
+    });
+    _clienteActual.contrato_pdf_url = res.url;
+    const idx = _clientes.findIndex(function(x){ return x.id === _clienteActual.id; });
+    if (idx !== -1) _clientes[idx].contrato_pdf_url = res.url;
+    status.textContent = '';
+    cmMostrarPDF(res.url, file.name);
+    toast('PDF subido a Drive ✓');
+  } catch(e) { status.textContent = 'Error: ' + e.message; }
+  input.value = '';
+}
+
+function cmMostrarPDF(url, nombre) {
+  const linkDiv = document.getElementById('cm-pdf-link');
+  const a = document.getElementById('cm-pdf-a');
+  const nameEl = document.getElementById('cm-pdf-name');
+  if (url) {
+    a.href = url;
+    nameEl.textContent = nombre || 'Contrato PDF';
+    linkDiv.style.display = 'block';
+  } else {
+    linkDiv.style.display = 'none';
+  }
 }
 
 function cmSaveContrato() {

@@ -446,6 +446,13 @@ export default {
         await env.DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(book_fecha||'', book_hora||'', book_zona||'', bookMatch[1]).run();
         return json({ ok: true });
       }
+      const contratoPdfMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/contrato-pdf$/);
+      if (contratoPdfMatch && method === 'PATCH') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        const { contrato_pdf_url } = await request.json().catch(() => ({}));
+        await env.DB.prepare('UPDATE solicitudes SET contrato_pdf_url=? WHERE id=?').bind(contrato_pdf_url||'', contratoPdfMatch[1]).run();
+        return json({ ok: true });
+      }
       const agendarMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/agendar$/);
       if (agendarMatch && method === 'PATCH') {
         if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
