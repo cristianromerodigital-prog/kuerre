@@ -1281,6 +1281,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
         </div>
         <div class="settings-section">
+          <div class="settings-section-title">Formulario de Solicitud — Fondo</div>
+          <p style="font-size:11px;color:var(--gray);margin-bottom:16px;letter-spacing:.5px">URL de la imagen de fondo que se muestra en formulario.html.</p>
+          <div class="form-group"><label class="form-label">URL imagen de fondo</label><input class="form-input" id="set-formulario-fondo" placeholder="https://...imagen.jpg"></div>
+        </div>
+        <div class="settings-section">
           <div class="settings-section-title">Entregas — Botones Sociales</div>
           <p style="font-size:11px;color:var(--gray);margin-bottom:16px;letter-spacing:.5px">URLs que aparecen como botones flotantes en las páginas de entrega al cliente.</p>
           <div class="settings-row">
@@ -4362,6 +4367,7 @@ function loadSettings() {
   document.getElementById('set-price-book-boda').value = s.priceBookBoda || '';
   document.getElementById('set-wa').value = s.waSuffix || '';
   document.getElementById('set-instagram').value = s.instagram || '';
+  if (document.getElementById('set-formulario-fondo')) document.getElementById('set-formulario-fondo').value = s.formularioFondo || '';
   document.getElementById('set-entrega-ig').value  = s.entregaIgUrl  || '';
   document.getElementById('set-entrega-web').value = s.entregaWebUrl || '';
   document.getElementById('set-emailjs-key').value      = s.emailjsKey            || '';
@@ -4416,6 +4422,7 @@ function saveSettings() {
     priceBookBoda:     document.getElementById('set-price-book-boda').value.trim(),
     waSuffix:          document.getElementById('set-wa').value.trim(),
     instagram:         document.getElementById('set-instagram').value.trim(),
+    formularioFondo:   (document.getElementById('set-formulario-fondo') || {}).value?.trim() || existing.formularioFondo || '',
     entregaIgUrl:      document.getElementById('set-entrega-ig').value.trim(),
     entregaWebUrl:     document.getElementById('set-entrega-web').value.trim(),
     emailjsKey:              (document.getElementById('set-emailjs-key')      || {}).value?.trim() || existing.emailjsKey || '',
