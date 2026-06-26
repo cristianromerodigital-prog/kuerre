@@ -446,6 +446,24 @@ export default {
         await env.DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(book_fecha||'', book_hora||'', book_zona||'', bookMatch[1]).run();
         return json({ ok: true });
       }
+      const agendarMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/agendar$/);
+      if (agendarMatch && method === 'PATCH') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        const { tipo, fecha, hora, lugar } = await request.json().catch(() => ({}));
+        const sid = agendarMatch[1];
+        if (tipo === 'evento') {
+          await env.DB.prepare('UPDATE solicitudes SET fecha=? WHERE id=?').bind(fecha||'', sid).run();
+        } else if (tipo === 'book') {
+          await env.DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(fecha||'', hora||'', lugar||'', sid).run();
+        } else if (tipo === 'civil' || tipo === 'religiosa') {
+          const row = await env.DB.prepare('SELECT data_json FROM solicitudes WHERE id=?').bind(sid).first();
+          let dj = {};
+          try { dj = JSON.parse(row?.data_json || '{}'); } catch(e) {}
+          dj[tipo] = { fecha: fecha||'', horario: hora||'', direccion: lugar||'' };
+          await env.DB.prepare('UPDATE solicitudes SET data_json=? WHERE id=?').bind(JSON.stringify(dj), sid).run();
+        }
+        return json({ ok: true });
+      }
 
       return json({ error: 'Not found' }, 404);
     } catch (e) {
