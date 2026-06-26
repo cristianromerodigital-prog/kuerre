@@ -8027,9 +8027,6 @@ async function ctCargarSolicitud(sol) {
     set('ct-c-invitados',  d.evento?.invitados);
   }
 
-  // Marcar como usada en background
-  const url = ctGetUrl();
-  if (url) fetch(url, { method:'POST', body: JSON.stringify({ action:'marcarSolicitudUsada', id: sol.id }) }).catch(()=>{});
 
   setTimeout(ctSaveDraft, 200);
   toast('Datos cargados del cliente — completá precio y servicios');
