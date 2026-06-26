@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Solicitud de Servicio — Kuerre</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:32px 16px}
+  body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:0}
+  .wrap{position:relative;z-index:1}
+  .wrap{max-width:560px;margin:0 auto}
+  .logo{text-align:center;margin-bottom:32px}
+  .logo-name{font-size:22px;letter-spacing:4px;text-transform:uppercase;font-weight:300}
+  .logo-name span{color:#00c896}
+  .logo-sub{font-size:10px;letter-spacing:3px;color:#666;margin-top:6px;text-transform:uppercase}
+  h2{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#00c896;margin-bottom:24px;text-align:center}
+  .tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
+  .tipo-btn{padding:18px 8px;border:1px solid rgba(255,255,255,0.08);background:#161616;color:#888;cursor:pointer;text-align:center;transition:all 0.2s;border-radius:3px}
+  .tipo-btn:hover{border-color:#00c896;color:#fff}
+  .tipo-btn.active{border-color:#00c896;background:rgba(0,200,150,0.06);color:#00c896}
+  .tipo-btn .linea{width:20px;height:1px;background:#00c896;opacity:.5;margin:0 auto;transition:opacity .2s}
+  .tipo-btn .label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:300;color:#aaa;transition:color .2s;padding:2px 0}
+  .tipo-btn:hover .linea,.tipo-btn.active .linea{opacity:1}
+  .tipo-btn:hover .label,.tipo-btn.active .label{color:#00c896}
+  .section{background:#131313;border:1px solid rgba(255,255,255,0.06);padding:20px;margin-bottom:16px}
+  .section-title{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#00c896;margin-bottom:16px;font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid1{display:grid;grid-template-columns:1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#666}
+  .field input,.field select,.field textarea{background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#e0e0e0;padding:10px 12px;font-size:16px;outline:none;transition:border-color 0.2s;font-family:inherit;border-radius:2px}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:#00c896}
+  .field textarea{resize:vertical;min-height:80px}
+  .col-full{grid-column:1/-1}
+  .btn-submit{width:100%;padding:16px;background:#00c896;color:#0d0d0d;border:none;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity 0.2s}
+  .btn-submit:hover{opacity:0.85}
+  .btn-submit:disabled{opacity:0.5;cursor:not-allowed}
+  .spinner{text-align:center;padding:20px;color:#666;font-size:11px;letter-spacing:2px;display:none}
+  .success{display:none;text-align:center;padding:40px 20px;background:rgba(0,200,150,0.05);border:1px solid rgba(0,200,150,0.2)}
+  .success-icon{font-size:2.5rem;margin-bottom:12px}
+  .success-title{font-size:14px;letter-spacing:2px;color:#00c896;margin-bottom:8px;text-transform:uppercase}
+  .success-msg{font-size:12px;color:#666;line-height:1.6}
+  .hint{font-size:10px;color:#555;margin-top:4px;font-style:italic}
+  @media(max-width:480px){.grid2{grid-template-columns:1fr}.tipo-grid{gap:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <img id="form-logo-img" src="" alt="Kuerre" style="display:none;max-height:60px;max-width:180px;object-fit:contain;margin-bottom:8px">
+    <div id="form-logo-text">
+      <div class="logo-name"><span>Kuerre</span></div>
+      <div class="logo-sub">Experiencia Digital para tu Evento</div>
+    </div>
+  </div>
+
+  <div id="form-area">
+    <h2>Solicitud de Servicio</h2>
+
+    <div class="tipo-grid">
+      <div class="tipo-btn" data-tipo="BODA" onclick="selTipo('BODA')">
+        <div class="linea"></div><div class="label">Boda</div><div class="linea"></div>
+      </div>
+      <div class="tipo-btn" data-tipo="XV" onclick="selTipo('XV')">
+        <div class="linea"></div><div class="label">XV Años</div><div class="linea"></div>
+      </div>
+      <div class="tipo-btn" data-tipo="CUMPLE" onclick="selTipo('CUMPLE')">
+        <div class="linea"></div><div class="label">Cumpleaños</div><div class="linea"></div>
+      </div>
+    </div>
+
+    <!-- BODA -->
+    <div id="f-boda" style="display:none">
+      <div class="section">
+        <div class="section-title">Datos de la Novia</div>
+        <div class="grid2">
+          <div class="field"><label>Nombre y Apellido *</label><input id="b-novia-nombre" type="text" autocomplete="name"></div>
+          <div class="field"><label>DNI *</label><input id="b-novia-dni" type="text" inputmode="numeric"></div>
+          <div class="field"><label>Teléfono *</label><input id="b-novia-tel" type="tel" inputmode="tel"></div>
+          <div class="field"><label>Email *</label><input id="b-novia-email" type="email" inputmode="email"></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Datos del Novio</div>
+        <div class="grid2">
+          <div class="field"><label>Nombre y Apellido *</label><input id="b-novio-nombre" type="text"></div>
+          <div class="field"><label>DNI *</label><input id="b-novio-dni" type="text" inputmode="numeric"></div>
+          <div class="field"><label>Domicilio</label><input id="b-novio-dom" type="text"></div>
+          <div class="field"><label>Teléfono</label><input id="b-novio-tel" type="tel"></div>
+          <div class="field col-full"><label>Email</label><input id="b-novio-email" type="email"></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Datos del Evento</div>
+        <div class="grid2">
+          <div class="field"><label>Fecha estimada *</label><input id="b-fecha" type="date"></div>
+          <div class="field"><label>Salón / Lugar *</label><input id="b-salon" type="text"></div>
+          <div class="field col-full"><label>Dirección del Salón *</label><input id="b-dir" type="text"></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Contacto de referencia (familiar / responsable)</div>
+        <div class="grid2">
+          <div class="field"><label>Nombre *</label><input id="b-contacto-nombre" type="text"></div>
+          <div class="field"><label>Relación *</label><input id="b-contacto-rel" type="text" placeholder="ej: hermana de la novia"></div>
+          <div class="field"><label>Teléfono *</label><input id="b-contacto-tel" type="tel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- XV -->
+    <div id="f-xv" style="display:none">
+      <div class="section">
+        <div class="section-title">La Quinceañera</div>
+        <div class="grid2">
+          <div class="field"><label>Nombre completo *</label><input id="x-quince-nombre" type="text"></div>
+          <div class="field"><label>Fecha de nacimiento *</label><input id="x-quince-nac" type="date"></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Quien Contrata</div>
+        <div class="grid2">
+          <div class="field"><label>Nombre y Apellido *</label><input id="x-cliente-nombre" type="text"></div>
+          <div class="field"><label>DNI *</label><input id="x-cliente-dni" type="text" inputmode="numeric"></div>
+          <div class="field"><label>Teléfono *</label><input id="x-cliente-tel" type="tel"></div>
+          <div class="field"><label>Email *</label><input id="x-cliente-email" type="email"></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Datos del Evento</div>
+        <div class="grid2">
+          <div class="field"><label>Fecha estimada *</label><input id="x-fecha" type="date"></div>
+          <div class="field"><label>Hora inicio aprox. *</label><input id="x-hora" type="text" placeholder="21:30"></div>
+          <div class="field"><label>Salón / Lugar *</label><input id="x-salon" type="text"></div>
+          <div class="field col-full"><label>Dirección del Salón *</label><input id="x-dir" type="text"></div>
+          <div class="field"><label>Invitados aprox. *</label><input id="x-invitados" type="number" inputmode="numeric"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUMPLE -->
+    <div id="f-cumple" style="display:none">
+      <div class="section">
+        <div class="section-title">Datos del Cliente</div>
+        <div class="grid2">
+          <div class="field"><label>Nombre y Apellido *</label><input id="c-nombre" type="text"></div>
+          <div class="field"><label>DNI *</label><input id="c-dni" type="text" inputmode="numeric"></div>
+          <div class="field"><label>Teléfono *</label><input id="c-tel" type="tel"></div>
+          <div class="field"><label>Email *</label><input id="c-email" type="email"></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Datos del Evento</div>
+        <div class="grid2">
+          <div class="field"><label>Fecha estimada *</label><input id="c-fecha" type="date"></div>
+          <div class="field"><label>Hora inicio aprox. *</label><input id="c-hora" type="text" placeholder="20:00"></div>
+          <div class="field"><label>Salón / Lugar *</label><input id="c-salon" type="text"></div>
+          <div class="field col-full"><label>Dirección del Salón *</label><input id="c-dir" type="text"></div>
+          <div class="field"><label>Invitados aprox. *</label><input id="c-invitados" type="number" inputmode="numeric"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="f-notas-section" style="display:none">
+      <div class="section-title">Mensaje adicional (opcional)</div>
+      <div class="field">
+        <textarea id="f-notas" placeholder="Cualquier detalle que quieras comentar..."></textarea>
+      </div>
+    </div>
+
+    <div id="f-submit-area" style="display:none">
+      <button class="btn-submit" id="btn-submit" onclick="enviar()">Enviar solicitud</button>
+      <p class="hint" style="text-align:center;margin-top:12px">Te contactaremos a la brevedad para confirmar disponibilidad y presupuesto.</p>
+    </div>
+
+    <div class="spinner" id="spinner">Enviando solicitud...</div>
+  </div>
+
+  <div class="success" id="success">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Solicitud recibida</div>
+    <div class="success-msg">Gracias por contactarnos.<br>Te responderemos a la brevedad para confirmar disponibilidad y los detalles del servicio.</div>
+  </div>
+</div>
+
+<script>
+const CONFIG = {
+  CF_URL:   'https://kuerre-worker.cristian-romero-digital.workers.dev',
+  APPS_URL: 'https://script.google.com/macros/s/AKfycbwOWIq6k0XNQTIPfZ0H22zqNljad1gM1KRjV4uWClvZvTB_A2MhDJIPNvoBiBMV-oD9/exec'
+};
+
+let tipo = null;
+
+function selTipo(t) {
+  tipo = t;
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-tipo="'+t+'"]').classList.add('active');
+  ['boda','xv','cumple'].forEach(id => document.getElementById('f-'+id).style.display = 'none');
+  document.getElementById('f-' + t.toLowerCase()).style.display = 'block';
+  document.getElementById('f-notas-section').style.display = 'block';
+  document.getElementById('f-submit-area').style.display = 'block';
+}
+
+function v(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+function enviar() {
+  if (!tipo) { alert('Seleccioná el tipo de evento primero.'); return; }
+
+  let data = { tipo, notas: v('f-notas') };
+  let errores = [];
+
+  if (tipo === 'BODA') {
+    if (!v('b-novia-nombre'))    errores.push('Nombre de la novia');
+    if (!v('b-novia-dni'))       errores.push('DNI de la novia');
+    if (!v('b-novia-tel'))       errores.push('Teléfono de la novia');
+    if (!v('b-novio-nombre'))    errores.push('Nombre del novio');
+    if (!v('b-novio-dni'))       errores.push('DNI del novio');
+    if (!v('b-fecha'))           errores.push('Fecha estimada del evento');
+    if (!v('b-salon'))           errores.push('Salón / Lugar');
+    if (!v('b-dir'))             errores.push('Dirección del salón');
+    if (!v('b-contacto-nombre')) errores.push('Nombre del contacto de referencia');
+    if (!v('b-contacto-rel'))    errores.push('Relación del contacto');
+    if (!v('b-contacto-tel'))    errores.push('Teléfono del contacto');
+    data.novia    = { nombre: v('b-novia-nombre'), dni: v('b-novia-dni'), telefono: v('b-novia-tel'), email: v('b-novia-email') };
+    data.novio    = { nombre: v('b-novio-nombre'), dni: v('b-novio-dni'), domicilio: v('b-novio-dom'), telefono: v('b-novio-tel'), email: v('b-novio-email') };
+    data.fiesta   = { fecha: v('b-fecha'), salon: v('b-salon'), direccion: v('b-dir') };
+    data.contacto = { nombre: v('b-contacto-nombre'), relacion: v('b-contacto-rel'), telefono: v('b-contacto-tel') };
+  } else if (tipo === 'XV') {
+    if (!v('x-quince-nombre'))  errores.push('Nombre de la quinceañera');
+    if (!v('x-quince-nac'))     errores.push('Fecha de nacimiento de la quinceañera');
+    if (!v('x-cliente-nombre')) errores.push('Nombre del cliente');
+    if (!v('x-cliente-dni'))    errores.push('DNI del cliente');
+    if (!v('x-cliente-tel'))    errores.push('Teléfono del cliente');
+    if (!v('x-cliente-email'))  errores.push('Email del cliente');
+    if (!v('x-fecha'))          errores.push('Fecha estimada del evento');
+    if (!v('x-hora'))           errores.push('Hora de inicio');
+    if (!v('x-salon'))          errores.push('Salón / Lugar');
+    if (!v('x-dir'))            errores.push('Dirección del salón');
+    if (!v('x-invitados'))      errores.push('Cantidad de invitados');
+    data.quinceanera = { nombre: v('x-quince-nombre'), fechaNacimiento: v('x-quince-nac') };
+    data.cliente     = { nombre: v('x-cliente-nombre'), dni: v('x-cliente-dni'), telefono: v('x-cliente-tel'), email: v('x-cliente-email') };
+    data.evento      = { fecha: v('x-fecha'), horaInicio: v('x-hora'), salon: v('x-salon'), direccion: v('x-dir'), invitados: v('x-invitados') };
+  } else if (tipo === 'CUMPLE') {
+    if (!v('c-nombre'))    errores.push('Nombre del cliente');
+    if (!v('c-dni'))       errores.push('DNI del cliente');
+    if (!v('c-tel'))       errores.push('Teléfono del cliente');
+    if (!v('c-email'))     errores.push('Email del cliente');
+    if (!v('c-fecha'))     errores.push('Fecha estimada del evento');
+    if (!v('c-hora'))      errores.push('Hora de inicio');
+    if (!v('c-salon'))     errores.push('Salón / Lugar');
+    if (!v('c-dir'))       errores.push('Dirección del salón');
+    if (!v('c-invitados')) errores.push('Cantidad de invitados');
+    data.cliente = { nombre: v('c-nombre'), dni: v('c-dni'), telefono: v('c-tel'), email: v('c-email') };
+    data.evento  = { fecha: v('c-fecha'), horaInicio: v('c-hora'), salon: v('c-salon'), direccion: v('c-dir'), invitados: v('c-invitados') };
+  }
+
+  if (errores.length) { alert('Completá los campos requeridos:\n• ' + errores.join('\n• ')); return; }
+
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('spinner').style.display = 'block';
+
+  var gasFetch = fetch(CONFIG.APPS_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    body: JSON.stringify({ action: 'guardarSolicitud', formData: data })
+  }).then(function(r){ return r.json(); });
+
+  var workerFetch = fetch(CONFIG.CF_URL + '/solicitudes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).catch(function(){ return null; });
+
+  Promise.allSettled([gasFetch, workerFetch])
+    .then(function(results) {
+      document.getElementById('spinner').style.display = 'none';
+      var gasResult = results[0];
+      if (gasResult.status === 'fulfilled' && gasResult.value && gasResult.value.ok) {
+        document.getElementById('form-area').style.display = 'none';
+        document.getElementById('success').style.display = 'block';
+      } else {
+        var errMsg = (gasResult.status === 'fulfilled' && gasResult.value && gasResult.value.error)
+          ? gasResult.value.error : 'Error desconocido';
+        throw new Error(errMsg);
+      }
+    })
+    .catch(function(err) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('btn-submit').disabled = false;
+      alert('Error al enviar: ' + err.message);
+    });
+}
+
+// Settings: logo + fondo
+fetch(CONFIG.CF_URL + '/crd_settings')
+  .then(function(r){ return r.json(); })
+  .then(function(s){
+    if (s.formularioFondo) {
+      document.body.style.backgroundImage = 'url(' + s.formularioFondo + ')';
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      document.body.style.backgroundAttachment = 'fixed';
+    }
+    var logoUrl = s.logoUrl || localStorage.getItem('crd_site_logo');
+    if (logoUrl) {
+      var img = document.getElementById('form-logo-img');
+      var txt = document.getElementById('form-logo-text');
+      if (img) { img.src = logoUrl; img.style.display = 'block'; }
+      if (txt) txt.style.display = 'none';
+    }
+  })
+  .catch(function(){});
+</script>
+</body>
+</html>
