@@ -3338,6 +3338,25 @@ const CLIENTES_WORKER = 'https://KUERRE-worker.cristian-romero-digital.workers.d
 let _clientes = [];
 let _clienteActual = null;
 let _clientesCargados = false;
+let _clientesPoller = null;
+
+function _startClientesPoller() {
+  _stopClientesPoller();
+  _clientesPoller = setInterval(async function() {
+    if (currentPage !== 'clientes') { _stopClientesPoller(); return; }
+    try {
+      const prevIds = _clientes.map(function(c){ return c.id; }).join(',');
+      await _fetchClientes();
+      const newIds = _clientes.map(function(c){ return c.id; }).join(',');
+      if (newIds !== prevIds) renderClientes(_clientes);
+    } catch(e) {}
+    ctRefreshSolicitudes();
+  }, 20000);
+}
+
+function _stopClientesPoller() {
+  if (_clientesPoller) { clearInterval(_clientesPoller); _clientesPoller = null; }
+}
 
 async function _fetchClientes() {
   const r = await fetch(CLIENTES_WORKER + '/solicitudes', { headers: { 'Authorization': 'Bearer ' + getAdminJWT() } });
@@ -3624,7 +3643,7 @@ function showPage(id) {
   if (id === 'content') { initContentIfEmpty(); loadContentPage(); }
   if (id === 'invites') renderInvitesPage();
   if (id === 'fiestas') loadFiestasPage();
-  if (id === 'clientes') { loadClientesPage(); ctInitSolicitudes(); }
+  if (id === 'clientes') { loadClientesPage(); ctInitSolicitudes(); _startClientesPoller(); } else { _stopClientesPoller(); }
   if (id === 'contratos') initContratosPage();
   if (id === 'presupuesto') {
     Promise.all([
