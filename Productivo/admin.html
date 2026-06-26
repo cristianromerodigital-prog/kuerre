@@ -8046,6 +8046,26 @@ async function ctGenerar() {
       document.getElementById('ct-res-links').innerHTML = links;
       document.getElementById('ct-result').style.display = 'block';
       toast((ctEditingNumero ? 'Contrato ' + json.numero + ' actualizado ✓' : 'Contrato ' + json.numero + ' generado ✓'));
+      if (!ctEditingNumero && CLIENTES_WORKER) {
+        const payload = { tipo: data.tipo };
+        if (data.tipo === 'BODA') {
+          payload.novia = data.novia; payload.novio = data.novio;
+          payload.fiesta = Object.assign({}, data.fiesta, { salon: data.fiesta.lugar });
+          payload.contacto = data.contacto;
+        } else if (data.tipo === 'XV') {
+          payload.quinceanera = data.quinceanera; payload.cliente = data.cliente; payload.evento = data.evento;
+        } else {
+          payload.cliente = data.cliente; payload.evento = data.evento;
+        }
+        fetch(CLIENTES_WORKER + '/solicitudes', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(function(r){ return r.json(); }).then(function(d){
+          if (d.ok) _fetchClientes({ search: _clientesSearch, offset: 0 }).then(function(){
+            if (currentPage === 'clientes') renderClientes();
+          });
+        }).catch(function(){});
+      }
       ctCancelEdit();
       ctClearDraft();
       ctHistLoaded = false; ctLoadHistorial();
