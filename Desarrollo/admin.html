@@ -3493,7 +3493,6 @@ function abrirClienteModal(id) {
     cmMostrarDriveLinks({ cliente: s.drive_cliente_id, fiesta: s.drive_fiesta_id, invitacion: '', entrega: s.drive_entrega_id, contrato: '' });
   } else {
     document.getElementById('cm-drive-links').style.display = 'none';
-    document.getElementById('cm-carpetas-section').style.display = 'block';
   }
 
   const modal = document.getElementById('cliente-modal');
@@ -3670,7 +3669,6 @@ async function cmCrearCarpetas() {
     estadoEl.textContent = '🟢 Activa';
     estadoEl.style.background = 'rgba(37,211,102,0.15)';
     estadoEl.style.color = '#25d366';
-    document.getElementById('cm-fiesta-hint').textContent = '';
     document.getElementById('cm-entrega-folder').value = d.ids.entrega;
   } catch(e) { toast('Error de red: ' + e.message, 'error'); }
 }
@@ -3688,7 +3686,6 @@ function cmMostrarDriveLinks(ids) {
     return '<a href="' + base + l.id + '" target="_blank" style="color:var(--cyan);text-decoration:none">↗ ' + l.label + '</a>';
   }).join('');
   document.getElementById('cm-drive-links').style.display = 'block';
-  document.getElementById('cm-carpetas-section').style.display = 'none';
 }
 
 async function cmEliminar() {
