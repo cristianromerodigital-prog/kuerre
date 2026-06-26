@@ -6,7 +6,6 @@
 <script>
 var KVER='1.38';
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/kuerre/sw.js').catch(function(){});
-!function(){if(location.search.indexOf('v='+KVER)<0){var u=new URL(location.href);u.searchParams.set('v',KVER);location.replace(u.toString());}}();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>KUERRE — Servicios Digitales para Eventos</title>
