@@ -446,6 +446,13 @@ export default {
         await env.DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(book_fecha||'', book_hora||'', book_zona||'', bookMatch[1]).run();
         return json({ ok: true });
       }
+      const carpetasDriveMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/carpetas-drive$/);
+      if (carpetasDriveMatch && method === 'PATCH') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        const { drive_cliente_id } = await request.json().catch(() => ({}));
+        await env.DB.prepare('UPDATE solicitudes SET drive_cliente_id=? WHERE id=?').bind(drive_cliente_id||'', carpetasDriveMatch[1]).run();
+        return json({ ok: true });
+      }
       const contratoPdfMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/contrato-pdf$/);
       if (contratoPdfMatch && method === 'PATCH') {
         if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
