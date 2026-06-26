@@ -92,6 +92,27 @@
         </div>
       </div>
       <div class="section">
+        <div class="section-title">Ceremonias (opcional)</div>
+        <div>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#888"><input type="checkbox" id="b-tiene-civil" onchange="togBodaField('b-sub-civil',this.checked)" style="accent-color:#c9a84c;width:15px;height:15px"> Ceremonia Civil</label>
+          <div id="b-sub-civil" style="display:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:12px;margin-bottom:12px;border-radius:2px">
+            <div class="grid2">
+              <div class="field"><label>Fecha</label><input id="b-civil-fecha" type="date"></div>
+              <div class="field"><label>Horario</label><input id="b-civil-hora" type="text" placeholder="10:50"></div>
+              <div class="field col-full"><label>Dirección</label><input id="b-civil-dir" type="text"></div>
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#888"><input type="checkbox" id="b-tiene-reli" onchange="togBodaField('b-sub-reli',this.checked)" style="accent-color:#c9a84c;width:15px;height:15px"> Ceremonia Religiosa</label>
+          <div id="b-sub-reli" style="display:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:12px;border-radius:2px">
+            <div class="grid2">
+              <div class="field"><label>Fecha</label><input id="b-reli-fecha" type="date"></div>
+              <div class="field"><label>Horario</label><input id="b-reli-hora" type="text" placeholder="17:30"></div>
+              <div class="field col-full"><label>Dirección</label><input id="b-reli-dir" type="text"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
         <div class="section-title">Datos del Evento</div>
         <div class="grid2">
           <div class="field"><label>Fecha estimada *</label><input id="b-fecha" type="date"></div>
@@ -192,6 +213,10 @@ const CONFIG = {
 
 let tipo = null;
 
+function togBodaField(id, show) {
+  document.getElementById(id).style.display = show ? 'block' : 'none';
+}
+
 function selTipo(t) {
   tipo = t;
   document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active'));
@@ -226,6 +251,10 @@ function enviar() {
     data.novio    = { nombre: v('b-novio-nombre'), dni: v('b-novio-dni'), domicilio: v('b-novio-dom'), telefono: v('b-novio-tel'), email: v('b-novio-email') };
     data.fiesta   = { fecha: v('b-fecha'), salon: v('b-salon'), direccion: v('b-dir') };
     data.contacto = { nombre: v('b-contacto-nombre'), relacion: v('b-contacto-rel'), telefono: v('b-contacto-tel') };
+    if (document.getElementById('b-tiene-civil').checked)
+      data.civil = { fecha: v('b-civil-fecha'), horario: v('b-civil-hora'), direccion: v('b-civil-dir') };
+    if (document.getElementById('b-tiene-reli').checked)
+      data.religiosa = { fecha: v('b-reli-fecha'), horario: v('b-reli-hora'), direccion: v('b-reli-dir') };
   } else if (tipo === 'XV') {
     if (!v('x-quince-nombre'))  errores.push('Nombre de la quinceañera');
     if (!v('x-quince-nac'))     errores.push('Fecha de nacimiento de la quinceañera');
