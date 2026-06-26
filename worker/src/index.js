@@ -1,4 +1,81 @@
-import { corsHeaders, json, mountCoreRouter } from '@crd/kuerre-core';
+import { corsHeaders, json, mountCoreRouter, isAdmin } from '@crd/kuerre-core';
+
+function generateEventId() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let id = '';
+  for (let i = 0; i < 6; i++) id += chars[Math.floor(Math.random() * chars.length)];
+  return id;
+}
+
+function nowISO() { return new Date().toISOString(); }
+
+async function handleSolicitudesCreate(request, env) {
+  const body = await request.json();
+  const { tipo } = body;
+  if (!tipo || !['BODA','XV','CUMPLE'].includes(tipo)) return json({ error: 'tipo inválido' }, 400);
+
+  let nombre_display, fecha, salon, direccion, cliente_nombre, cliente_tel, cliente_email;
+
+  if (tipo === 'BODA') {
+    const { novia, novio, fiesta } = body;
+    nombre_display = `${novia?.nombre || ''} & ${novio?.nombre || ''}`;
+    fecha = fiesta?.fecha || ''; salon = fiesta?.salon || ''; direccion = fiesta?.direccion || '';
+    cliente_nombre = novia?.nombre || ''; cliente_tel = novia?.telefono || ''; cliente_email = novia?.email || '';
+  } else if (tipo === 'XV') {
+    const { quinceanera, cliente, evento } = body;
+    nombre_display = `XV ${quinceanera?.nombre || ''}`;
+    fecha = evento?.fecha || ''; salon = evento?.salon || ''; direccion = evento?.direccion || '';
+    cliente_nombre = cliente?.nombre || ''; cliente_tel = cliente?.telefono || ''; cliente_email = cliente?.email || '';
+  } else {
+    const { cliente, evento } = body;
+    nombre_display = `Cumple ${cliente?.nombre || ''}`;
+    fecha = evento?.fecha || ''; salon = evento?.salon || ''; direccion = evento?.direccion || '';
+    cliente_nombre = cliente?.nombre || ''; cliente_tel = cliente?.telefono || ''; cliente_email = cliente?.email || '';
+  }
+
+  if (!fecha) return json({ error: 'Fecha del evento requerida' }, 400);
+  const now = nowISO();
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const id = generateEventId();
+    const fiesta_id = generateEventId();
+    try {
+      await env.DB.batch([
+        env.DB.prepare(`INSERT INTO solicitudes (id,tipo,nombre_display,fecha,salon,direccion,cliente_nombre,cliente_tel,cliente_email,data_json,fiesta_id,invite_slug,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+          .bind(id, tipo, nombre_display, fecha, salon, direccion, cliente_nombre, cliente_tel, cliente_email, JSON.stringify(body), fiesta_id, id, now),
+        env.DB.prepare(`INSERT INTO eventos_foto (id,nombre,fecha,cierre_auto,folder_id,portada,estado,moderacion,created_at) VALUES (?,?,?,NULL,'',NULL,'pendiente',0,?)`)
+          .bind(fiesta_id, nombre_display, fecha, now),
+        env.DB.prepare(`INSERT INTO entrega_configs (id,nombres,fecha,tipo,folder_id,portada,overlay,allow_dl,created_at) VALUES (?,?,?,?,'','','violeta',1,?)`)
+          .bind(id, nombre_display, fecha, tipo, now),
+      ]);
+      return json({ ok: true, id });
+    } catch (e) {
+      if (attempt === 1) throw e;
+    }
+  }
+}
+
+async function handleSolicitudesList(env) {
+  const { results } = await env.DB.prepare(`
+    SELECT s.*, ef.estado AS fiesta_estado, ec.folder_id AS entrega_folder
+    FROM solicitudes s
+    LEFT JOIN eventos_foto ef ON ef.id = s.fiesta_id
+    LEFT JOIN entrega_configs ec ON ec.id = s.id
+    ORDER BY s.created_at DESC
+  `).all();
+  return json({ solicitudes: results });
+}
+
+async function handleSolicitudesDelete(id, env) {
+  const sol = await env.DB.prepare('SELECT * FROM solicitudes WHERE id = ?').bind(id).first();
+  if (!sol) return json({ error: 'No encontrada' }, 404);
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM solicitudes WHERE id = ?').bind(id),
+    env.DB.prepare('DELETE FROM entrega_configs WHERE id = ?').bind(id),
+    env.DB.prepare('DELETE FROM eventos_foto WHERE id = ?').bind(sol.fiesta_id),
+  ]);
+  return json({ ok: true });
+}
 
 async function proxyGdrive(fileId, request, env) {
   const rangeHeader = request.headers.get('Range') || '';
@@ -217,6 +294,18 @@ export default {
       }
 
       if (path === '/api/health') return json({ ok: true, worker: 'kuerre-worker', ts: new Date().toISOString() });
+
+      // ── Solicitudes ──────────────────────────────────────────────────────────
+      if (path === '/solicitudes' && method === 'POST') return await handleSolicitudesCreate(request, env);
+      if (path === '/solicitudes' && method === 'GET') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        return await handleSolicitudesList(env);
+      }
+      const solicitudDelMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})$/);
+      if (solicitudDelMatch && method === 'DELETE') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        return await handleSolicitudesDelete(solicitudDelMatch[1], env);
+      }
 
       return json({ error: 'Not found' }, 404);
     } catch (e) {
