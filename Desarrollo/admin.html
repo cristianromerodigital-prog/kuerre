@@ -1987,9 +1987,13 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
           <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:stretch">
             <button class="btn-add" id="ct-btn-gen" onclick="ctGenerar()" style="padding:16px;font-size:11px;letter-spacing:3px">GENERAR CONTRATO</button>
+            <button onclick="ctSaveDraftManual()" style="padding:16px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);color:var(--gold);font-size:10px;letter-spacing:1.5px;cursor:pointer">Guardar borrador</button>
             <button onclick="ctClearDraft()" style="padding:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--gray);font-size:10px;letter-spacing:1.5px;cursor:pointer">Limpiar</button>
           </div>
-          <div id="ct-spinner" style="display:none;text-align:center;padding:20px;color:var(--gray);font-size:11px;letter-spacing:2px">Generando contrato · esto puede tardar 20–30 segundos...</div>
+          <div id="ct-spinner" style="display:none;text-align:center;padding:20px;color:var(--gray);font-size:11px;letter-spacing:2px">
+            Generando contrato · esto puede tardar 20–30 segundos...
+            <button onclick="ctCancelarGeneracion()" style="display:block;margin:12px auto 0;background:none;border:1px solid rgba(255,255,255,0.15);color:var(--gray);font-size:9px;letter-spacing:1.5px;padding:6px 16px;cursor:pointer">Cancelar</button>
+          </div>
           <div id="ct-result" style="display:none;margin-top:20px;padding:20px;background:rgba(37,211,102,0.05);border:1px solid rgba(37,211,102,0.2)">
             <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:8px">Contrato generado</div>
             <div id="ct-res-num" style="font-size:26px;font-weight:600;color:var(--white);margin-bottom:14px"></div>
@@ -3218,7 +3222,7 @@ async function crclubDeleteReward(id, name) {
 }
 
 // ── CLOUDFLARE SYNC ──
-const CF_SYNC_KEYS = ["crd_portfolio","crd_testimonials","crd_posts","crd_settings","crd_content","crd_site_photos","crd_hero_video_url","crd_invites","crd_messages","crd_inv_base","crd_presupuesto","crd_presupuesto_boda","crd_editable","crd_opcionales","crd_entregas","crd_pedidos","crd_contratos_cfg"];
+const CF_SYNC_KEYS = ["crd_portfolio","crd_testimonials","crd_posts","crd_settings","crd_content","crd_site_photos","crd_hero_video_url","crd_invites","crd_messages","crd_inv_base","crd_presupuesto","crd_presupuesto_boda","crd_editable","crd_opcionales","crd_entregas","crd_pedidos","crd_contratos_cfg","crd_ct_draft"];
 
 async function syncToCloud(key, value) {
   if (!CF_SYNC_KEYS.includes(key)) return;
@@ -7827,8 +7831,10 @@ async function ctGenerar() {
   document.getElementById('ct-btn-gen').disabled = true;
   document.getElementById('ct-spinner').style.display = 'block';
   document.getElementById('ct-result').style.display = 'none';
+  ctSaveDraft();
+  ctGenAbort = new AbortController();
   try {
-    const res  = await fetch(url, { method: 'POST', body: JSON.stringify(data) });
+    const res  = await fetch(url, { method: 'POST', body: JSON.stringify(data), signal: ctGenAbort.signal });
     const json = await res.json();
     document.getElementById('ct-spinner').style.display = 'none';
     document.getElementById('ct-btn-gen').disabled = false;
@@ -7848,13 +7854,28 @@ async function ctGenerar() {
   } catch(e) {
     document.getElementById('ct-spinner').style.display = 'none';
     document.getElementById('ct-btn-gen').disabled = false;
-    toast('Error de conexión con Apps Script', 'error');
+    if (e.name !== 'AbortError') toast('Error de conexión con Apps Script', 'error');
+  } finally {
+    ctGenAbort = null;
   }
 }
 
 // ── BORRADOR ──
 const CT_DRAFT_KEY = 'crd_ct_draft';
 let ctDraftTimer = null;
+let ctGenAbort = null;
+
+function ctCancelarGeneracion() {
+  if (ctGenAbort) { ctGenAbort.abort(); ctGenAbort = null; }
+  document.getElementById('ct-spinner').style.display = 'none';
+  document.getElementById('ct-btn-gen').disabled = false;
+  toast('Generación cancelada — datos conservados');
+}
+
+function ctSaveDraftManual() {
+  ctSaveDraft();
+  toast('Borrador guardado ✓');
+}
 
 function ctScheduleSaveDraft() {
   clearTimeout(ctDraftTimer);
@@ -7874,8 +7895,14 @@ function ctSaveDraft() {
 }
 
 function ctRestoreDraft() {
-  const draft = S.get(CT_DRAFT_KEY);
-  if (!draft || !draft.tipo) return;
+  const local = S.get(CT_DRAFT_KEY);
+  if (local && local.tipo) { _ctApplyDraft(local); return; }
+  fetchFromCloud(CT_DRAFT_KEY).then(function(cloud) {
+    if (cloud && cloud.tipo) { S.set(CT_DRAFT_KEY, cloud); _ctApplyDraft(cloud); }
+  }).catch(function(){});
+}
+
+function _ctApplyDraft(draft) {
   ctSelTipo(draft.tipo);
   setTimeout(() => {
     Object.entries(draft.fields || {}).forEach(([id, val]) => {
