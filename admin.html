@@ -2247,43 +2247,45 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <!-- Modal detalle cliente -->
         <div id="cliente-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center;padding:16px">
           <div style="background:var(--black3);border:1px solid rgba(255,255,255,0.08);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;padding:28px">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
-              <div>
+
+            <!-- Header -->
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+              <div style="flex:1">
                 <div id="cm-nombre" style="font-size:16px;font-weight:500;color:var(--gold)"></div>
                 <div id="cm-meta" style="font-size:10px;letter-spacing:1.5px;color:var(--gray2);margin-top:4px"></div>
               </div>
               <button onclick="document.getElementById('cliente-modal').style.display='none'" style="background:none;border:none;color:var(--gray2);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+              <input id="cm-codigo-contrato" type="text" placeholder="Código de contrato (ej: KR-001)"
+                style="background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:6px 10px;font-size:11px;outline:none;font-family:inherit;border-radius:4px;flex:1;letter-spacing:1px"
+                onblur="cmSaveContrato()">
+              <span style="font-size:9px;color:var(--gray2);letter-spacing:1px">Guardar al salir del campo</span>
             </div>
 
             <!-- Invitación -->
             <div style="border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:12px">
               <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Invitación Digital</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn-sm" onclick="cmGoInvite()">Crear invitación →</button>
-                <button class="btn-sm btn-sec" onclick="cmOpenInvite()">Abrir invite ↗</button>
+                <button class="btn-sm" onclick="cmGoInvite()">Crear →</button>
+                <button class="btn-sm btn-sec" onclick="cmOpenInvite()">Abrir ↗</button>
                 <button class="btn-sm btn-sec" onclick="cmCopyInvite()">Copiar link</button>
               </div>
-              <div style="font-size:10px;color:var(--gray2);margin-top:8px">"Crear invitación" abre el panel con nombre, fecha, salón y tipo pre-cargados.</div>
             </div>
 
             <!-- QR Fiestas -->
             <div style="border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:12px">
               <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:12px">QR · Fiestas</div>
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
                 <span id="cm-fiesta-estado" style="font-size:10px;padding:3px 10px;border-radius:10px"></span>
-                <button class="btn-sm btn-sec" onclick="cmGoFiesta()">Crear / ver en panel Fiestas →</button>
               </div>
-              <div id="cm-fiesta-hint" style="font-size:10px;color:var(--gray2);margin-bottom:12px"></div>
-              <div id="cm-carpetas-section">
-                <label style="font-size:10px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:6px">Código de contrato</label>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-                  <input id="cm-codigo-contrato" type="text" placeholder="Ej: CRP-001"
-                    style="background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:8px 12px;font-size:14px;outline:none;flex:1;min-width:120px;font-family:inherit;border-radius:4px">
-                  <button class="btn-sm" onclick="cmCrearCarpetas()">📁 Crear carpetas en Drive</button>
-                </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn-sm" onclick="cmGoFiesta()">Crear →</button>
+                <button class="btn-sm btn-sec" onclick="cmOpenFiesta()">Abrir ↗</button>
+                <button class="btn-sm btn-sec" onclick="cmCopyFiesta()">Copiar link</button>
               </div>
-              <div id="cm-drive-links" style="display:none;font-size:10px;margin-top:8px">
-                <div style="color:var(--cyan);margin-bottom:6px;letter-spacing:1px">Carpetas creadas en Drive:</div>
+              <div id="cm-drive-links" style="display:none;font-size:10px;margin-top:10px">
+                <div style="color:var(--cyan);margin-bottom:6px;letter-spacing:1px">Carpetas en Drive:</div>
                 <div id="cm-drive-links-list" style="display:flex;flex-direction:column;gap:4px"></div>
               </div>
             </div>
@@ -2291,16 +2293,18 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <!-- Entrega -->
             <div style="border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:20px">
               <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--violet);margin-bottom:12px">Entrega de Fotos</div>
-              <label style="font-size:10px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:6px">Folder ID de Drive</label>
-              <input id="cm-entrega-folder" type="text" placeholder="Pegá el ID de la carpeta de Drive"
-                style="background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:8px 12px;font-size:14px;outline:none;width:100%;font-family:inherit;border-radius:4px;margin-bottom:10px"
-                oninput="cmUpdateEntregaLink()">
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-                <button class="btn-sm" onclick="cmSaveEntregaFolder()">Guardar folder</button>
-                <button class="btn-sm btn-sec" id="cm-btn-open-entrega" onclick="cmOpenEntrega()" style="display:none">Abrir entrega ↗</button>
-                <button class="btn-sm btn-sec" id="cm-btn-copy-entrega" onclick="cmCopyEntrega()" style="display:none">Copiar link entrega</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+                <button class="btn-sm" onclick="cmGoEntrega()">Crear →</button>
+                <button class="btn-sm btn-sec" id="cm-btn-open-entrega" onclick="cmOpenEntrega()">Abrir ↗</button>
+                <button class="btn-sm btn-sec" id="cm-btn-copy-entrega" onclick="cmCopyEntrega()">Copiar link</button>
               </div>
-              <div id="cm-entrega-url" style="font-size:10px;color:var(--gray2);word-break:break-all"></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <input id="cm-entrega-folder" type="text" placeholder="Folder ID de Drive"
+                  style="background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:6px 10px;font-size:11px;outline:none;flex:1;font-family:inherit;border-radius:4px"
+                  oninput="cmUpdateEntregaLink()">
+                <button class="btn-sm btn-sec" onclick="cmSaveEntregaFolder()">Guardar</button>
+              </div>
+              <div id="cm-entrega-url" style="font-size:10px;color:var(--gray2);word-break:break-all;margin-top:8px"></div>
             </div>
 
             <div style="display:flex;justify-content:flex-end">
@@ -3476,10 +3480,9 @@ function abrirClienteModal(id) {
 
   const fiestaOk = s.fiesta_estado === 'activo';
   const estadoEl = document.getElementById('cm-fiesta-estado');
-  estadoEl.textContent = fiestaOk ? '🟢 Activa' : '🟡 Pendiente (falta folder Drive)';
+  estadoEl.textContent = fiestaOk ? '🟢 Activa' : '🟡 Pendiente';
   estadoEl.style.background = fiestaOk ? 'rgba(37,211,102,0.15)' : 'rgba(201,168,76,0.15)';
   estadoEl.style.color = fiestaOk ? '#25d366' : 'var(--gold)';
-  document.getElementById('cm-fiesta-hint').textContent = fiestaOk ? '' : 'Ir al panel QR · Fiestas, buscá el evento y agregá el folder Drive para activarlo.';
 
   const folder = s.entrega_folder || '';
   document.getElementById('cm-entrega-folder').value = folder;
@@ -3501,6 +3504,47 @@ function cmGoFiesta() {
   if (_clienteActual) _pendingClienteId = _clienteActual.id;
   document.getElementById('cliente-modal').style.display = 'none';
   showPage('fiestas');
+}
+
+function cmGoEntrega() {
+  document.getElementById('cliente-modal').style.display = 'none';
+  showPage('entregas');
+}
+
+function cmGetFiestaUrl() {
+  if (!_clienteActual) return '';
+  return (location.origin + '/fiestas.html?e=' + slugifyFiesta(_clienteActual.nombre_display, _clienteActual.fecha));
+}
+
+function cmOpenFiesta() {
+  const url = cmGetFiestaUrl();
+  if (url) window.open(url, '_blank');
+}
+
+function cmCopyFiesta() {
+  const url = cmGetFiestaUrl();
+  if (!url) return;
+  navigator.clipboard.writeText(url)
+    .then(function(){ toast('Link QR copiado'); })
+    .catch(function(){ toast('No se pudo copiar'); });
+}
+
+function cmSaveContrato() {
+  if (!_clienteActual) return;
+  const codigo = document.getElementById('cm-codigo-contrato').value.trim();
+  if (codigo === (_clienteActual.codigo_contrato || '')) return;
+  fetch(CLIENTES_WORKER + '/solicitudes/' + _clienteActual.id + '/contrato', {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ codigo_contrato: codigo })
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if (d.ok) {
+      _clienteActual.codigo_contrato = codigo;
+      const idx = _clientes.findIndex(function(x){ return x.id === _clienteActual.id; });
+      if (idx !== -1) _clientes[idx].codigo_contrato = codigo;
+      toast('Código guardado');
+    }
+  }).catch(function(){});
 }
 
 function cmGoInvite() {
@@ -3550,19 +3594,10 @@ function cmUpdateEntregaLink() {
   if (!_clienteActual) return;
   const folder = document.getElementById('cm-entrega-folder').value.trim();
   const urlEl = document.getElementById('cm-entrega-url');
-  const btnOpen = document.getElementById('cm-btn-open-entrega');
-  const btnCopy = document.getElementById('cm-btn-copy-entrega');
-  if (!folder) {
-    urlEl.textContent = 'Completá el folder ID para generar el link.';
-    btnOpen.style.display = 'none';
-    btnCopy.style.display = 'none';
-    return;
-  }
+  if (!folder) { urlEl.textContent = 'Pegá el folder ID para generar el link.'; return; }
   const s = _clienteActual;
   const params = new URLSearchParams({ folder: folder, nombres: s.nombre_display, fecha: s.fecha || '', tipo: s.tipo.toLowerCase() });
   urlEl.textContent = 'entrega.html?' + params.toString();
-  btnOpen.style.display = 'inline-flex';
-  btnCopy.style.display = 'inline-flex';
 }
 
 function cmOpenEntrega() {
@@ -8062,9 +8097,16 @@ async function ctGenerar() {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         }).then(function(r){ return r.json(); }).then(function(d){
-          if (d.ok) _fetchClientes({ search: _clientesSearch, offset: 0 }).then(function(){
-            if (currentPage === 'clientes') renderClientes();
-          });
+          if (d.ok) {
+            // Guardar número de contrato en D1
+            fetch(CLIENTES_WORKER + '/solicitudes/' + d.id + '/contrato', {
+              method: 'PATCH', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+              body: JSON.stringify({ codigo_contrato: String(json.numero) })
+            }).catch(function(){});
+            _fetchClientes({ search: _clientesSearch, offset: 0 }).then(function(){
+              if (currentPage === 'clientes') renderClientes();
+            });
+          }
         }).catch(function(){});
       }
       ctCancelEdit();
