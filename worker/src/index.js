@@ -1,4 +1,78 @@
-import { corsHeaders, json, mountCoreRouter, isAdmin } from '@crd/kuerre-core';
+import { corsHeaders, json, mountCoreRouter, isAdmin, arrayBufferToBase64, resolveEventId } from '@crd/kuerre-core';
+
+async function checkOpenAI(base64, mimeType, apiKey) {
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 5,
+        messages: [
+          { role: 'system', content: 'You are a content moderation AI. Your task is to detect actual nudity, not revealing clothing or swimwear.' },
+          { role: 'user', content: [
+            { type: 'image_url', image_url: { url: `data:${mimeType || 'image/jpeg'};base64,${base64}`, detail: 'auto' } },
+            { type: 'text', text: 'Analyze this image for two things: 1) Does it show exposed genitals (penis, vagina, anus), bare female nipples, or completely bare buttocks not covered by clothing, underwear, or swimwear? 2) Are there any human faces visible? Answer YES if nudity is present, OR if there are no visible faces AND the image shows close-up skin or body parts. Answer NO if the image is appropriate (swimwear, cleavage, low-cut clothing, and group event photos are acceptable). Answer only YES or NO.' }
+          ]}
+        ]
+      })
+    });
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content?.trim().toUpperCase() || '';
+    const error = data.error?.message;
+    const answer = text || (error ? 'YES' : 'NO');
+    console.log('[OPENAI]', answer, error || '');
+    return { ok: !answer.startsWith('YES') };
+  } catch(e) {
+    console.error('[OPENAI ERROR]', e.message);
+    return { ok: false };
+  }
+}
+
+async function handleFotoUploadConModeracion(identifier, request, env) {
+  const realId = await resolveEventId(identifier, env);
+  if (!realId) return json({ error: 'Evento no encontrado' }, 404);
+  const evento = await env.DB.prepare(
+    'SELECT folder_id, estado, moderacion, cierre_auto FROM eventos_foto WHERE id = ?'
+  ).bind(realId).first();
+  if (!evento) return json({ error: 'Evento no encontrado' }, 404);
+  if (evento.estado !== 'activo') return json({ error: 'Evento cerrado' }, 403);
+  if (evento.cierre_auto && new Date() > new Date(evento.cierre_auto)) return json({ error: 'Evento cerrado' }, 403);
+
+  const formData = await request.formData();
+  const file = formData.get('file');
+  if (!file) return json({ error: 'No se recibió archivo' }, 400);
+
+  const buffer = await file.arrayBuffer();
+  if (buffer.byteLength > 15 * 1024 * 1024) return json({ error: 'Archivo demasiado grande (máx 15MB)' }, 400);
+
+  const base64 = arrayBufferToBase64(buffer);
+
+  if (env.OPENAI_KEY) {
+    const monthKey = `vision_count_${new Date().toISOString().slice(0,7)}`;
+    const current = parseInt(await env.KV.get(monthKey) || '0');
+    await env.KV.put(monthKey, String(current + 1));
+    const { ok } = await checkOpenAI(base64, file.type, env.OPENAI_KEY);
+    if (!ok) return json({ error: 'Foto no permitida en esta galería.' }, 400);
+  }
+
+  const gasUrl = await env.KV.get('fiestas_gas_url');
+  if (!gasUrl) return json({ error: 'GAS URL no configurada' }, 500);
+
+  const res = await fetch(gasUrl, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'uploadFoto',
+      folderId: evento.folder_id,
+      moderacion: evento.moderacion === 1,
+      base64,
+      filename: file.name || `foto_${Date.now()}.jpg`,
+      mimeType: file.type || 'image/jpeg'
+    }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return json(await res.json());
+}
 
 function generateEventId() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -177,6 +251,31 @@ export default {
           portfolio:    false,
         }
       };
+
+      // ── Moderación fotos con OpenAI (intercepta antes del core) ─────────────
+      const fotoUploadMatch = path.match(/^\/eventos\/([a-zA-Z0-9][a-zA-Z0-9-]{2,49})\/fotos$/);
+      if (fotoUploadMatch && method === 'POST') {
+        return await handleFotoUploadConModeracion(fotoUploadMatch[1], request, env);
+      }
+
+      // ── Vision stats ─────────────────────────────────────────────────────────
+      if (path === '/eventos/admin/vision-stats' && method === 'GET') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        const month = new Date().toISOString().slice(0,7);
+        const count = parseInt(await env.KV.get(`vision_count_${month}`) || '0');
+        const costEstimado = (count * 0.00015).toFixed(4);
+        let creditBalance = null;
+        try {
+          const billingRes = await fetch('https://api.openai.com/v1/dashboard/billing/credit_grants', {
+            headers: { 'Authorization': 'Bearer ' + env.OPENAI_KEY }
+          });
+          if (billingRes.ok) {
+            const billingData = await billingRes.json();
+            creditBalance = billingData.total_available ?? null;
+          }
+        } catch(e) {}
+        return json({ month, count, costEstimado, creditBalance });
+      }
 
       // ── kuerre-core: eventos, fotos, frases, likes, admin auth + UI ──────────
       const response = await mountCoreRouter(request, env, url, CORE_OPTIONS);
