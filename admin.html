@@ -1800,20 +1800,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <button class="btn-sm btn-sec" style="margin-top:8px" onclick="ctSaveCfg()">Guardar URL</button>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
-          <div class="ct-tipo-btn" data-tipo="BODA" onclick="ctSelTipo('BODA')">
-            <div style="font-size:1.5rem;margin-bottom:6px">💍</div>
-            <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">Boda</div>
-          </div>
-          <div class="ct-tipo-btn" data-tipo="XV" onclick="ctSelTipo('XV')">
-            <div style="font-size:1.5rem;margin-bottom:6px">🌟</div>
-            <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">XV Años</div>
-          </div>
-          <div class="ct-tipo-btn" data-tipo="CUMPLE" onclick="ctSelTipo('CUMPLE')">
-            <div style="font-size:1.5rem;margin-bottom:6px">🎂</div>
-            <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">Cumpleaños</div>
-          </div>
-        </div>
         <div id="ct-num-preview" style="display:none;text-align:center;margin-bottom:20px">
           <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gray)">Próximo N°:</span>
           <span id="ct-num-val" style="font-size:20px;font-weight:600;color:var(--gold);margin-left:10px"></span>
@@ -2225,6 +2211,22 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             Link del formulario para clientes: <span id="ct-form-url" style="color:var(--cyan);word-break:break-all"></span>
           </div>
           <div id="ct-sol-list" style="margin-top:14px"><div style="color:var(--gray);font-size:12px">Cargando...</div></div>
+        </div>
+
+        <!-- Nuevo contrato -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px">
+          <div class="ct-tipo-btn" data-tipo="BODA" onclick="showPage('contratos');ctSelTipo('BODA')">
+            <div style="font-size:1.5rem;margin-bottom:6px">💍</div>
+            <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">Boda</div>
+          </div>
+          <div class="ct-tipo-btn" data-tipo="XV" onclick="showPage('contratos');ctSelTipo('XV')">
+            <div style="font-size:1.5rem;margin-bottom:6px">🌟</div>
+            <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">XV Años</div>
+          </div>
+          <div class="ct-tipo-btn" data-tipo="CUMPLE" onclick="showPage('contratos');ctSelTipo('CUMPLE')">
+            <div style="font-size:1.5rem;margin-bottom:6px">🎂</div>
+            <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">Cumpleaños</div>
+          </div>
         </div>
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
