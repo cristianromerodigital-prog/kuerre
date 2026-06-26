@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.53</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.54</div>
     </div>
   </aside>
 
@@ -8690,16 +8690,14 @@ function ctCargarContrato(idx) {
       set('ct-b-paquete',         d.nombrePaquete);
       if (d.civil) {
         set('ct-b-tiene-civil', true);
-        const f = document.getElementById('ct-b-civil-fields');
-        if (f) f.style.display = 'block';
+        document.getElementById('ct-sub-civil').style.display = 'block';
         set('ct-b-civil-fecha', d.civil.fecha);
         set('ct-b-civil-hora',  d.civil.horario);
         set('ct-b-civil-dir',   d.civil.direccion);
       }
       if (d.religiosa) {
         set('ct-b-tiene-reli', true);
-        const f = document.getElementById('ct-b-reli-fields');
-        if (f) f.style.display = 'block';
+        document.getElementById('ct-sub-reli').style.display = 'block';
         set('ct-b-reli-fecha', d.religiosa.fecha);
         set('ct-b-reli-hora',  d.religiosa.horario);
         set('ct-b-reli-dir',   d.religiosa.direccion);
