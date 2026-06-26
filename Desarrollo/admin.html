@@ -269,46 +269,30 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 @media(max-width:640px){.inv-form-2col{grid-template-columns:1fr}.inv-card{grid-template-columns:1fr}}
 .inv-gsheet-code{background:var(--black4);border:1px solid rgba(255,255,255,0.08);padding:12px;font-size:11px;color:var(--gray2);font-family:monospace;white-space:pre;overflow-x:auto;margin:10px 0;line-height:1.6;border-radius:2px}
 </style>
-<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 
 <!-- ═══ KUERRE VISUAL OVERRIDE — SOLO COLORES ═══ -->
 <style>
-/* ── LOGO ── */
 #sidebar-logo-img { display: none !important; }
 .sidebar-logo-text { font-size: 0 !important; color: transparent !important; }
 .sidebar-logo-text span { display: none !important; }
-.sidebar-logo::before { content: 'KUERRE'; display: block; font-family: 'DM Sans',sans-serif; font-size: 16px; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; color: #9060b8; }
-
-/* ── VARIABLES DE COLOR ── */
-:root {
-  --gold:   #9060b8;
-  --gold2:  #00e0a8;
-}
-
-/* ── BACKGROUNDS ── */
-/* ── COLORES DE ACENTO (purple en lugar de gold) ── */
+.sidebar-logo-text::before { content: 'KUERRE'; display: block; font-family: 'DM Sans',sans-serif; font-size: 16px; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; color: #9060b8; }
+:root { --gold: #9060b8; --gold2: #00e0a8; }
 .login-logo span        { color: #9060b8 !important; }
 .login-btn              { background: #9060b8 !important; color: #fff !important; }
 .login-btn:hover        { background: #7a4aa0 !important; }
 .login-input:focus      { border-color: #9060b8 !important; }
-
 .nav-section-label      { color: rgba(192,144,224,.4) !important; }
 .sidebar-item.active    { color: #9060b8 !important; background: rgba(144,96,184,.1) !important; }
 .sidebar-item.active svg { opacity: 1; }
-
-/* ── TABS / ACCIONES ── */
 .tab.active             { color: #9060b8 !important; border-bottom-color: #9060b8 !important; }
 .cnt-tab.active, .cnt-subtab.active { background: #9060b8 !important; color: #fafafa !important; }
 .btn-add                { background: rgba(192,144,224,.18) !important; color: #9060b8 !important; border-color: rgba(192,144,224,.3) !important; }
 .btn-add:hover          { background: rgba(192,144,224,.28) !important; }
-
-/* ── SETTINGS TITLE ── */
 .settings-section-title { color: #9060b8 !important; }
-
-/* ── INPUTS FOCUS ── */
 .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #9060b8 !important; }
 </style>
 <!-- ═══ / KUERRE VISUAL OVERRIDE ═══ -->
+<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 </head>
 <body>
 
@@ -417,7 +401,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.47</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.48</div>
     </div>
   </aside>
 
@@ -1494,7 +1478,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
       </div>
 
-      <!-- ═══════════════════════════════════════
+            <!-- ═══════════════════════════════════════
            CONTENT EDITOR PAGE
       ═══════════════════════════════════════ -->
       <div class="page" id="page-content">
@@ -1785,6 +1769,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
         </div>
 
+
       <!-- PAGE: CONTRATOS -->
       <div class="page" id="page-contratos">
         <div class="section-header">
@@ -1803,7 +1788,15 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <label class="form-label">URL del Web App (Apps Script)</label>
               <input class="form-input" id="ct-apps-url" placeholder="https://script.google.com/macros/s/.../exec">
             </div>
-            <button class="btn-sm btn-sec" style="margin-top:8px" onclick="ctSaveCfg()">Guardar URL</button>
+            <div class="form-group" style="margin-top:10px">
+              <label class="form-label">ID carpeta raíz de Drive</label>
+              <input class="form-input" id="ct-drive-root-id" placeholder="ID de la carpeta padre en Google Drive">
+            </div>
+            <div class="form-group" style="margin-top:10px">
+              <label class="form-label">ID hoja de servicios (Google Sheet)</label>
+              <input class="form-input" id="ct-presupuestos-id" placeholder="ID del Google Sheet con los servicios">
+            </div>
+            <button class="btn-sm btn-sec" style="margin-top:12px" onclick="ctSaveCfg()">Guardar configuración</button>
           </div>
         </div>
         <div id="ct-num-preview" style="display:none;text-align:center;margin-bottom:20px">
@@ -1986,7 +1979,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <span style="font-size:11px;color:var(--gold);letter-spacing:1px">Editando contrato <strong id="ct-edit-num"></strong></span>
             <button onclick="ctCancelEdit()" style="background:none;border:none;color:var(--gray);font-size:11px;cursor:pointer;text-decoration:underline">Cancelar edición</button>
           </div>
-          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:stretch">
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:stretch">
             <button class="btn-add" id="ct-btn-gen" onclick="ctGenerar()" style="padding:16px;font-size:11px;letter-spacing:3px">GENERAR CONTRATO</button>
             <button onclick="ctSaveDraftManual()" style="padding:16px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);color:var(--gold);font-size:10px;letter-spacing:1.5px;cursor:pointer">Guardar borrador</button>
             <button onclick="ctClearDraft()" style="padding:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--gray);font-size:10px;letter-spacing:1.5px;cursor:pointer">Limpiar</button>
@@ -2013,7 +2006,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
         </div>
       </div>
-
 
       <div class="page" id="page-presupuesto">
         <h2 class="section-h" style="margin-bottom:4px">Presupuesto PDF</h2>
@@ -2238,9 +2230,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <p style="font-size:12px;color:var(--gray2);letter-spacing:1px">Registros del formulario de alta · cada cliente genera automáticamente Fiesta QR, Invitación y Entrega.</p>
           <button class="btn-sm btn-sec" onclick="loadClientesPage()">↻ Actualizar</button>
+        </div>
+        <div style="margin-bottom:16px">
+          <input id="cl-search" type="text" placeholder="Buscar por nombre, teléfono..."
+            style="background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:9px 14px;font-size:13px;outline:none;width:100%;font-family:inherit;border-radius:4px"
+            oninput="onClSearchInput(this.value)">
         </div>
         <div id="clientes-list" style="display:flex;flex-direction:column;gap:10px">
           <div style="color:var(--gray2);font-size:12px">Cargando...</div>
@@ -2262,7 +2259,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:12px">QR · Fiestas</div>
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
                 <span id="cm-fiesta-estado" style="font-size:10px;padding:3px 10px;border-radius:10px"></span>
-                <button class="btn-sm btn-sec" onclick="cmGoFiesta()">Abrir en panel Fiestas ↗</button>
+                <button class="btn-sm btn-sec" onclick="cmGoFiesta()">Crear / ver en panel Fiestas →</button>
               </div>
               <div id="cm-fiesta-hint" style="font-size:10px;color:var(--gray2);margin-bottom:12px"></div>
               <div id="cm-carpetas-section">
@@ -2283,10 +2280,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div style="border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:12px">
               <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Invitación Digital</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn-sm" onclick="cmGoInvite()">Crear invitación →</button>
                 <button class="btn-sm btn-sec" onclick="cmOpenInvite()">Abrir invite ↗</button>
-                <button class="btn-sm" onclick="cmCopyInvite()">Copiar link invite</button>
+                <button class="btn-sm btn-sec" onclick="cmCopyInvite()">Copiar link</button>
               </div>
-              <div style="font-size:10px;color:var(--gray2);margin-top:8px">Datos pre-cargados: nombres, fecha, salón. Configurá media y extras desde el panel Invitaciones.</div>
+              <div style="font-size:10px;color:var(--gray2);margin-top:8px">"Crear invitación" abre el panel con nombre, fecha, salón y tipo pre-cargados.</div>
             </div>
 
             <!-- Entrega -->
@@ -2805,8 +2803,8 @@ const CONFIG = {
   CLOUDINARY_CLOUD:   'dqpu3yurj',
   CLOUDINARY_PRESET:  'crd_portfolio',
   LOCALE:             'es-AR',
-  WA_DEFAULT:         '',
-  IG_DEFAULT:         '',
+  WA_DEFAULT:          '',
+  IG_DEFAULT:          '',
   WEB_DEFAULT:        'https://KUERRE.com.ar'
 };
 
@@ -3340,10 +3338,15 @@ function toast(msg, type='success') {
 
 // ── CLIENTES ──
 const CLIENTES_WORKER = 'https://KUERRE-worker.cristian-romero-digital.workers.dev';
+const CLIENTES_LIMIT = 30;
 let _clientes = [];
 let _clienteActual = null;
 let _clientesCargados = false;
 let _clientesPoller = null;
+let _totalClientes = 0;
+let _clientesSearch = '';
+let _clientesOffset = 0;
+let _pendingClienteId = null;
 
 function _startClientesPoller() {
   _stopClientesPoller();
@@ -3351,9 +3354,9 @@ function _startClientesPoller() {
     if (currentPage !== 'clientes') { _stopClientesPoller(); return; }
     try {
       const prevIds = _clientes.map(function(c){ return c.id; }).join(',');
-      await _fetchClientes();
+      await _fetchClientes({ search: _clientesSearch, offset: 0 });
       const newIds = _clientes.map(function(c){ return c.id; }).join(',');
-      if (newIds !== prevIds) renderClientes(_clientes);
+      if (newIds !== prevIds && currentPage === 'clientes') renderClientes();
     } catch(e) {}
     ctRefreshSolicitudes();
   }, 20000);
@@ -3363,43 +3366,70 @@ function _stopClientesPoller() {
   if (_clientesPoller) { clearInterval(_clientesPoller); _clientesPoller = null; }
 }
 
-async function _fetchClientes() {
-  const r = await fetch(CLIENTES_WORKER + '/solicitudes', { headers: { 'Authorization': 'Bearer ' + getAdminJWT() } });
+async function _fetchClientes(opts) {
+  const search = (opts && opts.search !== undefined) ? opts.search : _clientesSearch;
+  const offset = (opts && opts.offset !== undefined) ? opts.offset : _clientesOffset;
+  const params = new URLSearchParams({ limit: CLIENTES_LIMIT, offset: offset });
+  if (search) params.set('search', search);
+  const r = await fetch(CLIENTES_WORKER + '/solicitudes?' + params.toString(), {
+    headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+  });
   const d = await r.json();
-  _clientes = d.solicitudes || [];
+  _clientesSearch = search;
+  _clientesOffset = offset;
+  _totalClientes  = d.total || 0;
+  if (offset === 0) {
+    _clientes = d.solicitudes || [];
+  } else {
+    _clientes = _clientes.concat(d.solicitudes || []);
+  }
   _clientesCargados = true;
-  try { localStorage.setItem('crd_clientes_cache', JSON.stringify(_clientes)); } catch(e){}
 }
 
 async function loadClientesPage() {
-  const cached = localStorage.getItem('crd_clientes_cache');
-  if (cached) {
-    try { _clientes = JSON.parse(cached); } catch(e){}
-    renderClientes(_clientes);
-    _fetchClientes().then(function(){ renderClientes(_clientes); }).catch(function(){});
-    return;
-  }
-  if (_clientesCargados) {
-    renderClientes(_clientes);
-    _fetchClientes().then(function(){ renderClientes(_clientes); }).catch(function(){});
-    return;
-  }
+  _clientesSearch = '';
+  _clientesOffset = 0;
+  const searchEl = document.getElementById('cl-search');
+  if (searchEl) searchEl.value = '';
   document.getElementById('clientes-list').innerHTML = '<div style="color:var(--gray2);font-size:12px">Cargando...</div>';
   try {
-    await _fetchClientes();
-    renderClientes(_clientes);
+    await _fetchClientes({ search: '', offset: 0 });
+    renderClientes();
   } catch(e) {
     document.getElementById('clientes-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error: ' + e.message + '</div>';
   }
 }
 
-function renderClientes(list) {
+let _clSearch_t = null;
+function onClSearchInput(val) {
+  clearTimeout(_clSearch_t);
+  _clSearch_t = setTimeout(async function() {
+    _clientesOffset = 0;
+    document.getElementById('clientes-list').innerHTML = '<div style="color:var(--gray2);font-size:12px">Buscando...</div>';
+    try {
+      await _fetchClientes({ search: val, offset: 0 });
+      renderClientes();
+    } catch(e) {
+      document.getElementById('clientes-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error: ' + e.message + '</div>';
+    }
+  }, 350);
+}
+
+async function cargarMasClientes() {
+  try {
+    await _fetchClientes({ search: _clientesSearch, offset: _clientesOffset + CLIENTES_LIMIT });
+    renderClientes();
+  } catch(e) { toast('Error al cargar más clientes', 'error'); }
+}
+
+function renderClientes() {
+  const list = _clientes;
   const el = document.getElementById('clientes-list');
   if (!list.length) {
-    el.innerHTML = '<div style="color:var(--gray2);font-size:12px;padding:20px 0">Sin registros aún. Los clientes aparecerán aquí al completar el formulario de solicitud.</div>';
+    el.innerHTML = '<div style="color:var(--gray2);font-size:12px;padding:20px 0">Sin registros. Los clientes aparecerán aquí al completar el formulario de solicitud.</div>';
     return;
   }
-  el.innerHTML = list.map(function(s) {
+  const rows = list.map(function(s) {
     const fiestaOk = s.fiesta_estado === 'activo';
     const entregaOk = s.entrega_folder && s.entrega_folder.trim() !== '';
     const fBadge = fiestaOk
@@ -3417,6 +3447,12 @@ function renderClientes(list) {
       + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + fBadge + eBadge + '</div>'
       + '</div>';
   }).join('');
+  const hayMas = _clientes.length < _totalClientes;
+  const resumen = '<div style="font-size:10px;color:var(--gray2);margin-bottom:12px">Mostrando ' + list.length + ' de ' + _totalClientes + ' clientes</div>';
+  const cargarMasBtn = hayMas
+    ? '<div style="text-align:center;margin-top:14px"><button class="btn-sm btn-sec" onclick="cargarMasClientes()">Cargar más (' + (_totalClientes - list.length) + ' restantes)</button></div>'
+    : '';
+  el.innerHTML = resumen + rows + cargarMasBtn;
 }
 
 function escHtmlCl(s) {
@@ -3456,8 +3492,15 @@ function abrirClienteModal(id) {
 }
 
 function cmGoFiesta() {
+  if (_clienteActual) _pendingClienteId = _clienteActual.id;
   document.getElementById('cliente-modal').style.display = 'none';
   showPage('fiestas');
+}
+
+function cmGoInvite() {
+  if (_clienteActual) _pendingClienteId = _clienteActual.id;
+  document.getElementById('cliente-modal').style.display = 'none';
+  showPage('invites');
 }
 
 function cmGetInviteUrl() {
@@ -3550,7 +3593,7 @@ async function cmSaveEntregaFolder() {
       const idx = _clientes.findIndex(function(x){ return x.id === _clienteActual.id; });
       if (idx !== -1) { _clientes[idx].entrega_folder = folder; _clienteActual.entrega_folder = folder; }
       cmUpdateEntregaLink();
-      renderClientes(_clientes);
+      renderClientes();
     } else { toast(d.error || 'Error al guardar', 'error'); }
   } catch(e) { toast('Error de red: ' + e.message, 'error'); }
 }
@@ -3581,7 +3624,7 @@ async function cmCrearCarpetas() {
     }
     cmMostrarDriveLinks(d.ids);
     cmUpdateEntregaLink();
-    renderClientes(_clientes);
+    renderClientes();
     const estadoEl = document.getElementById('cm-fiesta-estado');
     estadoEl.textContent = '🟢 Activa';
     estadoEl.style.background = 'rgba(37,211,102,0.15)';
@@ -3621,7 +3664,7 @@ async function cmEliminar() {
       toast('Cliente eliminado');
       _clientes = _clientes.filter(function(x){ return x.id !== _clienteActual.id; });
       _clienteActual = null;
-      renderClientes(_clientes);
+      renderClientes();
     } else { toast(d.error || 'Error al eliminar', 'error'); }
   } catch(e) { toast('Error de red: ' + e.message, 'error'); }
 }
@@ -3648,7 +3691,7 @@ function showPage(id) {
   if (id === 'content') { initContentIfEmpty(); loadContentPage(); }
   if (id === 'invites') renderInvitesPage();
   if (id === 'fiestas') loadFiestasPage();
-  if (id === 'clientes') { loadClientesPage(); ctInitSolicitudes(); _startClientesPoller(); } else { _stopClientesPoller(); }
+  if (id === 'clientes') { loadClientesPage(); _startClientesPoller(); } else { _stopClientesPoller(); }
   if (id === 'contratos') initContratosPage();
   if (id === 'presupuesto') {
     Promise.all([
@@ -3677,11 +3720,17 @@ async function fetchFromCloud(key) {
   } catch(e) { return null; }
 }
 
+let _solBadgePoller = null;
+
 async function init() {
   // El logo base64 en localStorage revienta el cupo de 5MB — siempre limpiar al arrancar
   localStorage.removeItem('crd_site_logo');
   localStorage.removeItem('crd_site_logo_light');
-  _fetchClientes().catch(function(){});
+  _fetchClientes({ search: '', offset: 0 }).catch(function(){});
+  ctInitSolicitudes();
+  if (!_solBadgePoller) {
+    _solBadgePoller = setInterval(function() { ctRefreshSolicitudes(); }, 60000);
+  }
   // Ensure defaults — for keys not in localStorage, try cloud first
   if (!S.get('crd_testimonials')) {
     const cloud = await fetchFromCloud('crd_testimonials');
@@ -3703,7 +3752,7 @@ async function init() {
     const cloud = await fetchFromCloud('crd_messages');
     S.set('crd_messages', cloud || []);
   }
-  // Settings: sincronizar del cloud (logoUrl/logoFilter nunca se guardan acá — son base64 de 5MB)
+  // Settings: sincronizar del cloud pero preservar logoUrl/logoFilter local si el cloud no los tiene
   const cloudSettings = await fetchFromCloud('crd_settings');
   if (cloudSettings) {
     delete cloudSettings.logoUrl; delete cloudSettings.logoFilter; // limpiar si quedaron del ciclo anterior
@@ -3740,10 +3789,10 @@ async function init() {
   const _logoLocal = localStorage.getItem('crd_site_logo');
   if (_logoLocal) {
     try { applySidebarLogo(JSON.parse(_logoLocal)); } catch(e) { applySidebarLogo(_logoLocal); }
-    localStorage.removeItem('crd_site_logo'); // limpiar si quedó del ciclo anterior
+    localStorage.removeItem('crd_site_logo'); // limpiar si quedaron del ciclo anterior
   } else {
     const _setts = S.get('crd_settings') || {};
-    if (_setts.logoUrl) applySidebarLogo(_setts.logoUrl);
+    if (_setts.logoUrl) { S.set('crd_site_logo', _setts.logoUrl); applySidebarLogo(_setts.logoUrl); }
   }
 
   if (!localStorage.getItem('crd_inv_base')) {
@@ -4778,7 +4827,13 @@ function saveLogoConfig() {
     previewLogoFilter();
     return;
   }
-  // Logo solo va al Worker vía syncLogoToCrclub — no en localStorage ni en crd_settings (base64 = 5MB)
+  S.set('crd_site_logo', logoSrc);
+  S.set('crd_site_logo_filter', filter);
+  // Sync logo a crd_settings (que sí llega a CF y es visible en todos los browsers)
+  const setts = S.get('crd_settings') || {};
+  setts.logoUrl = logoSrc;
+  setts.logoFilter = filter;
+  S.set('crd_settings', setts);
   syncLogoToCrclub(logoSrc);
   applySidebarLogo(logoSrc);
   if(urlInp) urlInp.value = '';
@@ -4833,41 +4888,30 @@ function switchVideoTab(tab, btn) {
   pendingVideoData = null;
 }
 
-function driveUrlToVideoSrc(input) {
-  const m = input.match(/\/d\/([a-zA-Z0-9_-]+)/) || input.match(/id=([a-zA-Z0-9_-]+)/);
-  const id = m ? m[1] : (/^[a-zA-Z0-9_-]{25,}$/.test(input.trim()) ? input.trim() : null);
-  return id ? 'https://drive.google.com/uc?export=download&id=' + id : null;
-}
-
-function pickVideoDrive() {
-  openDriveBrowser(selectedUrl => {
-    const src = driveUrlToVideoSrc(selectedUrl) || selectedUrl;
-    document.getElementById('video-url-input').value = src;
-    previewVideoUrl(src);
-  });
-}
-
 function previewVideoUrl(rawUrl) {
   const prev = document.getElementById('video-url-preview');
+  const input = document.getElementById('video-url-input');
   const hint = document.getElementById('video-url-hint');
   if (!rawUrl.trim()) { prev.style.display='none'; return; }
 
   let url = rawUrl.trim();
 
-  // Convertir link de Drive al formato de descarga directa
-  if (url.includes('drive.google.com') && !url.includes('export=download')) {
-    const converted = driveUrlToVideoSrc(url);
-    if (converted) { url = converted; document.getElementById('video-url-input').value = url; }
-  }
-
-  // YouTube / Vimeo — no soportados
-  if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) {
-    if(hint) hint.innerHTML = '<span style="color:var(--red)">⚠️ YouTube/Vimeo no se pueden usar como video de fondo.</span>';
+  // Google Drive link → can't be used for video (browser blocks it)
+  if (url.includes('drive.google.com')) {
+    if(hint) hint.innerHTML = '<span style="color:var(--red)">⚠️ Google Drive <strong>no funciona para videos</strong> — el navegador lo bloquea.<br>Subí el video a <a href="https://cloudinary.com" target="_blank" style="color:var(--cyan)">Cloudinary</a> y copiá la URL directa (.mp4).</span>';
     prev.style.display = 'none';
     return;
   }
 
-  if(hint) hint.innerHTML = '<span style="color:var(--green)">✓ URL lista — probá el preview</span>';
+  // YouTube / Vimeo embed links — not supported as direct video src
+  if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) {
+    if(hint) hint.innerHTML = '<span style="color:var(--red)">⚠️ YouTube/Vimeo no se pueden usar como video de fondo.<br>Necesitás un archivo .mp4 directo. Subí a <a href="https://cloudinary.com" target="_blank" style="color:var(--cyan)">Cloudinary</a>.</span>';
+    prev.style.display = 'none';
+    return;
+  }
+
+  // Direct video URL
+  if(hint) hint.innerHTML = '<span style="color:var(--green)">✓ URL directa detectada</span>';
   prev.src = url;
   prev.style.display = 'block';
   prev.load();
@@ -4897,48 +4941,19 @@ function handleVideoFileDrop(e) {
   }
 }
 
-async function saveHeroVideo() {
+function saveHeroVideo() {
   let src = currentVideoTab === 'url'
     ? (document.getElementById('video-url-input').value||'').trim()
     : pendingVideoData?.src;
 
   if (!src) { toast('Cargá un video primero','error'); return; }
 
-  // Convertir Drive link si todavía no está en formato download
-  if (src.includes('drive.google.com') && !src.includes('export=download')) {
-    const converted = driveUrlToVideoSrc(src);
-    if (converted) src = converted; else { toast('URL de Drive inválida','error'); return; }
-  }
-  // Block YouTube
-  if (src.includes('youtube.com') || src.includes('youtu.be')) {
-    toast('YouTube no se puede usar como video de fondo.','error');
+  // Block Drive/YouTube
+  if (src.includes('drive.google.com') || src.includes('youtube.com') || src.includes('youtu.be')) {
+    toast('Drive y YouTube no funcionan como video de fondo. Usá Cloudinary con una URL .mp4 directa.','error');
     return;
   }
 
-  // Drive URL → descarga y pisa R2 via Worker
-  const mv = src.match(/id=([a-zA-Z0-9_-]+)/);
-  if (mv) {
-    const fileId = mv[1];
-    const btn = document.querySelector('[onclick="saveHeroVideo()"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Subiendo a R2...'; }
-    try {
-      const res = await fetch(CONFIG.CF_URL + '/api/hero-video/from-drive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': CONFIG.CF_AUTH },
-        body: JSON.stringify({ fileId })
-      });
-      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || res.status); }
-      toast('Video subido a R2 ✓ — ya se ve en el sitio');
-      loadVideoPage();
-    } catch(e) {
-      toast('Error subiendo a R2: ' + e.message, 'error');
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Aplicar video al sitio'; }
-    }
-    return;
-  }
-
-  // URL directa (Cloudinary etc.) → guardar en localStorage + KV como antes
   try {
     localStorage.setItem('crd_hero_video_url', src); syncToCloud('crd_hero_video_url', src);
     toast('Video aplicado al sitio ✓');
@@ -4960,22 +4975,21 @@ function clearHeroVideo() {
 }
 
 function loadVideoPage() {
+  const src = localStorage.getItem('crd_hero_video_url');
   const vid = document.getElementById('video-current-preview');
   const empty = document.getElementById('video-current-empty');
-  if (vid) {
-    // Mostrar lo mismo que ve el sitio: el endpoint del Worker
-    vid.src = CONFIG.CF_URL + '/api/hero-video?t=' + Date.now();
-    vid.style.display = 'block';
+  if (src && vid) {
+    vid.src = src; vid.style.display = 'block';
     if(empty) empty.style.display = 'none';
-    vid.onerror = () => { vid.style.display='none'; if(empty) empty.style.display='block'; };
+  } else {
+    if(vid) vid.style.display = 'none';
+    if(empty) empty.style.display = 'block';
   }
   // Reset inputs
   const urlInput = document.getElementById('video-url-input');
   if(urlInput) urlInput.value = '';
   const urlPrev = document.getElementById('video-url-preview');
   if(urlPrev) { urlPrev.src=''; urlPrev.style.display='none'; }
-  const hint = document.getElementById('video-url-hint');
-  if(hint) hint.textContent = 'Pegá una URL .mp4 o seleccioná desde Drive';
   pendingVideoData = null;
 }
 
@@ -5028,314 +5042,439 @@ function switchContentTab(tab, btn) {
   document.getElementById('cnt-'+tab).style.display='block';
 }
 
-const CONTENT_DEFAULTS = {
-  global: {
-    wa_number: '541162557763',
-    ig_url: 'https://instagram.com/kuerre.digital',
-    topbar_left: 'Buenos Aires, Argentina',
-    nav_cta_text: 'Consultar',
-    nav_cta_url: 'https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE',
-    footer_copyright: '© 2026 KUERRE · Servicios digitales para eventos'
-  },
-  hero: {
-    eyebrow: 'Servicios digitales para eventos',
-    title: 'Hacé que tu evento\nviva para siempre',
-    desc: 'Galería colaborativa en tiempo real, entrega cinematográfica e invitación digital. Todo lo que tu evento necesita, en un solo lugar.',
-    btn1_text: 'Consultá por WhatsApp',
-    btn1_url: 'https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE',
-    btn2_text: 'Ver servicios',
-    bg_image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1600&auto=format&q=80'
-  },
-  trust: [
-    { num: '+100', label: 'Eventos realizados' },
-    { num: '3',    label: 'Servicios digitales' },
-    { num: '0',    label: 'Apps que instalar' },
-    { num: '24h',  label: 'Tiempo de respuesta' }
-  ],
-  invitaciones: {
-    label: 'Invitación Digital',
-    title: 'Animada, musical\ne interactiva',
-    desc: 'Cuenta regresiva en vivo, música de fondo, mapa interactivo, confirmación de asistencia y mucho más. Sin papel, con estilo.',
-    features: ['Cuenta regresiva al evento en tiempo real','Música de fondo elegible por el cliente','Confirmación de asistencia integrada','Link a Google Maps con la ubicación','Compartible por WhatsApp, Instagram y email'],
-    btn_text: 'Consultar precio',
-    btn_url: 'https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Invitaci%C3%B3n%20Digital',
-    bg_image: 'https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&q=80'
-  },
-  qr: {
-    label: 'QR Fiestas',
-    title: 'La galería colaborativa\nde tu evento',
-    desc: 'Tus invitados escanean un QR y en segundos están subiendo fotos desde su celular. Una galería que crece sola durante la fiesta.',
-    features: ['Sin descargar ninguna aplicación — solo el navegador','Galería en tiempo real visible para todos los invitados','Descarga masiva de todas las fotos al finalizar','QR imprimible para colocar en las mesas','Disponible 30 días después del evento'],
-    btn_text: 'Consultar precio',
-    btn_url: 'https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20QR%20Fiestas',
-    bg_image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&auto=format&q=80'
-  },
-  premiere: {
-    label: 'Premiere',
-    title: 'La entrega que se siente\ncomo un estreno',
-    desc: 'Tu primer vistazo a las fotos y el video presentado con una experiencia cinematográfica. Una página personalizada que sorprende desde el primer segundo.',
-    features: ['Página de entrega con diseño exclusivo para tu evento','Reproducción de video con estética de streaming','Galería de fotos con navegación elegante','Link privado para compartir solo con quien quieras','Acceso desde cualquier dispositivo'],
-    btn_text: 'Consultar precio',
-    btn_url: 'https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Premiere',
-    bg_image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&q=80'
-  },
-  servicios: {
-    eyebrow: 'Nuestros servicios',
-    title: 'Tres experiencias digitales,\nun solo proveedor',
-    cards: [
-      { name: 'Invitación Digital', desc: 'Invitación animada con cuenta regresiva, música de fondo, mapa interactivo y confirmación de asistencia. Sin papel, con estilo.', price: 'Desde $12.000' },
-      { name: 'QR Fiestas', desc: 'Tus invitados escanean un QR y suben fotos en tiempo real. Una galería colaborativa con el espíritu del evento, disponible para todos.', price: 'Desde $15.000' },
-      { name: 'Premiere', desc: 'Tu primer vistazo a las fotos y el video presentado con experiencia cinematográfica. Una entrega que se siente como estreno de película.', price: 'Desde $20.000' }
-    ]
-  },
-  como_funciona: {
-    eyebrow: 'Proceso',
-    title: 'Simple, rápido\ny sin complicaciones',
-    steps: [
-      { name: 'Consultás', desc: 'Nos escribís por WhatsApp con la fecha y tipo de evento. Te respondemos el mismo día con disponibilidad y opciones.' },
-      { name: 'Personalizamos', desc: 'Configuramos el servicio con los datos de tu evento: nombres, fecha, colores, música y todo el contenido que necesitás.' },
-      { name: 'Lo recibís', desc: 'Te enviamos el link listo para compartir. Tus invitados solo necesitan abrirlo en su celular, sin instalar nada.' }
-    ]
-  },
-  faq: {
-    eyebrow: 'Preguntas frecuentes',
-    title: '¿Tenés dudas?\nLas respondemos todas',
-    items: [
-      { q: '¿Cuánto tiempo antes debo contratar?', a: 'Recomendamos contactarnos con al menos 2 semanas de anticipación para tener tiempo de personalizar todo. Para fechas muy cercanas consultanos igual — hacemos lo posible para no dejar ningún evento sin servicio.' },
-      { q: '¿Los servicios se pueden combinar?', a: 'Sí, y es lo que recomendamos. Podés contratar uno, dos o los tres servicios para el mismo evento. Al combinarlos obtenés un precio especial.' },
-      { q: '¿Funciona en cualquier celular?', a: 'Sí. Todas las páginas están optimizadas para mobile — tus invitados solo necesitan abrir el link en su navegador, sea iPhone o Android. No hay nada que instalar.' },
-      { q: '¿Cuánto tiempo permanece activo el servicio?', a: 'Por defecto 30 días desde la fecha del evento. Podemos extender el período si necesitás que esté disponible más tiempo para que todos los invitados puedan verlo.' },
-      { q: '¿Puedo ver una demo antes de contratar?', a: '¡Claro! Consultanos por WhatsApp y te mandamos links de demo de cada servicio para que los explores antes de decidir. Sin compromiso.' }
-    ]
-  },
-  cta_final: {
-    title: '¿Listo para empezar?',
-    desc: 'Escribinos con la fecha y el tipo de evento. Te respondemos el mismo día con disponibilidad, opciones y presupuesto.',
-    btn_text: 'Consultá por WhatsApp',
-    btn_url: 'https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE'
-  }
-};
-
-function initContentIfEmpty() {
-  const c = getContent();
-  if (!c.global) setContent(CONTENT_DEFAULTS);
+function switchPricingTab(tab, btn) {
+  document.querySelectorAll('.cnt-subtab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderPricingEditor(tab);
 }
 
 function loadContentPage() {
   const c = getContent();
-  const d = CONTENT_DEFAULTS;
-  function fill(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
 
-  // Global
-  const g = c.global || {};
-  fill('cnt-global-wa',        g.wa_number        || d.global.wa_number);
-  fill('cnt-global-ig',        g.ig_url           || d.global.ig_url);
-  fill('cnt-global-topbar',    g.topbar_left      || d.global.topbar_left);
-  fill('cnt-global-nav-cta',   g.nav_cta_text     || d.global.nav_cta_text);
-  fill('cnt-global-nav-cta-url', g.nav_cta_url    || d.global.nav_cta_url);
-  fill('cnt-global-footer',    g.footer_copyright || d.global.footer_copyright);
-
-  // Hero
+  // HERO
   const h = c.hero || {};
-  fill('cnt-hero-eyebrow',  h.eyebrow   || d.hero.eyebrow);
-  fill('cnt-hero-title',    h.title     || d.hero.title);
-  fill('cnt-hero-desc',     h.desc      || d.hero.desc);
-  fill('cnt-hero-btn1',     h.btn1_text || d.hero.btn1_text);
-  fill('cnt-hero-btn1-url', h.btn1_url  || d.hero.btn1_url);
-  fill('cnt-hero-btn2',     h.btn2_text || d.hero.btn2_text);
-  fill('cnt-hero-bg',       h.bg_image  || d.hero.bg_image);
-
-  // Trust
-  const t = c.trust && c.trust.length ? c.trust : d.trust;
-  [0,1,2,3].forEach(i => {
-    fill('cnt-trust-num-'   + i, (t[i] || d.trust[i]).num);
-    fill('cnt-trust-label-' + i, (t[i] || d.trust[i]).label);
+  ['eyebrow','avail','title','desc','btn1','btn2'].forEach(k => {
+    const el = document.getElementById('cnt-hero-'+k);
+    if(el) el.value = h[k] || '';
   });
 
-  // Feature sections
-  [['invitaciones','cnt-inv'],['qr','cnt-qr'],['premiere','cnt-pm']].forEach(([key, pfx]) => {
-    const s = c[key] || {};
-    const df = d[key];
-    fill(pfx + '-label',   s.label    || df.label);
-    fill(pfx + '-title',   s.title    || df.title);
-    fill(pfx + '-desc',    s.desc     || df.desc);
-    const feats = s.features && s.features.length ? s.features : df.features;
-    [0,1,2,3,4].forEach(i => fill(pfx + '-feat-' + i, feats[i] || ''));
-    fill(pfx + '-btn',     s.btn_text || df.btn_text);
-    fill(pfx + '-btn-url', s.btn_url  || df.btn_url);
-    fill(pfx + '-bg',      s.bg_image || df.bg_image);
+  // ABOUT
+  const a = c.about || {};
+  ['eyebrow','title','p1','p2','p3','p4','btn'].forEach(k => {
+    const el = document.getElementById('cnt-about-'+k);
+    if(el) el.value = a[k] || '';
+  });
+  renderStatsEditor(a.stats || [{n:'300+',l:'Eventos cubiertos'},{n:'8+',l:'Años experiencia'},{n:'2',l:'Marcas propias'},{n:'100%',l:'Clientes felices'}]);
+
+  // SERVICES
+  const svc = c.services || {};
+  document.getElementById('cnt-svc-eyebrow').value = svc.eyebrow || 'Qué ofrezco';
+  document.getElementById('cnt-svc-title').value = svc.title || 'Mis servicios';
+  renderServicesEditor(svc.items || SERVICES_DEFAULT);
+
+  // PRICING — render first tab
+  renderPricingEditor('xv');
+
+  // CONTACT
+  const ct = c.contact || {};
+  ['eyebrow','title','desc','email','phone','location','wa-number'].forEach(k => {
+    const el = document.getElementById('cnt-'+k);
+    if(el) el.value = ct[k.replace('-','_')] || ct[k] || '';
   });
 
-  // Servicios
-  const svc = c.servicios || {};
-  fill('cnt-svc-eyebrow', svc.eyebrow || d.servicios.eyebrow);
-  fill('cnt-svc-title',   svc.title   || d.servicios.title);
-  const cards = svc.cards && svc.cards.length ? svc.cards : d.servicios.cards;
-  [0,1,2].forEach(i => {
-    fill('cnt-svc-name-'  + i, (cards[i] || d.servicios.cards[i]).name);
-    fill('cnt-svc-desc-'  + i, (cards[i] || d.servicios.cards[i]).desc);
-    fill('cnt-svc-price-' + i, (cards[i] || d.servicios.cards[i]).price);
+  // SOCIAL
+  const sc = c.social || {};
+  ['ig','fb','wa','social-title','social-desc'].forEach(k => {
+    const el = document.getElementById('cnt-'+k);
+    if(el) el.value = sc[k.replace('-','_')] || sc[k] || '';
   });
-
-  // Cómo Funciona
-  const cf = c.como_funciona || {};
-  fill('cnt-cf-eyebrow', cf.eyebrow || d.como_funciona.eyebrow);
-  fill('cnt-cf-title',   cf.title   || d.como_funciona.title);
-  const steps = cf.steps && cf.steps.length ? cf.steps : d.como_funciona.steps;
-  [0,1,2].forEach(i => {
-    fill('cnt-cf-step-name-' + i, (steps[i] || d.como_funciona.steps[i]).name);
-    fill('cnt-cf-step-desc-' + i, (steps[i] || d.como_funciona.steps[i]).desc);
-  });
-
-  // FAQ
-  const faq = c.faq || {};
-  fill('cnt-faq-eyebrow', faq.eyebrow || d.faq.eyebrow);
-  fill('cnt-faq-title',   faq.title   || d.faq.title);
-  renderFaqEditor(faq.items && faq.items.length ? faq.items : d.faq.items);
-
-  // CTA Final
-  const cta = c.cta_final || {};
-  fill('cnt-cta-title',   cta.title    || d.cta_final.title);
-  fill('cnt-cta-desc',    cta.desc     || d.cta_final.desc);
-  fill('cnt-cta-btn',     cta.btn_text || d.cta_final.btn_text);
-  fill('cnt-cta-btn-url', cta.btn_url  || d.cta_final.btn_url);
 }
 
-// ── FAQ EDITOR ──
-function renderFaqEditor(items) {
-  const container = document.getElementById('cnt-faq-list');
-  if (!container) return;
-  container.innerHTML = (items || []).map((item, i) => `
-    <div class="settings-section" style="margin-bottom:12px;padding:16px" id="faq-row-${i}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray)">Pregunta ${i+1}</span>
-        <button onclick="removeFaqItem(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;line-height:1">✕</button>
-      </div>
-      <div class="form-group"><label class="form-label">Pregunta</label><input class="form-input" id="faq-q-${i}" value="${(item.q||'').replace(/"/g,'&quot;')}"></div>
-      <div class="form-group"><label class="form-label">Respuesta</label><textarea class="form-textarea" id="faq-a-${i}">${item.a||''}</textarea></div>
+// ── STATS EDITOR ──
+function renderStatsEditor(stats) {
+  const container = document.getElementById('cnt-stats-list');
+  if(!container) return;
+  container.innerHTML = stats.map((s,i) => `
+    <div class="cnt-stat-row">
+      <input class="form-input" placeholder="300+" value="${s.n||''}" id="stat-n-${i}" style="font-size:13px">
+      <input class="form-input" placeholder="Eventos cubiertos" value="${s.l||''}" id="stat-l-${i}" style="font-size:13px">
+      <button onclick="removeStat(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>
     </div>`).join('');
-  container.dataset.count = (items || []).length;
+  container.dataset.count = stats.length;
 }
 
-function addFaqItem() {
-  const current = collectFaqItems();
-  current.push({ q: '', a: '' });
-  renderFaqEditor(current);
+function addStat() {
+  const c = getContent(); const a = c.about || {};
+  const stats = a.stats || [{n:'300+',l:'Eventos cubiertos'},{n:'8+',l:'Años experiencia'},{n:'2',l:'Marcas propias'},{n:'100%',l:'Clientes felices'}];
+  stats.push({n:'',l:''});
+  renderStatsEditor(stats);
 }
 
-function removeFaqItem(idx) {
-  const items = collectFaqItems().filter((_, i) => i !== idx);
-  renderFaqEditor(items);
-}
-
-function collectFaqItems() {
-  const count = parseInt((document.getElementById('cnt-faq-list') || {}).dataset.count || 0);
-  const items = [];
-  for (let i = 0; i < count; i++) {
-    const q = document.getElementById('faq-q-' + i);
-    const a = document.getElementById('faq-a-' + i);
-    if (q && a) items.push({ q: q.value.trim(), a: a.value.trim() });
+function removeStat(idx) {
+  const count = parseInt(document.getElementById('cnt-stats-list').dataset.count);
+  const stats = [];
+  for(let i=0; i<count; i++) {
+    const n = document.getElementById('stat-n-'+i);
+    const l = document.getElementById('stat-l-'+i);
+    if(n && i !== idx) stats.push({n:n.value, l:l.value});
   }
-  return items;
+  renderStatsEditor(stats);
+}
+
+function collectStats() {
+  const count = parseInt(document.getElementById('cnt-stats-list').dataset.count || 0);
+  const stats = [];
+  for(let i=0; i<count; i++) {
+    const n = document.getElementById('stat-n-'+i);
+    const l = document.getElementById('stat-l-'+i);
+    if(n && l) stats.push({n:n.value.trim(), l:l.value.trim()});
+  }
+  return stats;
+}
+
+// ── SERVICES EDITOR ──
+function renderServicesEditor(svcs) {
+  const container = document.getElementById('cnt-services-list');
+  if(!container) return;
+  container.innerHTML = svcs.map((s,i) => `
+    <div class="cnt-svc-card" draggable="true"
+      ondragstart="svcDragStart(event,${i})"
+      ondragover="svcDragOver(event)"
+      ondrop="svcDrop(event,${i})"
+      ondragleave="this.style.borderTop=''"
+      style="opacity:${s.hidden?0.45:1};cursor:grab">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="color:var(--gray);font-size:18px;cursor:grab;user-select:none">☰</span>
+          <div class="cnt-svc-card-header" style="margin-bottom:0">Servicio ${i+1} — ${s.title||''}</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${s.hidden?'var(--red)':'var(--green)'}">
+          <input type="checkbox" id="svc-visible-${i}" ${s.hidden?'':'checked'} onchange="toggleServiceVisibility(${i})" style="width:16px;height:16px;cursor:pointer;accent-color:var(--gold)">
+          ${s.hidden?'Oculto':'Visible'}
+        </label>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="svc-title-${i}" value="${s.title||''}"></div>
+        <div class="form-group"><label class="form-label">Texto del link</label><input class="form-input" id="svc-link-${i}" value="${s.link||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="svc-desc-${i}" style="min-height:80px">${s.desc||''}</textarea></div>
+    </div>`).join('');
+  container.dataset.count = svcs.length;
+}
+
+function collectServices() {
+  const count = parseInt(document.getElementById('cnt-services-list').dataset.count || 0);
+  const svcs = [];
+  for(let i=0; i<count; i++) {
+    const cb = document.getElementById('svc-visible-'+i);
+    svcs.push({
+      id: SERVICES_DEFAULT[i]?.id || 'svc'+i,
+      title: (document.getElementById('svc-title-'+i)||{}).value || '',
+      desc: (document.getElementById('svc-desc-'+i)||{}).value || '',
+      link: (document.getElementById('svc-link-'+i)||{}).value || '',
+      hidden: cb ? !cb.checked : false
+    });
+  }
+  return svcs;
+}
+
+// ── SERVICE DRAG REORDER ──
+let svcDragSrc = null;
+function svcDragStart(e, i) {
+  svcDragSrc = i;
+  e.dataTransfer.effectAllowed = 'move';
+}
+function svcDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.style.borderTop = '2px solid var(--gold)';
+}
+function svcDrop(e, i) {
+  e.preventDefault();
+  e.currentTarget.style.borderTop = '';
+  if(svcDragSrc === null || svcDragSrc === i) return;
+  // Re-collect current state
+  const count = parseInt(document.getElementById('cnt-services-list').dataset.count || 0);
+  const current = [];
+  for(let j=0; j<count; j++) {
+    current.push({
+      id: 'svc'+j,
+      title: (document.getElementById('svc-title-'+j)||{}).value || '',
+      desc: (document.getElementById('svc-desc-'+j)||{}).value || '',
+      link: (document.getElementById('svc-link-'+j)||{}).value || '',
+      hidden: !(document.getElementById('svc-visible-'+j)||{checked:true}).checked
+    });
+  }
+  // Reorder
+  const moved = current.splice(svcDragSrc, 1)[0];
+  current.splice(i, 0, moved);
+  renderServicesEditor(current);
+  svcDragSrc = null;
+}
+
+function toggleServiceVisibility(i) {
+  const cb = document.getElementById('svc-visible-'+i);
+  const card = cb?.closest('.cnt-svc-card');
+  const label = cb?.closest('label');
+  if(card) card.style.opacity = cb.checked ? '1' : '0.45';
+  if(label) {
+    label.style.color = cb.checked ? 'var(--green)' : 'var(--red)';
+    label.childNodes[label.childNodes.length-1].textContent = cb.checked ? ' Visible' : ' Oculto';
+  }
+}
+
+// ── PRICING EDITOR ──
+let currentPricingTab = 'xv';
+
+function normalizePackage(pkg) {
+  if(pkg.allItems) return pkg;
+  const all = [
+    ...(pkg.items||[]).map(t=>({text:t,type:'yes'})),
+    ...(pkg.starItems||[]).map(t=>({text:t,type:'star'})),
+    ...(pkg.notItems||[]).map(t=>({text:t,type:'no'}))
+  ];
+  return {...pkg, allItems: all};
+}
+
+function renderPricingEditor(tab) {
+  currentPricingTab = tab;
+  const c = getContent();
+  const rawData = (c.pricing && c.pricing[tab]) || PRICING_DEFAULT[tab] || [];
+  const pricingData = rawData.map(normalizePackage);
+  const container = document.getElementById('cnt-pricing-panels');
+  if(!container) return;
+
+  container.innerHTML = pricingData.map((pkg, pi) => `
+    <div class="cnt-pkg-card">
+      <div class="cnt-pkg-title">Paquete ${pi+1}</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="pkg-name-${pi}" value="${pkg.name||''}"></div>
+        <div class="form-group"><label class="form-label">Etiqueta (tier)</label><input class="form-input" id="pkg-tier-${pi}" value="${pkg.tier||''}"></div>
+        <div class="form-group"><label class="form-label">Precio</label><input class="form-input" id="pkg-price-${pi}" value="${pkg.price||''}" placeholder="Consultar"></div>
+      </div>
+      <div style="margin-top:12px">
+        <label class="form-label" style="margin-bottom:8px;display:block">Items <span style="font-size:10px;color:var(--gray);font-weight:400">— arrastrá ☰ para reordenar</span></label>
+        <div id="pkg-items-${pi}" class="sortable-items">
+          ${(pkg.allItems||[]).map((item,ii) => `
+            <div class="cnt-item-row" draggable="true" ondragstart="itemDragStart(event,${pi},${ii})" ondragover="itemDragOver(event)" ondrop="itemDrop(event,${pi},${ii})" ondragleave="this.style.borderTop=''" style="cursor:grab">
+              <span style="color:var(--gray);padding:0 4px;font-size:16px;user-select:none">☰</span>
+              <input class="form-input" value="${item.text||''}" style="font-size:12px">
+              <select class="form-select" style="font-size:11px;padding:8px">
+                <option value="yes" ${item.type==='yes'?'selected':''}>✓ Incluido</option>
+                <option value="star" ${item.type==='star'?'selected':''}>⭐ Destacado</option>
+                <option value="no" ${item.type==='no'?'selected':''}>✗ No incluido</option>
+              </select>
+              <button onclick="this.closest('.cnt-item-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>
+            </div>`).join('')}
+        </div>
+        <button onclick="addItem(${pi})" class="btn-sm" style="margin-top:8px;font-size:10px">+ Agregar item</button>
+      </div>
+    </div>`).join('') + `
+    <button onclick="addPackage()" class="btn-sm" style="margin-bottom:12px">+ Agregar paquete</button>`;
+
+  container.dataset.count = pricingData.length;
+}
+
+let dragSrcPi = null, dragSrcIi = null;
+function itemDragStart(e, pi, ii) {
+  dragSrcPi = pi; dragSrcIi = ii;
+  e.dataTransfer.effectAllowed = 'move';
+}
+function itemDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.style.borderTop = '2px solid var(--gold)';
+}
+function itemDrop(e, pi, ii) {
+  e.preventDefault();
+  e.currentTarget.style.borderTop = '';
+  if(dragSrcIi === null || dragSrcIi === ii) return;
+  const container = document.getElementById('pkg-items-'+pi);
+  if(!container) return;
+  const rows = [...container.querySelectorAll('.cnt-item-row')];
+  const src = rows[dragSrcIi];
+  const target = rows[ii];
+  if(src && target) {
+    if(dragSrcIi < ii) target.after(src);
+    else target.before(src);
+  }
+}
+
+
+function addItem(pi) {
+  const container = document.getElementById('pkg-items-'+pi);
+  if(!container) return;
+  const ii = container.querySelectorAll('.cnt-item-row').length;
+  const div = document.createElement('div');
+  div.className = 'cnt-item-row';
+  div.setAttribute('draggable','true');
+  div.style.cursor = 'grab';
+  div.ondragstart = (e) => itemDragStart(e, pi, ii);
+  div.ondragover = itemDragOver;
+  div.ondrop = (e) => itemDrop(e, pi, ii);
+  div.innerHTML = `
+    <span style="color:var(--gray);padding:0 6px;cursor:grab;font-size:16px;user-select:none">☰</span>
+    <input class="form-input" value="" style="font-size:12px" placeholder="Nuevo item">
+    <select class="form-select" style="font-size:11px;padding:8px">
+      <option value="yes">✓ Incluido</option>
+      <option value="star">⭐ Destacado</option>
+      <option value="no">✗ No incluido</option>
+    </select>
+    <button onclick="this.closest('.cnt-item-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>`;
+  container.appendChild(div);
+}
+
+function removeItem(pi, ii) {
+  const row = document.getElementById('item-'+pi+'-'+ii);
+  if(row) row.closest('.cnt-item-row').remove();
+}
+
+function addPackage() {
+  const c = getContent();
+  if(!c.pricing) c.pricing = {};
+  if(!c.pricing[currentPricingTab]) c.pricing[currentPricingTab] = JSON.parse(JSON.stringify(PRICING_DEFAULT[currentPricingTab]||[]));
+  c.pricing[currentPricingTab].push({name:'Nuevo paquete', tier:'', price:'', items:['Item 1'], notItems:[]});
+  setContent(c);
+  renderPricingEditor(currentPricingTab);
+}
+
+function collectPricingPackages() {
+  const count = parseInt(document.getElementById('cnt-pricing-panels').dataset.count || 0);
+  const pkgs = [];
+  for(let pi=0; pi<count; pi++) {
+    const name = (document.getElementById('pkg-name-'+pi)||{}).value || '';
+    const tier = (document.getElementById('pkg-tier-'+pi)||{}).value || '';
+    const price = (document.getElementById('pkg-price-'+pi)||{}).value || '';
+    const itemRows = document.getElementById('pkg-items-'+pi)?.querySelectorAll('.cnt-item-row') || [];
+    const items = [], notItems = [], starItems = [];
+    const allItems = [];
+    itemRows.forEach(row => {
+      const input = row.querySelector('input');
+      const sel = row.querySelector('select');
+      if(input && sel && input.value.trim()) {
+        allItems.push({text: input.value.trim(), type: sel.value});
+      }
+    });
+    pkgs.push({name, tier, price, allItems});
+  }
+  return pkgs;
 }
 
 // ── SAVE SECTIONS ──
 function saveContentSection(section) {
   const c = getContent();
-  function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 
-  if (section === 'global') {
-    c.global = {
-      wa_number:        v('cnt-global-wa'),
-      ig_url:           v('cnt-global-ig'),
-      topbar_left:      v('cnt-global-topbar'),
-      nav_cta_text:     v('cnt-global-nav-cta'),
-      nav_cta_url:      v('cnt-global-nav-cta-url'),
-      footer_copyright: v('cnt-global-footer')
-    };
-  } else if (section === 'hero') {
+  if(section === 'hero') {
     c.hero = {
-      eyebrow:   v('cnt-hero-eyebrow'),
-      title:     v('cnt-hero-title'),
-      desc:      v('cnt-hero-desc'),
-      btn1_text: v('cnt-hero-btn1'),
-      btn1_url:  v('cnt-hero-btn1-url'),
-      btn2_text: v('cnt-hero-btn2'),
-      bg_image:  v('cnt-hero-bg')
+      eyebrow: document.getElementById('cnt-hero-eyebrow').value.trim(),
+      avail: document.getElementById('cnt-hero-avail').value.trim(),
+      title: document.getElementById('cnt-hero-title').value.trim(),
+      desc: document.getElementById('cnt-hero-desc').value.trim(),
+      btn1: document.getElementById('cnt-hero-btn1').value.trim(),
+      btn2: document.getElementById('cnt-hero-btn2').value.trim()
     };
-  } else if (section === 'trust') {
-    c.trust = [0,1,2,3].map(i => ({
-      num:   v('cnt-trust-num-'   + i),
-      label: v('cnt-trust-label-' + i)
-    }));
-  } else if (section === 'invitaciones') {
-    c.invitaciones = {
-      label:    v('cnt-inv-label'),
-      title:    v('cnt-inv-title'),
-      desc:     v('cnt-inv-desc'),
-      features: [0,1,2,3,4].map(i => v('cnt-inv-feat-' + i)),
-      btn_text: v('cnt-inv-btn'),
-      btn_url:  v('cnt-inv-btn-url'),
-      bg_image: v('cnt-inv-bg')
+  }
+  else if(section === 'about') {
+    c.about = {
+      eyebrow: document.getElementById('cnt-about-eyebrow').value.trim(),
+      title: document.getElementById('cnt-about-title').value.trim(),
+      p1: document.getElementById('cnt-about-p1').value.trim(),
+      p2: document.getElementById('cnt-about-p2').value.trim(),
+      p3: document.getElementById('cnt-about-p3').value.trim(),
+      p4: document.getElementById('cnt-about-p4').value.trim(),
+      btn: document.getElementById('cnt-about-btn').value.trim(),
+      stats: collectStats()
     };
-  } else if (section === 'qr') {
-    c.qr = {
-      label:    v('cnt-qr-label'),
-      title:    v('cnt-qr-title'),
-      desc:     v('cnt-qr-desc'),
-      features: [0,1,2,3,4].map(i => v('cnt-qr-feat-' + i)),
-      btn_text: v('cnt-qr-btn'),
-      btn_url:  v('cnt-qr-btn-url'),
-      bg_image: v('cnt-qr-bg')
+  }
+  else if(section === 'services') {
+    c.services = {
+      eyebrow: document.getElementById('cnt-svc-eyebrow').value.trim(),
+      title: document.getElementById('cnt-svc-title').value.trim(),
+      items: collectServices()
     };
-  } else if (section === 'premiere') {
-    c.premiere = {
-      label:    v('cnt-pm-label'),
-      title:    v('cnt-pm-title'),
-      desc:     v('cnt-pm-desc'),
-      features: [0,1,2,3,4].map(i => v('cnt-pm-feat-' + i)),
-      btn_text: v('cnt-pm-btn'),
-      btn_url:  v('cnt-pm-btn-url'),
-      bg_image: v('cnt-pm-bg')
+  }
+  else if(section === 'pricing') {
+    if(!c.pricing) c.pricing = {};
+    c.pricing[currentPricingTab] = collectPricingPackages();
+  }
+  else if(section === 'contact') {
+    c.contact = {
+      eyebrow: document.getElementById('cnt-contact-eyebrow').value.trim(),
+      title: document.getElementById('cnt-contact-title').value.trim(),
+      desc: document.getElementById('cnt-contact-desc').value.trim(),
+      email: document.getElementById('cnt-email').value.trim(),
+      phone: document.getElementById('cnt-phone').value.trim(),
+      location: document.getElementById('cnt-location').value.trim(),
+      wa_number: document.getElementById('cnt-wa-number').value.trim()
     };
-  } else if (section === 'servicios') {
-    c.servicios = {
-      eyebrow: v('cnt-svc-eyebrow'),
-      title:   v('cnt-svc-title'),
-      cards:   [0,1,2].map(i => ({
-        name:  v('cnt-svc-name-'  + i),
-        desc:  v('cnt-svc-desc-'  + i),
-        price: v('cnt-svc-price-' + i)
-      }))
+  }
+  else if(section === 'social') {
+    c.social = {
+      ig: document.getElementById('cnt-ig').value.trim(),
+      fb: document.getElementById('cnt-fb').value.trim(),
+      wa: document.getElementById('cnt-wa').value.trim(),
+      social_title: document.getElementById('cnt-social-title').value.trim(),
+      social_desc: document.getElementById('cnt-social-desc').value.trim()
     };
-  } else if (section === 'como') {
-    c.como_funciona = {
-      eyebrow: v('cnt-cf-eyebrow'),
-      title:   v('cnt-cf-title'),
-      steps:   [0,1,2].map(i => ({
-        name: v('cnt-cf-step-name-' + i),
-        desc: v('cnt-cf-step-desc-' + i)
-      }))
+  }
+
+  if(section === 'cta') {
+    // Save destinations
+    const destKeys = ['consultar','portfolio','precios','servicios','consultar_nav'];
+    if(!c.cta_destinations) c.cta_destinations = {};
+    destKeys.forEach(k => {
+      const waBtn = document.getElementById('dest-'+k+'-wa');
+      if(waBtn) c.cta_destinations[k] = waBtn.classList.contains('active') ? 'wa' : 'form';
+    });
+    c.cta_messages = {
+      consultar: document.getElementById('cta-consultar').value.trim(),
+      portfolio: document.getElementById('cta-portfolio').value.trim(),
+      precios: document.getElementById('cta-precios').value.trim(),
+      servicios: document.getElementById('cta-servicios').value.trim()
     };
-  } else if (section === 'faq') {
-    c.faq = {
-      eyebrow: v('cnt-faq-eyebrow'),
-      title:   v('cnt-faq-title'),
-      items:   collectFaqItems()
-    };
-  } else if (section === 'cta') {
-    c.cta_final = {
-      title:    v('cnt-cta-title'),
-      desc:     v('cnt-cta-desc'),
-      btn_text: v('cnt-cta-btn'),
-      btn_url:  v('cnt-cta-btn-url')
+  }
+  else if(section === 'legal') {
+    c.legal = {
+      privacy_label: document.getElementById('cnt-legal-privacy-label').value.trim(),
+      privacy_text: document.getElementById('cnt-legal-privacy-text').value.trim(),
+      terms_label: document.getElementById('cnt-legal-terms-label').value.trim(),
+      terms_text: document.getElementById('cnt-legal-terms-text').value.trim(),
+      copyright: document.getElementById('cnt-legal-copyright').value.trim()
     };
   }
 
   setContent(c);
-  toast('Guardado ✓');
+  toast('Sección guardada ✓ — recargá el sitio para ver los cambios');
 }
 
+// ── BUTTON DESTINATIONS ──
+function setDest(key, dest, btn) {
+  // Deactivate both, activate clicked
+  const waBtn = document.getElementById('dest-'+key+'-wa');
+  const formBtn = document.getElementById('dest-'+key+'-form');
+  if(!waBtn || !formBtn) return;
+  waBtn.classList.remove('active');
+  formBtn.classList.remove('active');
+  waBtn.style.background='none'; waBtn.style.color='var(--gray2)'; waBtn.style.border='1px solid rgba(255,255,255,0.1)';
+  formBtn.style.background='none'; formBtn.style.color='var(--gray2)'; formBtn.style.border='1px solid rgba(255,255,255,0.1)';
+  btn.classList.add('active');
+  btn.style.background='var(--gold)'; btn.style.color='var(--black)'; btn.style.border='none';
+}
+
+function loadDestinations() {
+  let c = {};
+  try { c = JSON.parse(localStorage.getItem('crd_content')) || {}; } catch(e) {}
+  const dests = c.cta_destinations || {};
+  ['consultar','portfolio','precios','servicios','consultar_nav'].forEach(k => {
+    const dest = dests[k] || 'wa';
+    const waBtn = document.getElementById('dest-'+k+'-wa');
+    const formBtn = document.getElementById('dest-'+k+'-form');
+    if(!waBtn || !formBtn) return;
+    if(dest === 'form') {
+      setDest(k, 'form', formBtn);
+    } else {
+      setDest(k, 'wa', waBtn);
+    }
+  });
+}
 
 // ── GOOGLE REVIEWS IMPORT ──
 function importGoogleReviews() {
@@ -5678,6 +5817,27 @@ async function genInviteUrl(inv) {
 function renderInvitesPage() {
   const baseInput = document.getElementById('inv-base-url');
   if (baseInput) baseInput.value = localStorage.getItem('crd_inv_base') || '';
+  if (_pendingClienteId) {
+    const s = _clientes.find(function(x){ return x.id === _pendingClienteId; });
+    _pendingClienteId = null;
+    if (s) {
+      const tipoMap = { BODA: 'casamiento', XV: 'quinces', CUMPLE: 'otro' };
+      const tipo = tipoMap[s.tipo] || 'otro';
+      const fechaFmt = s.fecha
+        ? s.fecha.replace(/(\d{4})-(\d{2})-(\d{2})/, function(_, y, m, d){ return d + '/' + m + '/' + y; })
+        : '';
+      setTimeout(function() {
+        openInviteModal();
+        document.getElementById('inv-tipo').value = tipo;
+        document.getElementById('inv-novios').value = s.nombre_display || '';
+        document.getElementById('inv-fecha-display').value = fechaFmt;
+        document.getElementById('inv-fecha-iso').value = s.fecha || '';
+        document.getElementById('inv-lugar-nombre').value = s.salon || '';
+        document.getElementById('inv-lugar-dir').value = s.direccion || '';
+        toast('Datos de ' + s.nombre_display + ' pre-cargados en invitación');
+      }, 50);
+    }
+  }
   const list = getInvites();
   const wrap = document.getElementById('invites-list');
   if (!list.length) {
@@ -7392,7 +7552,11 @@ const CT_CFG_KEY = 'crd_contratos_cfg';
 
 function initContratosPage() {
   const saved = S.get(CT_CFG_KEY);
-  if (saved && saved.url) document.getElementById('ct-apps-url').value = saved.url;
+  if (saved) {
+    if (saved.url)           document.getElementById('ct-apps-url').value = saved.url;
+    if (saved.driveRootId)   document.getElementById('ct-drive-root-id').value = saved.driveRootId;
+    if (saved.presupuestosId) document.getElementById('ct-presupuestos-id').value = saved.presupuestosId;
+  }
   document.getElementById('ct-dia-firma').valueAsDate = new Date();
   if (ctSvcData.length === 0 && ctGetUrl()) ctCargarServicios();
   // Historial: abrir y cargar automáticamente
@@ -7422,7 +7586,15 @@ function _ctBuildPage_UNUSED() {
           <label class="form-label">URL del Web App (Apps Script)</label>
           <input class="form-input" id="ct-apps-url" placeholder="https://script.google.com/macros/s/AKfy.../exec">
         </div>
-        <button class="btn-sm btn-sec" style="margin-top:8px" onclick="ctSaveCfg()">Guardar URL</button>
+        <div class="form-group" style="margin-top:10px">
+          <label class="form-label">ID carpeta raíz de Drive</label>
+          <input class="form-input" id="ct-drive-root-id" placeholder="ID de la carpeta padre en Google Drive">
+        </div>
+        <div class="form-group" style="margin-top:10px">
+          <label class="form-label">ID hoja de servicios (Google Sheet)</label>
+          <input class="form-input" id="ct-presupuestos-id" placeholder="ID del Google Sheet con los servicios">
+        </div>
+        <button class="btn-sm btn-sec" style="margin-top:12px" onclick="ctSaveCfg()">Guardar configuración</button>
       </div>
     </div>
 
@@ -7649,11 +7821,21 @@ function ctToggleCfg() {
 }
 
 function ctSaveCfg() {
-  const url = document.getElementById('ct-apps-url').value.trim();
+  const url            = document.getElementById('ct-apps-url').value.trim();
+  const driveRootId    = document.getElementById('ct-drive-root-id').value.trim();
+  const presupuestosId = document.getElementById('ct-presupuestos-id').value.trim();
   if (!url) { toast('Ingresá la URL del Apps Script', 'error'); return; }
-  S.set(CT_CFG_KEY, { url });
-  syncToCloud(CT_CFG_KEY, JSON.stringify({ url }));
-  toast('URL guardada');
+  const cfg = { url, driveRootId, presupuestosId };
+  S.set(CT_CFG_KEY, cfg);
+  syncToCloud(CT_CFG_KEY, JSON.stringify(cfg));
+  if (driveRootId || presupuestosId) {
+    const body = {};
+    if (driveRootId)    body.DRIVE_ROOT_ID   = driveRootId;
+    if (presupuestosId) body.PRESUPUESTOS_ID  = presupuestosId;
+    fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'setConfig', ...body }) })
+      .catch(() => {});
+  }
+  toast('Configuración guardada');
   ctToggleCfg();
   ctCargarServicios();
 }
@@ -8240,7 +8422,7 @@ function ctCancelEdit() {
 }
 
 // ── FIESTAS ──
-const FIESTAS_WORKER = 'https://crclub-worker.cristian-romero-digital.workers.dev';
+const FIESTAS_WORKER = 'https://KUERRE-worker.cristian-romero-digital.workers.dev';
 
 function slugifyFiesta(nombre, fecha) {
   const base = (nombre || '')
@@ -8285,6 +8467,21 @@ async function loadFiestasPage() {
     renderFiestasList(data.eventos || []);
   } catch(e) {
     list.innerHTML = '<div style="color:var(--gray);font-size:12px">Error de conexión.</div>';
+  }
+  if (_pendingClienteId) {
+    const s = _clientes.find(function(x){ return x.id === _pendingClienteId; });
+    _pendingClienteId = null;
+    if (s) {
+      const nombreEl = document.getElementById('fi-nombre');
+      const fechaEl  = document.getElementById('fi-fecha');
+      const folderEl = document.getElementById('fi-folder');
+      if (nombreEl && !nombreEl.value) nombreEl.value = s.nombre_display || '';
+      if (fechaEl  && !fechaEl.value)  fechaEl.value  = s.fecha || '';
+      if (folderEl && !folderEl.value) folderEl.value = s.drive_fiesta_id || '';
+      const nuevoEvtSec = document.getElementById('fi-nombre');
+      if (nuevoEvtSec) nuevoEvtSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toast('Datos de ' + s.nombre_display + ' pre-cargados');
+    }
   }
 }
 
