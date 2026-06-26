@@ -1,4 +1,4 @@
-﻿# Kuerre — CLAUDE.md
+﻿# WEB KUERRE — CLAUDE.md
 
 ## Stack
 Vanilla HTML/CSS/JS. Sin build system, sin frameworks, sin npm.
@@ -12,7 +12,7 @@ Vanilla HTML/CSS/JS. Sin build system, sin frameworks, sin npm.
 | `invite.html` | Invitación digital animada |
 | `entrega.html` | Visor Drive (usado por premiere) |
 | `admin.html` | Panel de gestión de eventos |
-| `ContractForm.html` | Contratos digitales |
+| `solicitud.html` | Solicitud de servicio / generador de contratos |
 
 ## Convenciones
 - CSS y JS siempre inline dentro del HTML

@@ -7884,9 +7884,8 @@ function ctClearDraft() {
 function ctInitSolicitudes() {
   const url = ctGetUrl();
   if (!url) return;
-  const formUrl = url.replace('/exec', '/exec') + '?action=form';
   const el = document.getElementById('ct-form-url');
-  if (el) el.textContent = url + '?action=form';
+  if (el) el.textContent = location.origin + '/solicitud.html';
   ctRefreshSolicitudes();
 }
 
