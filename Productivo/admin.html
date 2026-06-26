@@ -3347,6 +3347,7 @@ let _totalClientes = 0;
 let _clientesSearch = '';
 let _clientesOffset = 0;
 let _pendingClienteId = null;
+let _invClienteId = null;
 
 function _startClientesPoller() {
   _stopClientesPoller();
@@ -3430,11 +3431,15 @@ function renderClientes() {
     return;
   }
   const rows = list.map(function(s) {
-    const fiestaOk = s.fiesta_estado === 'activo';
+    const fiestaOk  = s.fiesta_estado === 'activo';
     const entregaOk = s.entrega_folder && s.entrega_folder.trim() !== '';
+    const inviteOk  = s.invite_id && s.invite_id.trim() !== '';
+    const iBadge = inviteOk
+      ? '<span style="background:rgba(201,168,76,0.12);color:var(--gold);font-size:9px;padding:2px 8px;border-radius:10px">Invitación lista</span>'
+      : '<span style="background:rgba(255,255,255,0.05);color:var(--gray2);font-size:9px;padding:2px 8px;border-radius:10px">Invitación pendiente</span>';
     const fBadge = fiestaOk
       ? '<span style="background:rgba(37,211,102,0.15);color:#25d366;font-size:9px;padding:2px 8px;border-radius:10px">Fiesta activa</span>'
-      : '<span style="background:rgba(201,168,76,0.12);color:var(--gold);font-size:9px;padding:2px 8px;border-radius:10px">Fiesta pendiente</span>';
+      : '<span style="background:rgba(255,255,255,0.05);color:var(--gray2);font-size:9px;padding:2px 8px;border-radius:10px">Fiesta pendiente</span>';
     const eBadge = entregaOk
       ? '<span style="background:rgba(0,212,212,0.12);color:var(--cyan);font-size:9px;padding:2px 8px;border-radius:10px">Entrega lista</span>'
       : '<span style="background:rgba(255,255,255,0.05);color:var(--gray2);font-size:9px;padding:2px 8px;border-radius:10px">Sin folder entrega</span>';
@@ -3444,7 +3449,7 @@ function renderClientes() {
       + '<div style="font-size:13px;font-weight:500;margin-bottom:3px;color:var(--white)">' + escHtmlCl(s.nombre_display) + '</div>'
       + '<div style="font-size:10px;color:var(--gray2)">' + escHtmlCl(s.tipo) + ' · ' + fechaFmt + (s.cliente_tel ? ' · ' + escHtmlCl(s.cliente_tel) : '') + '</div>'
       + '</div>'
-      + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + fBadge + eBadge + '</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + iBadge + fBadge + eBadge + '</div>'
       + '</div>';
   }).join('');
   const hayMas = _clientes.length < _totalClientes;
@@ -3498,7 +3503,7 @@ function cmGoFiesta() {
 }
 
 function cmGoInvite() {
-  if (_clienteActual) _pendingClienteId = _clienteActual.id;
+  if (_clienteActual) { _pendingClienteId = _clienteActual.id; _invClienteId = _clienteActual.id; }
   document.getElementById('cliente-modal').style.display = 'none';
   showPage('invites');
 }
@@ -5961,6 +5966,7 @@ function openInviteModal(id) {
 function closeInviteModal() {
   document.getElementById('inv-modal').classList.remove('open');
   invEditingId = null;
+  _invClienteId = null;
 }
 
 function readInviteForm() {
@@ -6025,7 +6031,19 @@ function saveInvite() {
     const idx = list.findIndex(i => i.id === invEditingId);
     if (idx !== -1) { list[idx].tipo = data.tipo; list[idx].config = data.config; list[idx].slug = data.slug; }
   } else {
-    list.unshift({ id: 'inv_' + Date.now(), tipo: data.tipo, config: data.config, slug: data.slug, created: new Date().toISOString() });
+    const newId = 'inv_' + Date.now();
+    list.unshift({ id: newId, tipo: data.tipo, config: data.config, slug: data.slug, created: new Date().toISOString() });
+    if (_invClienteId) {
+      const cid = _invClienteId;
+      fetch(CLIENTES_WORKER + '/solicitudes/' + cid + '/invite', {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invite_id: newId })
+      }).then(function() {
+        const idx = _clientes.findIndex(function(x){ return x.id === cid; });
+        if (idx !== -1) _clientes[idx].invite_id = newId;
+      }).catch(function(){});
+    }
   }
   saveInvites(list);
   closeInviteModal();

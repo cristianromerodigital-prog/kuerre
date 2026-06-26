@@ -326,6 +326,13 @@ export default {
         if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
         return await handleSolicitudesDelete(solicitudDelMatch[1], env);
       }
+      const inviteMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/invite$/);
+      if (inviteMatch && method === 'PATCH') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        const { invite_id } = await request.json().catch(() => ({}));
+        await env.DB.prepare('UPDATE solicitudes SET invite_id = ? WHERE id = ?').bind(invite_id || '', inviteMatch[1]).run();
+        return json({ ok: true });
+      }
 
       return json({ error: 'Not found' }, 404);
     } catch (e) {
