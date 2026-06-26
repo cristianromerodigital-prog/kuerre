@@ -55,15 +55,34 @@ async function handleSolicitudesCreate(request, env) {
   }
 }
 
-async function handleSolicitudesList(env) {
+async function handleSolicitudesList(env, request) {
+  const u      = new URL(request.url);
+  const search = (u.searchParams.get('search') || '').trim();
+  const limit  = Math.min(parseInt(u.searchParams.get('limit')  || '30', 10), 100);
+  const offset = Math.max(parseInt(u.searchParams.get('offset') || '0',  10), 0);
+
+  const likeTerm   = search ? '%' + search + '%' : null;
+  const where      = search
+    ? 'WHERE (s.nombre_display LIKE ? OR s.cliente_nombre LIKE ? OR s.cliente_tel LIKE ?)'
+    : '';
+  const baseParams = search ? [likeTerm, likeTerm, likeTerm] : [];
+
+  const countRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM solicitudes s ${where}`
+  ).bind(...baseParams).first();
+  const total = countRow ? countRow.n : 0;
+
   const { results } = await env.DB.prepare(`
     SELECT s.*, ef.estado AS fiesta_estado, ec.folder_id AS entrega_folder
     FROM solicitudes s
     LEFT JOIN eventos_foto ef ON ef.id = s.fiesta_id
     LEFT JOIN entrega_configs ec ON ec.id = s.id
+    ${where}
     ORDER BY s.created_at DESC
-  `).all();
-  return json({ solicitudes: results });
+    LIMIT ? OFFSET ?
+  `).bind(...baseParams, limit, offset).all();
+
+  return json({ solicitudes: results, total, limit, offset });
 }
 
 async function handleSolicitudesDelete(id, env) {
@@ -299,7 +318,7 @@ export default {
       if (path === '/solicitudes' && method === 'POST') return await handleSolicitudesCreate(request, env);
       if (path === '/solicitudes' && method === 'GET') {
         if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
-        return await handleSolicitudesList(env);
+        return await handleSolicitudesList(env, request);
       }
       const solicitudDelMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})$/);
       if (solicitudDelMatch && method === 'DELETE') {
