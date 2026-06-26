@@ -2212,7 +2212,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <button class="btn-sm btn-sec" onclick="ctRefreshSolicitudes()" style="font-size:9px;letter-spacing:1.5px">↻ Actualizar</button>
           </div>
           <div style="margin-top:6px;font-size:10px;color:var(--gray)">
-            Link del formulario para clientes: <span id="ct-form-url" style="color:var(--cyan);word-break:break-all"></span>
+            Link del formulario para clientes: <a id="ct-form-url" href="#" target="_blank" style="color:var(--cyan);word-break:break-all;text-decoration:none"></a>
           </div>
           <div id="ct-sol-list" style="margin-top:14px"><div style="color:var(--gray);font-size:12px">Cargando...</div></div>
         </div>
@@ -7893,7 +7893,7 @@ function ctInitSolicitudes() {
   const url = ctGetUrl();
   if (!url) return;
   const el = document.getElementById('ct-form-url');
-  if (el) el.textContent = location.origin + '/formulario.html';
+  if (el) { const u = location.origin + '/formulario.html'; el.textContent = u; el.href = u; }
   ctRefreshSolicitudes();
 }
 
