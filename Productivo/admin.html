@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.52</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.53</div>
     </div>
   </aside>
 
@@ -8216,6 +8216,8 @@ function ctSelTipo(tipo) {
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
     if (el.id === 'ct-precio') {
       el.oninput = () => { ctCalcTotal(true); ctScheduleSaveDraft(); };
+    } else if (el.getAttribute('onchange')?.includes('ctToggleEvento')) {
+      el.addEventListener('change', ctScheduleSaveDraft);
     } else {
       el.oninput  = ctScheduleSaveDraft;
       el.onchange = ctScheduleSaveDraft;
