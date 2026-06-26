@@ -8163,6 +8163,12 @@ function ctRenderSolicitudes(data) {
 }
 
 async function ctCargarSolicitud(sol) {
+  const url = ctGetUrl();
+  if (url && sol.id) {
+    fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'marcarSolicitudUsada', id: sol.id }) })
+      .then(() => { setTimeout(ctRefreshSolicitudes, 800); })
+      .catch(() => {});
+  }
   showPage('contratos');
   const d = sol.data;
   ctSelTipo(sol.tipo);
