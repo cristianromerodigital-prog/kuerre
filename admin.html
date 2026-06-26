@@ -3680,19 +3680,18 @@ function cmBuildResumen(s) {
   try {
     const d = typeof s.data_json === 'string' ? JSON.parse(s.data_json) : (s.data_json || {});
     const lines = [];
-    const fmtFecha = f => f ? f.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1') : null;
+    const fmtF = function(f) { return f ? f.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1') : ''; };
+    const partes = function(parts) { return parts.filter(Boolean).join(' · '); };
     if (s.tipo === 'BODA') {
-      if (d.fiesta?.fecha)    lines.push('🎉 Fiesta: ' + fmtFecha(d.fiesta.fecha) + (d.fiesta.horarioInicio ? ' · ' + d.fiesta.horarioInicio : ''));
-      if (d.fiesta?.lugar || d.fiesta?.salon) lines.push('📍 Salón: ' + (d.fiesta.lugar || d.fiesta.salon) + (d.fiesta.direccion ? ' · ' + d.fiesta.direccion : ''));
-      if (d.civil?.fecha)     lines.push('⚖️ Civil: ' + fmtFecha(d.civil.fecha) + (d.civil.horario ? ' · ' + d.civil.horario : '') + (d.civil.direccion ? ' · ' + d.civil.direccion : ''));
-      if (d.religiosa?.fecha) lines.push('⛪ Religiosa: ' + fmtFecha(d.religiosa.fecha) + (d.religiosa.horario ? ' · ' + d.religiosa.horario : '') + (d.religiosa.direccion ? ' · ' + d.religiosa.direccion : ''));
-    } else if (s.tipo === 'XV' || s.tipo === 'CUMPLE') {
+      if (d.fiesta?.fecha)    lines.push('🎉 Fiesta: '    + partes([fmtF(d.fiesta.fecha), d.fiesta.horarioInicio, d.fiesta.lugar||d.fiesta.salon, d.fiesta.direccion]));
+      if (d.civil?.fecha)     lines.push('⚖️ Civil: '     + partes([fmtF(d.civil.fecha),    d.civil.horario,    d.civil.lugar||d.civil.direccion]));
+      if (d.religiosa?.fecha) lines.push('⛪ Religiosa: '  + partes([fmtF(d.religiosa.fecha), d.religiosa.horario, d.religiosa.lugar||d.religiosa.direccion]));
+    } else {
       const ev = d.evento || {};
-      if (ev.fecha)    lines.push('🎉 Evento: ' + fmtFecha(ev.fecha) + (ev.horaInicio ? ' · ' + ev.horaInicio : ''));
-      if (ev.salon)    lines.push('📍 Salón: ' + ev.salon + (ev.direccion ? ' · ' + ev.direccion : ''));
+      if (ev.fecha)     lines.push('🎉 Evento: ' + partes([fmtF(ev.fecha), ev.horaInicio, ev.salon, ev.direccion]));
       if (ev.invitados) lines.push('👥 Invitados: ' + ev.invitados);
     }
-    if (s.book_fecha) lines.push('📸 Book: ' + fmtFecha(s.book_fecha) + (s.book_hora ? ' · ' + s.book_hora : '') + (s.book_zona ? ' · ' + s.book_zona : ''));
+    if (s.book_fecha) lines.push('📸 Book: ' + partes([fmtF(s.book_fecha), s.book_hora, s.book_zona]));
     return lines.length ? lines.join('<br>') : '<span style="color:var(--gray2)">Sin datos del evento cargados.</span>';
   } catch(e) { return '<span style="color:var(--gray2)">Sin datos del evento.</span>'; }
 }
