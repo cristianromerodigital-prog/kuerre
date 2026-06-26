@@ -182,6 +182,13 @@ export default {
       const response = await mountCoreRouter(request, env, url, CORE_OPTIONS);
       if (response) return response;
 
+      // ── Solicitudes (debe ir antes del KV match genérico) ────────────────
+      if (path === '/solicitudes' && method === 'POST') return await handleSolicitudesCreate(request, env);
+      if (path === '/solicitudes' && method === 'GET') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        return await handleSolicitudesList(env, request);
+      }
+
       // ── crd_content: lectura pública para index.html ──────────────────────
       if (path === '/crd_content' && method === 'GET') {
         const val = await env.KV.get('crd_content');
@@ -314,12 +321,6 @@ export default {
 
       if (path === '/api/health') return json({ ok: true, worker: 'kuerre-worker', ts: new Date().toISOString() });
 
-      // ── Solicitudes ──────────────────────────────────────────────────────────
-      if (path === '/solicitudes' && method === 'POST') return await handleSolicitudesCreate(request, env);
-      if (path === '/solicitudes' && method === 'GET') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
-        return await handleSolicitudesList(env, request);
-      }
       const solicitudDelMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})$/);
       if (solicitudDelMatch && method === 'DELETE') {
         if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
