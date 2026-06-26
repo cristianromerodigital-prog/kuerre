@@ -333,6 +333,13 @@ export default {
         await env.DB.prepare('UPDATE solicitudes SET invite_id = ? WHERE id = ?').bind(invite_id || '', inviteMatch[1]).run();
         return json({ ok: true });
       }
+      const contratoMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/contrato$/);
+      if (contratoMatch && method === 'PATCH') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        const { codigo_contrato } = await request.json().catch(() => ({}));
+        await env.DB.prepare('UPDATE solicitudes SET codigo_contrato = ? WHERE id = ?').bind(codigo_contrato || '', contratoMatch[1]).run();
+        return json({ ok: true });
+      }
 
       return json({ error: 'Not found' }, 404);
     } catch (e) {
