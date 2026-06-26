@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.51</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.52</div>
     </div>
   </aside>
 
@@ -8223,8 +8223,8 @@ function ctSelTipo(tipo) {
   });
 }
 
-function ctToggleEvento(tipo, visible) {
-  const el = document.getElementById('ct-sub-' + tipo);
+function ctToggleEvento(tipo, visible, cb) {
+  const el = cb ? cb.closest('label').nextElementSibling : document.getElementById('ct-sub-' + tipo);
   if (el) el.style.display = visible ? 'block' : 'none';
 }
 
