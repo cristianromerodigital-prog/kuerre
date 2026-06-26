@@ -2269,6 +2269,29 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <span style="font-size:9px;color:var(--gray2);letter-spacing:1px">Guardar al salir del campo</span>
             </div>
 
+            <!-- Resumen del evento -->
+            <div id="cm-resumen" style="border:1px solid rgba(255,255,255,0.07);padding:14px 16px;margin-bottom:12px;font-size:11px;color:var(--gray2);line-height:1.8;letter-spacing:0.3px"></div>
+
+            <!-- Book -->
+            <div style="border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:12px">
+              <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--violet);margin-bottom:12px">Book / Sesión de fotos <i class="tip" data-tip="Fecha, hora y zona donde se realizará la sesión de fotos previa al evento. Se guarda en la base de datos del cliente.">?</i></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+                <div>
+                  <label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:4px">Fecha</label>
+                  <input id="cm-book-fecha" type="date" style="background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:6px 10px;font-size:12px;outline:none;width:100%;font-family:inherit;border-radius:4px">
+                </div>
+                <div>
+                  <label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:4px">Hora</label>
+                  <input id="cm-book-hora" type="time" style="background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:6px 10px;font-size:12px;outline:none;width:100%;font-family:inherit;border-radius:4px">
+                </div>
+                <div>
+                  <label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:4px">Zona / Lugar</label>
+                  <input id="cm-book-zona" type="text" placeholder="Palermo, Tigre..." style="background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:6px 10px;font-size:12px;outline:none;width:100%;font-family:inherit;border-radius:4px">
+                </div>
+              </div>
+              <button class="btn-sm" onclick="cmSaveBook()">Guardar book</button>
+            </div>
+
             <!-- Invitación -->
             <div style="border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:12px">
               <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Invitación Digital <i class="tip" data-tip="Invitación animada para compartir el evento. Clic en Crear para generarla con los datos del cliente pre-cargados.">?</i></div>
@@ -3495,6 +3518,10 @@ function abrirClienteModal(id) {
   cmUpdateEntregaLink();
 
   document.getElementById('cm-codigo-contrato').value = s.codigo_contrato || '';
+  document.getElementById('cm-resumen').innerHTML = cmBuildResumen(s);
+  document.getElementById('cm-book-fecha').value = s.book_fecha || '';
+  document.getElementById('cm-book-hora').value  = s.book_hora  || '';
+  document.getElementById('cm-book-zona').value  = s.book_zona  || '';
   if (s.drive_cliente_id) {
     cmMostrarDriveLinks({ cliente: s.drive_cliente_id, fiesta: s.drive_fiesta_id, invitacion: '', entrega: s.drive_entrega_id, contrato: '' });
   } else {
@@ -3532,6 +3559,49 @@ function cmCopyFiesta() {
   navigator.clipboard.writeText(url)
     .then(function(){ toast('Link QR copiado'); })
     .catch(function(){ toast('No se pudo copiar'); });
+}
+
+function cmBuildResumen(s) {
+  try {
+    const d = typeof s.data_json === 'string' ? JSON.parse(s.data_json) : (s.data_json || {});
+    const lines = [];
+    const fmtFecha = f => f ? f.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1') : null;
+    if (s.tipo === 'BODA') {
+      if (d.fiesta?.fecha)    lines.push('🎉 Fiesta: ' + fmtFecha(d.fiesta.fecha) + (d.fiesta.horarioInicio ? ' · ' + d.fiesta.horarioInicio : ''));
+      if (d.fiesta?.lugar || d.fiesta?.salon) lines.push('📍 Salón: ' + (d.fiesta.lugar || d.fiesta.salon) + (d.fiesta.direccion ? ' · ' + d.fiesta.direccion : ''));
+      if (d.civil?.fecha)     lines.push('⚖️ Civil: ' + fmtFecha(d.civil.fecha) + (d.civil.horario ? ' · ' + d.civil.horario : '') + (d.civil.direccion ? ' · ' + d.civil.direccion : ''));
+      if (d.religiosa?.fecha) lines.push('⛪ Religiosa: ' + fmtFecha(d.religiosa.fecha) + (d.religiosa.horario ? ' · ' + d.religiosa.horario : '') + (d.religiosa.direccion ? ' · ' + d.religiosa.direccion : ''));
+    } else if (s.tipo === 'XV' || s.tipo === 'CUMPLE') {
+      const ev = d.evento || {};
+      if (ev.fecha)    lines.push('🎉 Evento: ' + fmtFecha(ev.fecha) + (ev.horaInicio ? ' · ' + ev.horaInicio : ''));
+      if (ev.salon)    lines.push('📍 Salón: ' + ev.salon + (ev.direccion ? ' · ' + ev.direccion : ''));
+      if (ev.invitados) lines.push('👥 Invitados: ' + ev.invitados);
+    }
+    if (s.book_fecha) lines.push('📸 Book: ' + fmtFecha(s.book_fecha) + (s.book_hora ? ' · ' + s.book_hora : '') + (s.book_zona ? ' · ' + s.book_zona : ''));
+    return lines.length ? lines.join('<br>') : '<span style="color:var(--gray2)">Sin datos del evento cargados.</span>';
+  } catch(e) { return '<span style="color:var(--gray2)">Sin datos del evento.</span>'; }
+}
+
+async function cmSaveBook() {
+  if (!_clienteActual) return;
+  const fecha = document.getElementById('cm-book-fecha').value;
+  const hora  = document.getElementById('cm-book-hora').value;
+  const zona  = document.getElementById('cm-book-zona').value.trim();
+  try {
+    const r = await fetch(CLIENTES_WORKER + '/solicitudes/' + _clienteActual.id + '/book', {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ book_fecha: fecha, book_hora: hora, book_zona: zona })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      _clienteActual.book_fecha = fecha; _clienteActual.book_hora = hora; _clienteActual.book_zona = zona;
+      const idx = _clientes.findIndex(function(x){ return x.id === _clienteActual.id; });
+      if (idx !== -1) { _clientes[idx].book_fecha = fecha; _clientes[idx].book_hora = hora; _clientes[idx].book_zona = zona; }
+      document.getElementById('cm-resumen').innerHTML = cmBuildResumen(_clienteActual);
+      toast('Book guardado ✓');
+    }
+  } catch(e) { toast('Error al guardar', 'error'); }
 }
 
 function cmSaveContrato() {
