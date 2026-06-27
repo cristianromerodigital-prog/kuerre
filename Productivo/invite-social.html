@@ -78,10 +78,11 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
 .cd-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.8;display:block;margin-top:4px}
 
 /* ── CARRUSEL ── */
-.carousel-wrap{position:relative;overflow:hidden;width:100vw;margin-left:calc(-50vw + 50%)}
-.carousel-track{display:flex;transition:transform 0.6s cubic-bezier(.4,0,.2,1);will-change:transform;align-items:center}
-.carousel-slide{flex:0 0 100%;display:flex;justify-content:center;align-items:center;padding:8px 12px}
-.carousel-slide img{width:auto;height:auto;max-width:100%;max-height:80vh;display:block;object-fit:contain}
+.carousel-wrap{width:100vw;margin-left:calc(-50vw + 50%)}
+.carousel-track{display:flex;align-items:stretch;gap:6px;overflow-x:scroll;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 6px}
+.carousel-track::-webkit-scrollbar{display:none}
+.carousel-slide{scroll-snap-align:center;flex:0 0 auto}
+.carousel-slide img{height:360px;width:auto;max-width:90vw;display:block;object-fit:cover}
 
 /* ── FRASE ── */
 #frase{padding:60px 24px;text-align:center;max-width:780px;margin:0 auto}
@@ -504,31 +505,19 @@ function buildCarrusel(trackId, wrapId, images) {
   const wrap = document.getElementById(wrapId);
   const track = document.getElementById(trackId);
   wrap.style.display = '';
-  // Triple set para loop infinito
-  const all = [...images, ...images, ...images];
-  track.innerHTML = all.map(url => `<div class="carousel-slide"><img src="${url}" loading="lazy" alt=""></div>`).join('');
-  let idx = images.length;
-  function slideW() { const s = track.querySelector('.carousel-slide'); return s ? s.offsetWidth : 0; }
-  function goTo(i, animate) {
-    track.style.transition = animate === false ? 'none' : 'transform 0.6s cubic-bezier(.4,0,.2,1)';
-    track.style.transform = `translateX(-${i * slideW()}px)`;
+  track.innerHTML = images.map(url => `<div class="carousel-slide"><img src="${url}" loading="lazy" alt=""></div>`).join('');
+  let current = 0;
+  const n = images.length;
+  function scrollTo(idx) {
+    const slides = track.querySelectorAll('.carousel-slide');
+    if (!slides[idx]) return;
+    const trackRect = track.getBoundingClientRect();
+    const slideRect = slides[idx].getBoundingClientRect();
+    const targetLeft = track.scrollLeft + slideRect.left - trackRect.left - (trackRect.width - slideRect.width) / 2;
+    track.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
   }
-  // Init position sin animación
-  setTimeout(() => goTo(idx, false), 50);
-  track.addEventListener('transitionend', () => {
-    if (idx >= images.length * 2) { idx = images.length; goTo(idx, false); }
-    if (idx < images.length) { idx = images.length * 2 - 1; goTo(idx, false); }
-  });
-  // Touch swipe
-  let startX = 0;
-  const carouselWrap = wrap.querySelector('.carousel-wrap');
-  carouselWrap.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
-  carouselWrap.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 40) { dx < 0 ? idx++ : idx--; goTo(idx, true); }
-  });
-  // Auto-slide
-  setInterval(() => { idx++; goTo(idx, true); }, 3000);
+  // Auto-slide cada 3 segundos
+  setInterval(() => { current = (current + 1) % n; scrollTo(current); }, 3000);
 }
 
 function renderFrase(c) {
