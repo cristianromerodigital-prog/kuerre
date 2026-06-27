@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.52</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.53</div>
     </div>
   </aside>
 
@@ -1024,22 +1024,9 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 <div class="inv-modal-section-title">Diseño</div>
                 <div class="form-group">
                   <label class="form-label">Color de tema</label>
-                  <div style="display:flex;align-items:center;gap:12px">
-                    <select class="form-input" id="inv-color-tema" style="flex:1" onchange="previewColorTema(this.value)">
-                      <option value="mauve">Mauve</option>
-                      <option value="lavanda">Lavanda</option>
-                      <option value="durazno">Durazno</option>
-                      <option value="menta">Menta</option>
-                      <option value="azul-bebe">Azul bebé</option>
-                      <option value="champagne">Champagne</option>
-                      <option value="coral">Coral</option>
-                      <option value="lila">Lila</option>
-                      <option value="salvia">Salvia</option>
-                      <option value="celeste">Celeste</option>
-                      <option value="rosa-empolvado">Rosa empolvado</option>
-                    </select>
-                    <div id="inv-color-tema-preview" style="width:36px;height:36px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:#8b5e6e;flex-shrink:0;transition:background 0.2s"></div>
-                  </div>
+                  <input type="hidden" id="inv-color-tema" value="mauve">
+                  <div id="inv-color-tema-swatches" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
+                  <div style="margin-top:8px;font-size:10px;color:var(--gray);letter-spacing:1px" id="inv-color-tema-label">Mauve</div>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Emoji del hero</label>
@@ -6291,15 +6278,34 @@ function saveInvBaseUrl(val) { const v = val.trim(); localStorage.setItem('crd_i
 function saveInvSocialBaseUrl(val) { localStorage.setItem('crd_inv_social_base', val.trim()); }
 function getInvSocialBaseUrl() { return (localStorage.getItem('crd_inv_social_base') || '').trim() || getInvBaseUrl().replace('invite.html','invite-social.html'); }
 
-const TEMA_COLORS_ADMIN = {
-  'mauve':'#8b5e6e','lavanda':'#7c6fa0','durazno':'#c4896a','menta':'#5a8f7b',
-  'azul-bebe':'#6a8fb4','champagne':'#b89a72','coral':'#c4706a','lila':'#9878b8',
-  'salvia':'#6e8f6a','celeste':'#5a9ab4','rosa-empolvado':'#b87890'
-};
-function previewColorTema(val) {
-  const el = document.getElementById('inv-color-tema-preview');
-  if (el) el.style.background = TEMA_COLORS_ADMIN[val] || '#8b5e6e';
+const TEMA_COLORS_ADMIN = [
+  {key:'mauve',       label:'Mauve',          color:'#8b5e6e'},
+  {key:'lavanda',     label:'Lavanda',         color:'#7c6fa0'},
+  {key:'durazno',     label:'Durazno',         color:'#c4896a'},
+  {key:'menta',       label:'Menta',           color:'#5a8f7b'},
+  {key:'azul-bebe',   label:'Azul bebé',       color:'#6a8fb4'},
+  {key:'champagne',   label:'Champagne',       color:'#b89a72'},
+  {key:'coral',       label:'Coral',           color:'#c4706a'},
+  {key:'lila',        label:'Lila',            color:'#9878b8'},
+  {key:'salvia',      label:'Salvia',          color:'#6e8f6a'},
+  {key:'celeste',     label:'Celeste',         color:'#5a9ab4'},
+  {key:'rosa-empolvado',label:'Rosa empolvado',color:'#b87890'},
+];
+function renderTemaSwatches(selected) {
+  const wrap = document.getElementById('inv-color-tema-swatches');
+  if (!wrap) return;
+  wrap.innerHTML = TEMA_COLORS_ADMIN.map(t =>
+    `<div onclick="selectColorTema('${t.key}')" title="${t.label}" style="width:32px;height:32px;border-radius:50%;background:${t.color};cursor:pointer;border:3px solid ${t.key===selected?'#fff':'transparent'};box-shadow:0 0 0 1px rgba(255,255,255,0.2);transition:border-color 0.15s,transform 0.15s;transform:${t.key===selected?'scale(1.18)':'scale(1)'}"></div>`
+  ).join('');
 }
+function selectColorTema(val) {
+  document.getElementById('inv-color-tema').value = val;
+  const t = TEMA_COLORS_ADMIN.find(x => x.key === val);
+  const lbl = document.getElementById('inv-color-tema-label');
+  if (lbl && t) lbl.textContent = t.label;
+  renderTemaSwatches(val);
+}
+function previewColorTema(val) { selectColorTema(val); }
 
 function setInvModelo(modelo) {
   document.getElementById('inv-modelo').value = modelo;
@@ -6310,6 +6316,8 @@ function setInvModelo(modelo) {
     btnS.style.borderColor = 'var(--gold)'; btnS.style.color = 'var(--gold)';
     document.getElementById('inv-campos-social').style.display = '';
     document.getElementById('inv-campos-clasico').style.display = 'none';
+    const current = document.getElementById('inv-color-tema').value || 'mauve';
+    renderTemaSwatches(current);
   } else {
     btnS.style.borderColor = 'rgba(255,255,255,0.2)'; btnS.style.color = 'rgba(255,255,255,0.4)';
     btnC.style.borderColor = 'var(--gold)'; btnC.style.color = 'var(--gold)';
@@ -6629,7 +6637,7 @@ function closeInviteModal() {
 }
 
 function readInviteForm() {
-  return {
+  const data = {
     tipo: document.getElementById('inv-tipo').value,
     config: {
       tipo: document.getElementById('inv-tipo').value,
