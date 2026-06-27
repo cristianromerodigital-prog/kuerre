@@ -78,11 +78,11 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
 .cd-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.8;display:block;margin-top:4px}
 
 /* ── CARRUSEL ── */
-.carousel-wrap{width:100vw;margin-left:calc(-50vw + 50%)}
-.carousel-track{display:flex;align-items:stretch;gap:6px;overflow-x:scroll;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 6px}
+.carousel-wrap{width:100vw;margin-left:calc(-50vw + 50%);background:#000;overflow:hidden}
+.carousel-track{display:flex;align-items:stretch;gap:0;overflow-x:scroll;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0;background:#000}
 .carousel-track::-webkit-scrollbar{display:none}
-.carousel-slide{scroll-snap-align:center;flex:0 0 auto}
-.carousel-slide img{height:360px;width:auto;max-width:90vw;display:block;object-fit:cover}
+.carousel-slide{scroll-snap-align:start;flex:0 0 auto}
+.carousel-slide img{height:360px;width:auto;display:block;object-fit:cover}
 
 /* ── FRASE ── */
 #frase{padding:60px 24px;text-align:center;max-width:780px;margin:0 auto}
