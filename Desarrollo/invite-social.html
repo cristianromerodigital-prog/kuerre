@@ -656,7 +656,7 @@ function initScrollReveal() {
 }
 
 // ── YOUTUBE AUDIO ──────────────────────────────────────────────
-let _ytReady = false, _ytPlayer = null;
+let _ytReady = false, _ytPlayer = null, _ytUnmuteQueued = false;
 function initYoutubeAudio(videoId) {
   if (!videoId) return;
   const btn = document.getElementById('btn-yt-audio');
@@ -671,18 +671,24 @@ function initYoutubeAudio(videoId) {
     document.body.appendChild(div);
     _ytPlayer = new YT.Player('_yt_hidden', {
       videoId, playerVars:{ autoplay:1, loop:1, playlist:videoId, controls:0 },
-      events:{ onReady: e => { e.target.setVolume(0); e.target.playVideo(); _ytReady = true; } }
+      events:{ onReady: function(e) {
+        e.target.setVolume(0); e.target.playVideo(); _ytReady = true;
+        if (_ytUnmuteQueued) { e.target.unMute(); e.target.setVolume(50); btn.innerHTML = '⏸'; _ytUnmuteQueued = false; }
+      }}
     });
   };
-  function triggerUnmute() {
-    if (_ytReady && _ytPlayer) { _ytPlayer.setVolume(50); _ytPlayer.unMute(); btn.innerHTML = '⏸'; }
+  function doUnmute() {
+    if (_ytReady && _ytPlayer) { _ytPlayer.unMute(); _ytPlayer.setVolume(50); btn.innerHTML = '⏸'; }
+    else { _ytUnmuteQueued = true; } // gesto llegó antes de que el player esté listo
   }
   btn.onclick = function() {
-    if (!_ytReady) return;
-    if (_ytPlayer.isMuted() || _ytPlayer.getVolume() === 0) { triggerUnmute(); }
-    else { _ytPlayer.setVolume(0); _ytPlayer.mute(); btn.innerHTML = '▶'; }
+    if (_ytPlayer && _ytReady) {
+      if (_ytPlayer.isMuted() || _ytPlayer.getVolume() === 0) doUnmute();
+      else { _ytPlayer.setVolume(0); _ytPlayer.mute(); btn.innerHTML = '▶'; }
+    }
   };
-  const onGesture = () => { triggerUnmute(); };
+  // Unmutear en primer gesto del usuario — si el player no está listo todavía, queued
+  function onGesture() { doUnmute(); }
   document.addEventListener('click', onGesture, { once:true });
   document.addEventListener('touchstart', onGesture, { once:true, passive:true });
 }
