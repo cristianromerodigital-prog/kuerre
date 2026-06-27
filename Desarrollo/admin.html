@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.51</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.52</div>
     </div>
   </aside>
 
@@ -629,6 +629,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             </div>
           </div>
           <small style="font-size:11px;color:var(--gray);margin-top:6px;display:block">Las URLs generadas usarán esta dirección. Si lo dejás vacío, se usa la URL relativa (solo funciona en el mismo dispositivo).</small>
+          <div class="form-group" style="margin-top:12px">
+            <label class="form-label">URL invite social <i class="tip" data-tip="Dirección web pública donde está el archivo invite-social.html. Se usa para invitaciones del modelo Social.">?</i></label>
+            <input class="form-input" id="inv-social-base-url" placeholder="https://usuario.github.io/repo/invite-social.html" oninput="saveInvSocialBaseUrl(this.value)">
+          </div>
         </div>
         <div id="invites-list"></div>
       </div>
@@ -642,7 +646,15 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
           <div class="modal-body" style="max-height:75vh;overflow-y:auto;padding:24px">
             <input type="hidden" id="inv-id">
+            <input type="hidden" id="inv-modelo" value="clasico">
 
+            <!-- SELECTOR DE MODELO -->
+            <div style="display:flex;gap:12px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.08)">
+              <button id="inv-modelo-clasico" onclick="setInvModelo('clasico')" style="flex:1;padding:14px;border:2px solid var(--gold);color:var(--gold);background:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.2s">CLÁSICO</button>
+              <button id="inv-modelo-social" onclick="setInvModelo('social')" style="flex:1;padding:14px;border:2px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);background:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.2s">SOCIAL ✦</button>
+            </div>
+
+            <div id="inv-campos-clasico">
             <!-- BÁSICO -->
             <div class="inv-modal-section">
               <div class="inv-modal-section-title">Tipo y Datos Básicos</div>
@@ -978,6 +990,199 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 </div>
               </div>
             </div>
+
+            </div><!-- /inv-campos-clasico -->
+
+            <div id="inv-campos-social" style="display:none">
+
+              <!-- Color tema -->
+              <div class="inv-modal-section">
+                <div class="inv-modal-section-title">Datos Básicos</div>
+                <div class="inv-form-2col">
+                  <div class="form-group">
+                    <label class="form-label">Nombre(s) del evento</label>
+                    <input class="form-input" id="inv-s-novios" placeholder="Valentina / Jazz &amp; Roberto">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Título</label>
+                    <input class="form-input" id="inv-s-titulo" placeholder="MIS 15 / ¡Nos casamos!">
+                  </div>
+                </div>
+                <div class="inv-form-2col">
+                  <div class="form-group">
+                    <label class="form-label">Fecha para mostrar</label>
+                    <input class="form-input" id="inv-s-fecha-display" placeholder="10 DE JULIO 2027">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Fecha (countdown)</label>
+                    <input class="form-input" type="date" id="inv-s-fecha-iso">
+                  </div>
+                </div>
+              </div>
+
+              <div class="inv-modal-section">
+                <div class="inv-modal-section-title">Diseño</div>
+                <div class="form-group">
+                  <label class="form-label">Color de tema</label>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <select class="form-input" id="inv-color-tema" style="flex:1" onchange="previewColorTema(this.value)">
+                      <option value="mauve">Mauve</option>
+                      <option value="lavanda">Lavanda</option>
+                      <option value="durazno">Durazno</option>
+                      <option value="menta">Menta</option>
+                      <option value="azul-bebe">Azul bebé</option>
+                      <option value="champagne">Champagne</option>
+                      <option value="coral">Coral</option>
+                      <option value="lila">Lila</option>
+                      <option value="salvia">Salvia</option>
+                      <option value="celeste">Celeste</option>
+                      <option value="rosa-empolvado">Rosa empolvado</option>
+                    </select>
+                    <div id="inv-color-tema-preview" style="width:36px;height:36px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:#8b5e6e;flex-shrink:0;transition:background 0.2s"></div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Emoji del hero</label>
+                  <input class="form-input" id="inv-hero-emoji" placeholder="🌸" maxlength="4">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Foto / Video de portada (URL)</label>
+                  <input class="form-input" id="inv-s-media-url" placeholder="https://...">
+                  <div style="display:flex;gap:8px;margin-top:6px">
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="inv-s-media-type" value="image" checked> Imagen</label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="inv-s-media-type" value="video"> Video</label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Audio YouTube (ID del video)</label>
+                  <input class="form-input" id="inv-s-youtube-audio" placeholder="dQw4w9WgXcQ">
+                </div>
+              </div>
+
+              <div class="inv-modal-section">
+                <div class="inv-modal-section-title">Evento</div>
+                <div class="inv-form-2col">
+                  <div class="form-group">
+                    <label class="form-label">Hora del evento</label>
+                    <input class="form-input" id="inv-s-recepcion-hora" placeholder="20:00">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Lugar</label>
+                    <input class="form-input" id="inv-s-lugar-nombre" placeholder="Nombre del salón">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Dirección</label>
+                  <input class="form-input" id="inv-s-lugar-dir" placeholder="Dirección, ciudad">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Link Google Maps</label>
+                  <input class="form-input" id="inv-s-lugar-maps" placeholder="https://maps.google.com/...">
+                </div>
+              </div>
+
+              <div class="inv-modal-section">
+                <div class="inv-modal-section-title">Contenido</div>
+                <div class="inv-form-2col">
+                  <div class="form-group">
+                    <label class="form-label">Dress Code</label>
+                    <input class="form-input" id="inv-s-dresscode" placeholder="Formal">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Nota dress code</label>
+                    <input class="form-input" id="inv-s-dresscode-nota" placeholder="El color ROSA se reserva para la quinceañera">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Frase emotiva</label>
+                  <textarea class="form-textarea" id="inv-frase-emotiva" placeholder="Hay momentos que no se pueden borrar..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Link álbum de fotos</label>
+                  <input class="form-input" id="inv-album-url" placeholder="https://...">
+                </div>
+              </div>
+
+              <div class="inv-modal-section">
+                <div class="inv-modal-section-title">Carruseles de imágenes</div>
+                <div class="form-group">
+                  <label class="form-label">Carrusel 1 — fotos</label>
+                  <button type="button" onclick="openDriveBrowserCarousel(1)" style="width:100%;background:none;border:1px solid rgba(255,255,255,0.3);color:var(--gray2);padding:10px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit">+ Seleccionar fotos · Carrusel 1</button>
+                  <div id="inv-carousel-preview-1" style="margin-top:8px"></div>
+                  <button type="button" onclick="_invCarousel1=[];renderCarouselPreview(1,[])" style="background:none;border:none;color:var(--gray);font-size:10px;cursor:pointer;margin-top:4px;text-decoration:underline">Limpiar carrusel 1</button>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Carrusel 2 — fotos</label>
+                  <button type="button" onclick="openDriveBrowserCarousel(2)" style="width:100%;background:none;border:1px solid rgba(255,255,255,0.3);color:var(--gray2);padding:10px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit">+ Seleccionar fotos · Carrusel 2</button>
+                  <div id="inv-carousel-preview-2" style="margin-top:8px"></div>
+                  <button type="button" onclick="_invCarousel2=[];renderCarouselPreview(2,[])" style="background:none;border:none;color:var(--gray);font-size:10px;cursor:pointer;margin-top:4px;text-decoration:underline">Limpiar carrusel 2</button>
+                </div>
+              </div>
+
+              <div class="inv-modal-section">
+                <div class="inv-modal-section-title">Regalo</div>
+                <div class="form-group">
+                  <label class="form-label">Texto personalizado (opcional)</label>
+                  <textarea class="form-textarea" id="inv-s-regalo-texto" placeholder="Nada es más importante que tu presencia..."></textarea>
+                </div>
+                <div class="inv-form-2col">
+                  <div class="form-group">
+                    <label class="form-label">Alias MP</label>
+                    <input class="form-input" id="inv-s-alias" placeholder="mi.alias">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Banco</label>
+                    <input class="form-input" id="inv-s-alias-banco" placeholder="Mercado Pago">
+                  </div>
+                </div>
+                <div class="inv-form-2col">
+                  <div class="form-group">
+                    <label class="form-label">Titular</label>
+                    <input class="form-input" id="inv-s-alias-titular" placeholder="Nombre Apellido">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">CBU (opcional)</label>
+                    <input class="form-input" id="inv-s-cbu" placeholder="0000000000000000000000">
+                  </div>
+                </div>
+              </div>
+
+              <div class="inv-modal-section">
+                <div class="inv-modal-section-title">Confirmación (RSVP)</div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                    <input type="checkbox" id="inv-s-rsvp-activo" style="accent-color:var(--gold);width:16px;height:16px" checked>
+                    Activar sección de confirmación
+                  </label>
+                </div>
+                <div class="inv-form-2col">
+                  <div class="form-group">
+                    <label class="form-label">Confirmar antes del</label>
+                    <input class="form-input" type="date" id="inv-s-rsvp-limite">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">URL Google Sheets (GAS)</label>
+                    <input class="form-input" id="inv-s-gsheet-url" placeholder="https://script.google.com/...">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">EmailJS Template ID</label>
+                  <input class="form-input" id="inv-s-emailjs-template" placeholder="template_xxxxxxx">
+                </div>
+              </div>
+
+              <div class="inv-modal-section" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px">
+                <div class="inv-modal-section-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleTriviaEditor()">
+                  Trivia — ¿Cuánto me conocés?
+                  <span id="trivia-toggle-icon" style="font-size:10px;opacity:0.6;font-weight:400">▼ expandir</span>
+                </div>
+                <div id="trivia-editor" style="display:none;margin-top:12px">
+                  <div id="trivia-lista"></div>
+                  <button type="button" onclick="triviaAgregar()" style="width:100%;margin-top:10px;background:none;border:1px dashed rgba(255,255,255,0.25);color:var(--gray2);padding:10px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit">+ Agregar pregunta</button>
+                </div>
+              </div>
+
+            </div><!-- /inv-campos-social -->
 
           </div><!-- /modal-body -->
           <div class="modal-footer" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between">
@@ -2647,6 +2852,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <button onclick="dbClearSelection()" style="background:none;border:1px solid rgba(255,255,255,0.2);color:var(--gray);padding:6px 14px;font-size:10px;letter-spacing:1px;cursor:pointer;font-family:inherit">Limpiar</button>
         <button id="db-btn-portfolio" onclick="dbConfirmSelection()" style="background:var(--gold);color:var(--black);border:none;padding:6px 18px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;font-weight:600">Agregar al portfolio</button>
         <button id="db-btn-entrega" onclick="dbConfirmEntregaFotos()" style="display:none;background:var(--cyan);color:var(--black);border:none;padding:6px 18px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;font-weight:600">Confirmar fotos</button>
+        <button id="db-btn-carousel" onclick="dbConfirmCarousel()" style="display:none;background:#9878b8;color:#fff;border:none;padding:6px 18px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;font-weight:600">Confirmar carrusel</button>
       </div>
     </div>
     <div id="db-loading" style="text-align:center;padding:40px;color:var(--gray);font-size:11px;letter-spacing:2px">Ingresa una carpeta para comenzar</div>
@@ -6082,6 +6288,133 @@ function autoSlug(val) {
 }
 
 function saveInvBaseUrl(val) { const v = val.trim(); localStorage.setItem('crd_inv_base', v); syncToCloud('crd_inv_base', JSON.stringify(v)); }
+function saveInvSocialBaseUrl(val) { localStorage.setItem('crd_inv_social_base', val.trim()); }
+function getInvSocialBaseUrl() { return (localStorage.getItem('crd_inv_social_base') || '').trim() || getInvBaseUrl().replace('invite.html','invite-social.html'); }
+
+const TEMA_COLORS_ADMIN = {
+  'mauve':'#8b5e6e','lavanda':'#7c6fa0','durazno':'#c4896a','menta':'#5a8f7b',
+  'azul-bebe':'#6a8fb4','champagne':'#b89a72','coral':'#c4706a','lila':'#9878b8',
+  'salvia':'#6e8f6a','celeste':'#5a9ab4','rosa-empolvado':'#b87890'
+};
+function previewColorTema(val) {
+  const el = document.getElementById('inv-color-tema-preview');
+  if (el) el.style.background = TEMA_COLORS_ADMIN[val] || '#8b5e6e';
+}
+
+function setInvModelo(modelo) {
+  document.getElementById('inv-modelo').value = modelo;
+  const btnC = document.getElementById('inv-modelo-clasico');
+  const btnS = document.getElementById('inv-modelo-social');
+  if (modelo === 'social') {
+    btnC.style.borderColor = 'rgba(255,255,255,0.2)'; btnC.style.color = 'rgba(255,255,255,0.4)';
+    btnS.style.borderColor = 'var(--gold)'; btnS.style.color = 'var(--gold)';
+    document.getElementById('inv-campos-social').style.display = '';
+    document.getElementById('inv-campos-clasico').style.display = 'none';
+  } else {
+    btnS.style.borderColor = 'rgba(255,255,255,0.2)'; btnS.style.color = 'rgba(255,255,255,0.4)';
+    btnC.style.borderColor = 'var(--gold)'; btnC.style.color = 'var(--gold)';
+    document.getElementById('inv-campos-social').style.display = 'none';
+    document.getElementById('inv-campos-clasico').style.display = '';
+  }
+}
+
+let _dbCarouselTarget = null;
+let _invCarousel1 = [];
+let _invCarousel2 = [];
+let _invTrivia = [];
+const TRIVIA_DEFAULT = [
+  {id:1,activa:true,pregunta:'¿En qué año nació?',opciones:['Opción A','Opción B','Opción C'],correcta:0},
+  {id:2,activa:true,pregunta:'¿Cuál es su color favorito?',opciones:['Rosa','Violeta','Azul'],correcta:0},
+  {id:3,activa:true,pregunta:'¿Cuál es su comida favorita?',opciones:['Pizza','Sushi','Pasta'],correcta:0},
+  {id:4,activa:true,pregunta:'¿Dónde festeja su evento?',opciones:['Salón A','Salón B','Salón C'],correcta:0},
+  {id:5,activa:true,pregunta:'¿Cuál es su canción favorita?',opciones:['Canción A','Canción B','Canción C'],correcta:0}
+];
+
+function openDriveBrowserCarousel(target) {
+  _dbCarouselTarget = target;
+  _dbSelected.clear();
+  dbUpdateSelectionBar();
+  document.getElementById('drive-browser-modal').style.display = 'block';
+  document.getElementById('db-btn-portfolio').style.display = 'none';
+  document.getElementById('db-btn-carousel').style.display = 'inline-block';
+  const last = localStorage.getItem('crd_last_drive_folder');
+  if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
+}
+
+function dbConfirmCarousel() {
+  if(!_dbSelected.size) return;
+  const target = _dbCarouselTarget;
+  const urls = [];
+  _dbSelected.forEach(({url}) => urls.push(url));
+  if(target === 1) { _invCarousel1 = urls; renderCarouselPreview(1, urls); }
+  else { _invCarousel2 = urls; renderCarouselPreview(2, urls); }
+  _dbCarouselTarget = null;
+  _dbSelected.clear();
+  document.getElementById('drive-browser-modal').style.display = 'none';
+  document.getElementById('db-btn-portfolio').style.display = 'inline-block';
+  document.getElementById('db-btn-carousel').style.display = 'none';
+  toast(target === 1 ? 'Fotos carrusel 1 guardadas ✓' : 'Fotos carrusel 2 guardadas ✓');
+}
+
+function renderCarouselPreview(n, urls) {
+  const el = document.getElementById('inv-carousel-preview-' + n);
+  if(!el) return;
+  el.innerHTML = urls.length
+    ? '<span style="font-size:10px;color:var(--gray)">' + urls.length + ' foto' + (urls.length!==1?'s':'') + ' seleccionada' + (urls.length!==1?'s':'') + '</span>'
+      + '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">'
+      + urls.slice(0,4).map(u => '<img src="' + u + '" style="width:48px;height:48px;object-fit:cover;border-radius:2px">').join('')
+      + (urls.length>4 ? '<span style="font-size:9px;color:var(--gray);align-self:center">+' + (urls.length-4) + '</span>' : '')
+      + '</div>'
+    : '';
+}
+
+function toggleTriviaEditor() {
+  const ed = document.getElementById('trivia-editor');
+  const ic = document.getElementById('trivia-toggle-icon');
+  if(!ed) return;
+  const open = ed.style.display !== 'none';
+  ed.style.display = open ? 'none' : '';
+  ic.textContent = open ? '▼ expandir' : '▲ contraer';
+  if(!open) renderTriviaLista();
+}
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function renderTriviaLista() {
+  const wrap = document.getElementById('trivia-lista');
+  if(!wrap) return;
+  if(!_invTrivia.length) _invTrivia = TRIVIA_DEFAULT.map(p => ({...p,opciones:[...p.opciones]}));
+  wrap.innerHTML = _invTrivia.map((p,i) => `
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:12px;margin-bottom:8px;border-radius:2px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;flex:1">
+          <input type="checkbox" ${p.activa?'checked':''} onchange="triviaToggle(${i},this.checked)" style="accent-color:var(--gold)">
+          <span style="color:${p.activa?'var(--white)':'var(--gray)'}">Activa</span>
+        </label>
+        <button onclick="triviaSubir(${i})" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:12px;padding:2px 6px">↑</button>
+        <button onclick="triviaBajar(${i})" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:12px;padding:2px 6px">↓</button>
+        <button onclick="triviaEliminar(${i})" style="background:none;border:none;color:#e55;cursor:pointer;font-size:11px;padding:2px 6px">✕</button>
+      </div>
+      <input class="form-input" value="${escHtml(p.pregunta)}" oninput="_invTrivia[${i}].pregunta=this.value" placeholder="Pregunta..." style="margin-bottom:6px;font-size:12px">
+      ${p.opciones.map((op,j)=>`
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <input type="radio" name="trivia-correcta-${i}" ${p.correcta===j?'checked':''} onchange="triviaSetCorrecta(${i},${j})" style="accent-color:var(--gold);flex-shrink:0">
+          <input class="form-input" value="${escHtml(op)}" oninput="_invTrivia[${i}].opciones[${j}]=this.value" placeholder="Opción ${j+1}" style="font-size:12px">
+        </div>`).join('')}
+      <small style="color:var(--gray);font-size:9px;letter-spacing:1px">El radio marcado es la respuesta correcta</small>
+    </div>`).join('');
+}
+function triviaToggle(i,v) { _invTrivia[i].activa=v; renderTriviaLista(); }
+function triviaSetCorrecta(i,j) { _invTrivia[i].correcta=j; }
+function triviaSubir(i) { if(i===0)return; [_invTrivia[i-1],_invTrivia[i]]=[_invTrivia[i],_invTrivia[i-1]]; renderTriviaLista(); }
+function triviaBajar(i) { if(i>=_invTrivia.length-1)return; [_invTrivia[i],_invTrivia[i+1]]=[_invTrivia[i+1],_invTrivia[i]]; renderTriviaLista(); }
+function triviaEliminar(i) { if(!confirm('¿Eliminar esta pregunta?'))return; _invTrivia.splice(i,1); renderTriviaLista(); }
+function triviaAgregar() {
+  if(!_invTrivia.length) _invTrivia = TRIVIA_DEFAULT.map(p=>({...p,opciones:[...p.opciones]}));
+  _invTrivia.push({id:Date.now(),activa:true,pregunta:'',opciones:['','',''],correcta:0});
+  const ed = document.getElementById('trivia-editor');
+  if(ed) ed.style.display='';
+  renderTriviaLista();
+}
+
 function getInvBaseUrl() {
   const saved = (localStorage.getItem('crd_inv_base') || '').trim();
   if (saved) return saved;
@@ -6094,7 +6427,7 @@ async function genInviteUrl(inv) {
   const fecha = toSlug(fechaRaw);
   const suffix = String(inv.id).slice(-4);
   const slug = nombre + (fecha ? '-' + fecha : '') + '-' + suffix;
-  const base = getInvBaseUrl();
+  const base = inv.config.modelo === 'social' ? getInvSocialBaseUrl() : getInvBaseUrl();
   try {
     await fetch(CONFIG.CF_URL + '/invite/' + slug, {
       method: 'POST',
@@ -6111,6 +6444,8 @@ async function genInviteUrl(inv) {
 function renderInvitesPage() {
   const baseInput = document.getElementById('inv-base-url');
   if (baseInput) baseInput.value = localStorage.getItem('crd_inv_base') || '';
+  const socialBaseInput = document.getElementById('inv-social-base-url');
+  if (socialBaseInput) socialBaseInput.value = localStorage.getItem('crd_inv_social_base') || '';
   if (_pendingClienteId) {
     const s = _clientes.find(function(x){ return x.id === _pendingClienteId; });
     _pendingClienteId = null;
@@ -6224,8 +6559,43 @@ function openInviteModal(id) {
     slugEl.dataset.manual = inv.slug ? '1' : '';
     invPreviewMedia(c.media_url, c.media_type);
     invSetMode(c.tipo === 'save_the_date' ? 'save_the_date' : 'invitacion');
+    setInvModelo(c.modelo || 'clasico');
+    // Campos social
+    document.getElementById('inv-s-novios').value = c.novios || '';
+    document.getElementById('inv-s-titulo').value = c.titulo || '';
+    document.getElementById('inv-s-fecha-display').value = c.fecha_display || '';
+    document.getElementById('inv-s-fecha-iso').value = c.fecha_iso || '';
+    document.getElementById('inv-s-media-url').value = c.media_url || '';
+    document.querySelectorAll('input[name="inv-s-media-type"]').forEach(r => r.checked = r.value === (c.media_type || 'image'));
+    document.getElementById('inv-s-youtube-audio').value = c.youtube_audio || '';
+    document.getElementById('inv-s-recepcion-hora').value = c.recepcion_hora || '';
+    document.getElementById('inv-s-lugar-nombre').value = c.lugar_nombre || '';
+    document.getElementById('inv-s-lugar-dir').value = c.lugar_direccion || '';
+    document.getElementById('inv-s-lugar-maps').value = c.lugar_maps || '';
+    document.getElementById('inv-s-dresscode').value = c.dresscode || '';
+    document.getElementById('inv-s-dresscode-nota').value = c.dresscode_nota || '';
+    document.getElementById('inv-frase-emotiva').value = c.frase_emotiva || '';
+    document.getElementById('inv-album-url').value = c.album_url || '';
+    document.getElementById('inv-s-regalo-texto').value = c.regalo_texto || '';
+    document.getElementById('inv-s-alias').value = c.alias_mp || '';
+    document.getElementById('inv-s-alias-banco').value = c.alias_banco || '';
+    document.getElementById('inv-s-alias-titular').value = c.alias_titular || '';
+    document.getElementById('inv-s-cbu').value = c.cbu || '';
+    document.getElementById('inv-s-rsvp-activo').checked = c.rsvp_activo !== false;
+    document.getElementById('inv-s-rsvp-limite').value = c.rsvp_limite || '';
+    document.getElementById('inv-s-gsheet-url').value = c.gsheet_url || '';
+    document.getElementById('inv-s-emailjs-template').value = c.emailjs_template || '';
+    if (c.color_tema) { document.getElementById('inv-color-tema').value = c.color_tema; previewColorTema(c.color_tema); }
+    document.getElementById('inv-hero-emoji').value = c.hero_emoji || '🌸';
+    _invCarousel1 = c.carousel_images_1 || []; renderCarouselPreview(1, _invCarousel1);
+    _invCarousel2 = c.carousel_images_2 || []; renderCarouselPreview(2, _invCarousel2);
+    _invTrivia = c.trivia_preguntas ? c.trivia_preguntas.map(p => ({...p,opciones:[...p.opciones]})) : TRIVIA_DEFAULT.map(p => ({...p,opciones:[...p.opciones]}));
   } else {
     invSetMode('invitacion');
+    setInvModelo('clasico');
+    _invCarousel1 = []; renderCarouselPreview(1, []);
+    _invCarousel2 = []; renderCarouselPreview(2, []);
+    _invTrivia = TRIVIA_DEFAULT.map(p => ({...p,opciones:[...p.opciones]}));
     document.getElementById('inv-id').value = '';
     ['inv-novios','inv-titulo','inv-subtitulo','inv-fecha-display','inv-presentacion','inv-media-url',
      'inv-ceremonia-hora','inv-ceremonia-lugar','inv-ceremonia-dir','inv-recepcion-hora','inv-fin-fiesta-hora','inv-recepcion-lugar',
@@ -6306,10 +6676,49 @@ function readInviteForm() {
       estilo_aero: document.getElementById('inv-estilo-aero').checked,
       logo_dark: S.get('crd_site_logo') || '',
       logo_light: S.get('crd_site_logo') || '',
-      logo_filter: S.get('crd_site_logo_filter') || ''
+      logo_filter: S.get('crd_site_logo_filter') || '',
+      modelo: document.getElementById('inv-modelo').value || 'clasico',
     },
     slug: document.getElementById('inv-slug').value.trim() || toSlug(document.getElementById('inv-novios').value.trim()) || 'invitacion'
   };
+  if (data.config.modelo === 'social') {
+    const mType = document.querySelector('input[name="inv-s-media-type"]:checked');
+    Object.assign(data.config, {
+      novios: document.getElementById('inv-s-novios').value.trim(),
+      titulo: document.getElementById('inv-s-titulo').value.trim(),
+      fecha_display: document.getElementById('inv-s-fecha-display').value.trim(),
+      fecha_iso: document.getElementById('inv-s-fecha-iso').value,
+      media_url: document.getElementById('inv-s-media-url').value.trim(),
+      media_type: mType ? mType.value : 'image',
+      youtube_audio: document.getElementById('inv-s-youtube-audio').value.trim(),
+      recepcion_hora: document.getElementById('inv-s-recepcion-hora').value.trim(),
+      lugar_nombre: document.getElementById('inv-s-lugar-nombre').value.trim(),
+      lugar_direccion: document.getElementById('inv-s-lugar-dir').value.trim(),
+      lugar_maps: document.getElementById('inv-s-lugar-maps').value.trim(),
+      dresscode: document.getElementById('inv-s-dresscode').value.trim(),
+      dresscode_nota: document.getElementById('inv-s-dresscode-nota').value.trim(),
+      frase_emotiva: document.getElementById('inv-frase-emotiva').value.trim(),
+      album_url: document.getElementById('inv-album-url').value.trim(),
+      regalo_texto: document.getElementById('inv-s-regalo-texto').value.trim(),
+      alias_mp: document.getElementById('inv-s-alias').value.trim(),
+      alias_banco: document.getElementById('inv-s-alias-banco').value.trim(),
+      alias_titular: document.getElementById('inv-s-alias-titular').value.trim(),
+      cbu: document.getElementById('inv-s-cbu').value.trim(),
+      rsvp_activo: document.getElementById('inv-s-rsvp-activo').checked,
+      rsvp_limite: document.getElementById('inv-s-rsvp-limite').value,
+      gsheet_url: document.getElementById('inv-s-gsheet-url').value.trim(),
+      emailjs_template: document.getElementById('inv-s-emailjs-template').value.trim(),
+      color_tema: document.getElementById('inv-color-tema').value || 'mauve',
+      hero_emoji: document.getElementById('inv-hero-emoji').value.trim() || '🌸',
+      carousel_images_1: _invCarousel1 || [],
+      carousel_images_2: _invCarousel2 || [],
+      trivia_preguntas: _invTrivia.filter(p => p.activa),
+      emailjs_service: 'service_35rtklk',
+      emailjs_key: 'odUJtdh1Z0U27ZkaN',
+    });
+    if (!data.slug) data.slug = toSlug(data.config.novios) || 'invitacion';
+  }
+  return data;
 }
 
 function saveInvite() {
@@ -7090,9 +7499,12 @@ function closeDriveBrowser() {
   document.getElementById('drive-browser-modal').style.display = 'none';
   const btnP = document.getElementById('db-btn-portfolio');
   const btnE = document.getElementById('db-btn-entrega');
+  const btnC = document.getElementById('db-btn-carousel');
   if(btnP) btnP.style.display = 'inline-block';
   if(btnE) btnE.style.display = 'none';
+  if(btnC) btnC.style.display = 'none';
   pendingPhotoCallback = null;
+  _dbCarouselTarget = null;
 }
 
 function dbExtractId(input) {
