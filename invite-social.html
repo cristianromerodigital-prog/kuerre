@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Invitación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --accent:#8b5e6e;
+  --accent-light:#c4899a;
+  --accent-dark:#6b3e4e;
+  --on-accent:#ffffff;
+  --bg:#ffffff;
+  --text:#1a1a1a;
+  --text-soft:#666666;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;font-weight:300;overflow-x:hidden}
+
+/* ── TEMAS DE COLOR ── */
+.tema-mauve{--accent:#8b5e6e;--accent-light:#c4899a;--accent-dark:#6b3e4e}
+.tema-lavanda{--accent:#7c6fa0;--accent-light:#b0a8d0;--accent-dark:#5c4f80}
+.tema-durazno{--accent:#c4896a;--accent-light:#e0b090;--accent-dark:#a4694a}
+.tema-menta{--accent:#5a8f7b;--accent-light:#90c4b0;--accent-dark:#3a6f5b}
+.tema-azul-bebe{--accent:#6a8fb4;--accent-light:#a0c0d8;--accent-dark:#4a6f94}
+.tema-champagne{--accent:#b89a72;--accent-light:#d4c090;--accent-dark:#987a52}
+.tema-coral{--accent:#c4706a;--accent-light:#e4a090;--accent-dark:#a4504a}
+.tema-lila{--accent:#9878b8;--accent-light:#c8aee0;--accent-dark:#7858a0}
+.tema-salvia{--accent:#6e8f6a;--accent-light:#a0c49a;--accent-dark:#4e6f4a}
+.tema-celeste{--accent:#5a9ab4;--accent-light:#90c8e0;--accent-dark:#3a7a94}
+.tema-rosa-empolvado{--accent:#b87890;--accent-light:#d8a8bc;--accent-dark:#985870}
+
+/* ── SECCIONES ALTERNADAS ── */
+.sec-light{background:var(--bg);padding:80px 24px;text-align:center}
+.sec-dark{background:var(--accent);padding:80px 24px;text-align:center;color:var(--on-accent)}
+.sec-inner{max-width:680px;margin:0 auto}
+
+/* ── TIPOGRAFÍA ── */
+.sec-icon{margin-bottom:20px;opacity:0.85}
+.sec-icon svg{width:48px;height:48px;stroke:currentColor;fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.sec-label{font-size:10px;letter-spacing:5px;text-transform:uppercase;margin-bottom:12px;display:block;opacity:0.75}
+.sec-title{font-family:'Dancing Script',cursive;font-size:clamp(28px,6vw,48px);font-weight:400;line-height:1.2;margin-bottom:16px}
+.sec-title-upper{font-size:clamp(18px,4vw,28px);letter-spacing:3px;text-transform:uppercase;font-weight:300;margin-bottom:16px}
+.sec-body{font-size:13px;line-height:1.9;opacity:0.85;max-width:480px;margin:0 auto}
+.sec-divider{width:50px;height:1px;background:currentColor;opacity:0.3;margin:24px auto}
+
+/* ── BOTONES ── */
+.btn-outline{display:inline-block;padding:12px 32px;border:1.5px solid currentColor;font-size:10px;letter-spacing:3px;text-transform:uppercase;text-decoration:none;cursor:pointer;background:none;color:inherit;font-family:'Montserrat',sans-serif;font-weight:400;transition:all 0.2s;margin-top:20px}
+.btn-solid{display:inline-block;padding:14px 36px;background:var(--accent);color:var(--on-accent);border:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:500;transition:opacity 0.2s;text-decoration:none;margin-top:20px}
+.sec-dark .btn-outline{border-color:rgba(255,255,255,0.6)}
+.btn-outline:hover,.sec-dark .btn-outline:hover{background:var(--on-accent);color:var(--accent)}
+.btn-solid:hover{opacity:0.82}
+
+/* ── ANIMACIONES EMOJI / ÍCONOS ── */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pulse-icon{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes bounce-in{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.anim-float{animation:float 3s ease-in-out infinite}
+.anim-pulse{animation:pulse-icon 2.5s ease-in-out infinite}
+.anim-bounce{animation:bounce-in 0.6s ease both}
+
+/* ── HERO ── */
+#hero{position:relative;height:100vh;min-height:580px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+#hero-bg-wrap{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+#hero-bg-wrap img,#hero-bg-wrap video{width:100%;height:100%;object-fit:cover;object-position:center}
+#hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.2) 50%,rgba(0,0,0,0.1) 100%);z-index:1}
+#hero-content{position:relative;z-index:2;text-align:center;padding:0 24px 60px;color:#fff;width:100%}
+.hero-eyebrow{font-size:10px;letter-spacing:6px;text-transform:uppercase;opacity:0.8;margin-bottom:12px}
+.hero-title-upper{font-size:clamp(32px,8vw,72px);font-weight:500;letter-spacing:4px;text-transform:uppercase;line-height:1}
+.hero-title-script{font-family:'Dancing Script',cursive;font-size:clamp(36px,10vw,90px);font-weight:400;line-height:1.1;color:#fff}
+.hero-emoji{font-size:clamp(28px,6vw,48px);display:block;margin-bottom:12px}
+#countdown{display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap}
+.cd-tile{background:var(--accent);border-radius:6px;padding:12px 16px;min-width:70px;text-align:center}
+.cd-num{font-size:clamp(24px,5vw,40px);font-weight:500;display:block;line-height:1}
+.cd-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.8;display:block;margin-top:4px}
+
+/* ── CARRUSEL ── */
+.carousel-wrap{position:relative;overflow:hidden;width:100vw;margin-left:calc(-50vw + 50%)}
+.carousel-track{display:flex;transition:transform 0.6s cubic-bezier(.4,0,.2,1);will-change:transform}
+.carousel-slide{flex:0 0 calc(100%/3);padding:4px}
+.carousel-slide img{width:100%;height:300px;object-fit:cover;display:block}
+@media(max-width:640px){.carousel-slide{flex:0 0 100%}}
+
+/* ── FRASE ── */
+#frase{padding:60px 24px;text-align:center;max-width:780px;margin:0 auto}
+.frase-text{font-size:clamp(13px,2.5vw,16px);line-height:2;color:var(--text-soft);letter-spacing:0.5px;font-style:italic;text-transform:uppercase}
+
+/* ── REGALO ── */
+.regalo-reveal{display:none;margin-top:24px;padding:24px;border:1.5px solid rgba(255,255,255,0.3)}
+.regalo-alias{font-family:'Dancing Script',cursive;font-size:36px;margin-bottom:6px}
+.regalo-bank{font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.7;margin-bottom:4px}
+.regalo-titular{font-size:12px;opacity:0.85;margin-bottom:16px}
+.btn-copy-white{background:none;border:1px solid rgba(255,255,255,0.5);color:#fff;padding:8px 20px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.2s;margin:4px}
+.btn-copy-white:hover{background:rgba(255,255,255,0.15)}
+
+/* ── TRIVIA MODAL ── */
+#trivia-modal{display:none;position:fixed;inset:0;z-index:500;align-items:center;justify-content:center;padding:20px}
+#trivia-modal.open{display:flex}
+#trivia-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px)}
+#trivia-box{position:relative;z-index:1;background:#fff;color:#1a1a1a;width:100%;max-width:440px;padding:36px 32px;box-shadow:0 20px 60px rgba(0,0,0,0.25);animation:bounce-in 0.4s ease both}
+.trivia-progress{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+.trivia-question{font-size:15px;font-weight:500;line-height:1.5;margin-bottom:24px;color:#1a1a1a}
+.trivia-option{display:block;width:100%;text-align:left;padding:12px 16px;margin-bottom:10px;border:1.5px solid rgba(0,0,0,0.12);background:none;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:13px;transition:all 0.2s;color:#1a1a1a}
+.trivia-option:hover:not(:disabled){border-color:var(--accent);background:rgba(0,0,0,0.03)}
+.trivia-option.correct{border-color:#4caf50;background:#f0fff0;color:#2a6a2a}
+.trivia-option.wrong{border-color:#e53935;background:#fff0f0;color:#8a2a2a}
+.trivia-next{margin-top:16px;width:100%;padding:12px;background:var(--accent);color:#fff;border:none;font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer}
+.trivia-result{text-align:center;padding:20px 0}
+.trivia-result-score{font-family:'Dancing Script',cursive;font-size:52px;color:var(--accent);display:block;margin-bottom:12px}
+.trivia-result-msg{font-size:14px;line-height:1.7;color:var(--text-soft)}
+
+/* ── RSVP ── */
+#rsvp .sec-inner{max-width:580px}
+.form-group{margin-bottom:16px;text-align:left}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;opacity:0.75;display:block;margin-bottom:8px;color:var(--on-accent)}
+.form-input,.form-select,.form-textarea{width:100%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:var(--on-accent);padding:12px 16px;font-size:13px;font-family:'Montserrat',sans-serif;font-weight:300;outline:none;transition:border 0.2s;-webkit-appearance:none}
+.form-input::placeholder,.form-textarea::placeholder{color:rgba(255,255,255,0.45)}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:rgba(255,255,255,0.7)}
+.form-select option{background:var(--accent-dark);color:#fff}
+.form-textarea{min-height:80px;resize:vertical}
+.btn-rsvp{width:100%;padding:16px;background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.6);color:#fff;font-size:11px;letter-spacing:4px;text-transform:uppercase;font-family:'Montserrat',sans-serif;font-weight:500;cursor:pointer;transition:all 0.2s;margin-top:8px}
+.btn-rsvp:hover{background:rgba(255,255,255,0.3)}
+.btn-rsvp:disabled{opacity:0.5;cursor:not-allowed}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+
+/* ── CIERRE ── */
+#cierre{padding:80px 24px;text-align:center}
+.cierre-heart{font-size:40px;display:block;margin-bottom:24px}
+@keyframes heart-beat{0%,100%{transform:scale(1)}14%{transform:scale(1.2)}28%{transform:scale(1)}42%{transform:scale(1.15)}70%{transform:scale(1)}}
+.cierre-heart{animation:heart-beat 2s ease-in-out infinite}
+.cierre-espero{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px}
+.cierre-nombre{font-family:'Dancing Script',cursive;font-size:clamp(36px,8vw,64px);color:var(--accent)}
+
+/* ── FOOTER ── */
+footer{background:linear-gradient(to bottom,var(--accent),var(--accent-dark));padding:48px 24px;text-align:center;color:var(--on-accent)}
+footer p{font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:0.8}
+footer small{font-size:10px;opacity:0.5;margin-top:8px;display:block}
+footer small a{color:inherit}
+#footer-logo{display:none;margin:12px auto 8px;max-height:48px;max-width:160px;object-fit:contain;opacity:0.8}
+
+/* ── RSVP SUCCESS ── */
+#rsvp-success{display:none;text-align:center;padding:40px 0}
+#rsvp-success .success-icon{font-size:48px;display:block;margin-bottom:16px}
+#rsvp-success p{font-family:'Dancing Script',cursive;font-size:28px;margin-bottom:8px}
+#rsvp-success small{font-size:12px;opacity:0.75}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:10px 24px;font-size:11px;letter-spacing:2px;text-transform:uppercase;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+
+/* ── PLACEHOLDER ── */
+#placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;gap:16px}
+#placeholder h2{font-family:'Dancing Script',cursive;font-size:32px;color:var(--accent)}
+#placeholder p{font-size:13px;color:var(--text-soft);max-width:360px;line-height:1.8}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ── AUDIO BTN ── */
+#btn-yt-audio{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:18px;cursor:pointer;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.25);display:none}
+</style>
+</head>
+<body>
+
+<div id="placeholder" style="display:none">
+  <h2>Invitación no encontrada</h2>
+  <p>El enlace de esta invitación no es válido. Pedile al organizador que te reenvíe el link correcto.</p>
+</div>
+
+<div id="invite-app" style="display:none">
+
+<!-- HERO -->
+<section id="hero">
+  <div id="hero-bg-wrap"></div>
+  <div id="hero-overlay"></div>
+  <div id="hero-content">
+    <span class="hero-emoji anim-float" id="hero-emoji">🌸</span>
+    <div class="hero-eyebrow" id="hero-eyebrow"></div>
+    <div class="hero-title-upper" id="hero-title-upper"></div>
+    <div class="hero-title-script" id="hero-title-script"></div>
+    <div id="countdown"></div>
+  </div>
+</section>
+
+<!-- CUANDO -->
+<section id="cuando" class="sec-dark">
+  <div class="sec-inner">
+    <div class="sec-icon anim-pulse">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <span class="sec-label">¿Cuándo?</span>
+    <div class="sec-title-upper" id="cuando-fecha"></div>
+    <div class="sec-body" id="cuando-hora"></div>
+  </div>
+</section>
+
+<!-- DONDE -->
+<section id="donde" class="sec-light">
+  <div class="sec-inner reveal">
+    <div class="sec-icon anim-pulse" style="color:var(--accent)">
+      <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    </div>
+    <span class="sec-label" style="color:var(--accent)">¿Dónde?</span>
+    <div class="sec-title-upper" style="color:var(--text)" id="donde-nombre"></div>
+    <p class="sec-body" id="donde-dir"></p>
+    <a id="btn-maps" class="btn-solid" target="_blank" rel="noopener" style="display:none">Como llegar</a>
+  </div>
+</section>
+
+<!-- DRESSCODE -->
+<section id="dresscode" class="sec-dark">
+  <div class="sec-inner">
+    <div class="sec-icon anim-pulse">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </div>
+    <span class="sec-label">Dress Code</span>
+    <div class="sec-title-upper" id="dresscode-val"></div>
+    <div class="sec-divider"></div>
+    <p class="sec-body" id="dresscode-nota"></p>
+  </div>
+</section>
+
+<!-- FOTOS -->
+<section id="fotos" class="sec-light" style="display:none">
+  <div class="sec-inner reveal">
+    <div class="sec-icon" style="color:var(--accent)">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
+    <span class="sec-label" style="color:var(--accent)">Quiero ver tus fotos</span>
+    <p class="sec-body">Pueden subir todas sus fotos del evento a mi álbum compartido</p>
+    <a id="btn-album" class="btn-solid" target="_blank" rel="noopener">Ir al álbum</a>
+  </div>
+</section>
+
+<!-- CARRUSEL 1 -->
+<div id="carrusel-1-wrap" style="display:none;overflow:hidden">
+  <div class="carousel-wrap">
+    <div class="carousel-track" id="carrusel-1-track"></div>
+  </div>
+</div>
+
+<!-- FRASE -->
+<section id="frase" class="sec-light" style="display:none;padding:60px 24px">
+  <div style="max-width:780px;margin:0 auto;text-align:center">
+    <div class="sec-divider" style="background:var(--accent)"></div>
+    <p class="frase-text" id="frase-text" style="margin:24px 0"></p>
+    <div class="sec-divider" style="background:var(--accent)"></div>
+  </div>
+</section>
+
+<!-- REGALO -->
+<section id="regalo" class="sec-dark" style="display:none">
+  <div class="sec-inner">
+    <div class="sec-icon anim-pulse">
+      <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+    </div>
+    <span class="sec-label">Regalo</span>
+    <p class="sec-body" id="regalo-texto-sec">Nada es más importante que tu presencia, pero si deseás hacerme un regalo será recibido con mucho amor.</p>
+    <button class="btn-outline" onclick="toggleRegalo()">Ver cuenta</button>
+    <div class="regalo-reveal" id="regalo-reveal">
+      <div class="regalo-alias" id="reg-alias"></div>
+      <div class="regalo-bank" id="reg-bank"></div>
+      <div class="regalo-titular" id="reg-titular"></div>
+      <button class="btn-copy-white" onclick="copiarAlias()">Copiar alias</button>
+      <div id="reg-cbu-wrap" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.2)">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.6;margin-bottom:6px">CBU</div>
+        <div id="reg-cbu" style="font-size:13px;letter-spacing:1px;margin-bottom:12px"></div>
+        <button class="btn-copy-white" onclick="copiarCBU()">Copiar CBU</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRIVIA -->
+<section id="trivia" class="sec-light" style="display:none">
+  <div class="sec-inner reveal">
+    <div class="sec-icon" style="color:var(--accent)">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
+    <span class="sec-label" style="color:var(--accent)">¿Cuánto me conocés?</span>
+    <p class="sec-body">Juguemos un poco</p>
+    <button class="btn-solid" onclick="openTrivia()">Comenzar trivia</button>
+  </div>
+</section>
+
+<!-- CARRUSEL 2 -->
+<div id="carrusel-2-wrap" style="display:none;overflow:hidden">
+  <div class="carousel-wrap">
+    <div class="carousel-track" id="carrusel-2-track"></div>
+  </div>
+</div>
+
+<!-- RSVP -->
+<section id="rsvp" class="sec-dark" style="display:none">
+  <div class="sec-inner">
+    <div class="sec-icon anim-pulse">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    </div>
+    <span class="sec-label">Confirmá tu asistencia</span>
+    <div class="sec-title-upper">RSVP</div>
+    <p class="sec-body" style="margin-bottom:36px">Por favor confirmá antes del <span id="rsvp-fecha-limite" style="font-weight:500"></span>.</p>
+    <div id="rsvp-form-wrap">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input class="form-input" id="rsvp-nombre" placeholder="Tu nombre">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido</label>
+          <input class="form-input" id="rsvp-apellido" placeholder="Tu apellido">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">¿Confirmás asistencia?</label>
+        <select class="form-select" id="rsvp-asistencia">
+          <option value="">— Seleccioná —</option>
+          <option value="si">Sí, voy a estar</option>
+          <option value="no">No, no voy a ir</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mensaje (opcional)</label>
+        <textarea class="form-textarea" id="rsvp-mensaje" placeholder="¿Querés decirnos algo?"></textarea>
+      </div>
+      <button class="btn-rsvp" id="rsvp-btn" onclick="submitRSVP()">Enviar confirmación</button>
+      <p id="rsvp-error" style="display:none;color:rgba(255,100,100,0.9);font-size:12px;margin-top:12px;text-align:center"></p>
+    </div>
+    <div id="rsvp-success">
+      <span class="success-icon">🎉</span>
+      <p>¡Gracias por confirmar!</p>
+      <small>Ya recibimos tu respuesta. ¡Nos vemos pronto!</small>
+    </div>
+  </div>
+</section>
+
+<!-- CIERRE -->
+<section id="cierre" class="sec-light">
+  <div class="sec-inner reveal">
+    <span class="cierre-heart">🤍</span>
+    <div class="cierre-espero">Te espero</div>
+    <div class="cierre-nombre" id="cierre-nombre"></div>
+  </div>
+</section>
+
+<!-- TRIVIA MODAL -->
+<div id="trivia-modal">
+  <div id="trivia-overlay" onclick="closeTrivia()"></div>
+  <div id="trivia-box">
+    <div class="trivia-progress" id="trivia-progress"></div>
+    <div id="trivia-content">
+      <div class="trivia-question" id="trivia-question"></div>
+      <div id="trivia-options"></div>
+      <button class="trivia-next" id="trivia-next" onclick="nextPregunta()" style="display:none">Siguiente →</button>
+    </div>
+    <div class="trivia-result" id="trivia-result" style="display:none">
+      <span class="trivia-result-score" id="trivia-score"></span>
+      <div class="trivia-result-msg" id="trivia-msg"></div>
+      <button class="trivia-next" style="margin-top:20px" onclick="closeTrivia()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p id="footer-names"></p>
+  <img id="footer-logo" alt="Logo">
+  <small>Invitación digital · <a id="footer-web" href="https://www.cristianromeroproducciones.com.ar" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Cristian Romero Producciones</a></small>
+</footer>
+
+</div><!-- /invite-app -->
+
+<div id="toast"></div>
+<button id="btn-yt-audio">⏸</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+const CONFIG = {
+  CF_URL: 'https://KUERRE-worker.cristian-romero-digital.workers.dev',
+  WEB_DEFAULT: 'https://cristianromeroproducciones.com.ar',
+};
+
+let cfg = null;
+
+const TEMAS = {
+  'mauve':{'--accent':'#8b5e6e','--accent-light':'#c4899a','--accent-dark':'#6b3e4e'},
+  'lavanda':{'--accent':'#7c6fa0','--accent-light':'#b0a8d0','--accent-dark':'#5c4f80'},
+  'durazno':{'--accent':'#c4896a','--accent-light':'#e0b090','--accent-dark':'#a4694a'},
+  'menta':{'--accent':'#5a8f7b','--accent-light':'#90c4b0','--accent-dark':'#3a6f5b'},
+  'azul-bebe':{'--accent':'#6a8fb4','--accent-light':'#a0c0d8','--accent-dark':'#4a6f94'},
+  'champagne':{'--accent':'#b89a72','--accent-light':'#d4c090','--accent-dark':'#987a52'},
+  'coral':{'--accent':'#c4706a','--accent-light':'#e4a090','--accent-dark':'#a4504a'},
+  'lila':{'--accent':'#9878b8','--accent-light':'#c8aee0','--accent-dark':'#7858a0'},
+  'salvia':{'--accent':'#6e8f6a','--accent-light':'#a0c49a','--accent-dark':'#4e6f4a'},
+  'celeste':{'--accent':'#5a9ab4','--accent-light':'#90c8e0','--accent-dark':'#3a7a94'},
+  'rosa-empolvado':{'--accent':'#b87890','--accent-light':'#d8a8bc','--accent-dark':'#985870'},
+};
+
+async function parseConfig() {
+  const params = new URLSearchParams(location.search);
+  const slug = params.get('i');
+  if (slug) {
+    try {
+      const res = await fetch(CONFIG.CF_URL + '/invite/' + slug);
+      const data = await res.json();
+      if (data && typeof data === 'object') return data;
+    } catch(e) {}
+  }
+  const raw = params.get('c');
+  if (!raw) return null;
+  try { return JSON.parse(atob(decodeURIComponent(raw))); } catch(e) { return null; }
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function formatFechaLimite(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
+}
+
+function startCountdown(isoDate) {
+  const target = new Date(isoDate + 'T00:00:00');
+  const wrap = document.getElementById('countdown');
+  const labels = ['DÍAS','HORAS','MIN','SEG'];
+  function update() {
+    const diff = target - new Date();
+    if (diff <= 0) { wrap.innerHTML = '<span style="font-size:16px;letter-spacing:3px;opacity:0.9">¡Hoy es el gran día!</span>'; return; }
+    const vals = [
+      Math.floor(diff / 86400000),
+      Math.floor((diff % 86400000) / 3600000),
+      Math.floor((diff % 3600000) / 60000),
+      Math.floor((diff % 60000) / 1000)
+    ];
+    wrap.innerHTML = vals.map((n,i) => `<div class="cd-tile"><span class="cd-num">${String(n).padStart(2,'0')}</span><span class="cd-label">${labels[i]}</span></div>`).join('');
+  }
+  update();
+  setInterval(update, 1000);
+}
+
+function renderHero(c) {
+  document.title = c.titulo || (c.novios ? `Invitación — ${c.novios}` : 'Invitación');
+  document.getElementById('hero-emoji').textContent = c.hero_emoji || '🌸';
+  document.getElementById('hero-eyebrow').textContent = c.titulo || '';
+  const parts = (c.novios || '').split('&');
+  if (parts.length === 2) {
+    document.getElementById('hero-title-upper').textContent = 'MIS 15';
+    document.getElementById('hero-title-script').textContent = parts[0].trim();
+  } else {
+    document.getElementById('hero-title-upper').textContent = '';
+    document.getElementById('hero-title-script').textContent = c.novios || c.titulo || '';
+  }
+  const wrap = document.getElementById('hero-bg-wrap');
+  if (c.media_url) {
+    if (c.media_type === 'video') {
+      wrap.innerHTML = `<video autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover"><source src="${c.media_url}"></video>`;
+    } else {
+      wrap.innerHTML = `<img src="${c.media_url}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+    }
+  }
+  if (c.fecha_iso) startCountdown(c.fecha_iso);
+  else document.getElementById('countdown').style.display = 'none';
+  const primerNombre = (c.novios || c.titulo || '').split('&')[0].trim();
+  document.getElementById('cierre-nombre').textContent = primerNombre;
+  document.getElementById('footer-names').textContent = c.novios || '';
+}
+
+function renderCuando(c) {
+  document.getElementById('cuando-fecha').textContent = c.fecha_display || '';
+  const hora = c.recepcion_hora || c.ceremonia_hora || '';
+  document.getElementById('cuando-hora').textContent = hora ? '| ' + hora + ' hs. |' : '';
+}
+
+function renderDonde(c) {
+  document.getElementById('donde-nombre').textContent = c.lugar_nombre || '';
+  document.getElementById('donde-dir').textContent = c.lugar_direccion || '';
+  const btn = document.getElementById('btn-maps');
+  if (c.lugar_maps) { btn.href = c.lugar_maps; btn.style.display = 'inline-block'; }
+}
+
+function renderDresscode(c) {
+  document.getElementById('dresscode-val').textContent = c.dresscode || 'Formal';
+  const notaEl = document.getElementById('dresscode-nota');
+  if (c.dresscode_nota) notaEl.textContent = c.dresscode_nota;
+  else notaEl.style.display = 'none';
+}
+
+function renderFotos(c) {
+  if (!c.album_url) return;
+  document.getElementById('fotos').style.display = '';
+  document.getElementById('btn-album').href = c.album_url;
+}
+
+function buildCarrusel(trackId, wrapId, images) {
+  if (!images || !images.length) return;
+  const wrap = document.getElementById(wrapId);
+  const track = document.getElementById(trackId);
+  wrap.style.display = '';
+  // Triple set para loop infinito
+  const all = [...images, ...images, ...images];
+  track.innerHTML = all.map(url => `<div class="carousel-slide"><img src="${url}" loading="lazy" alt=""></div>`).join('');
+  let idx = images.length;
+  function slideW() { const s = track.querySelector('.carousel-slide'); return s ? s.offsetWidth : 0; }
+  function goTo(i, animate) {
+    track.style.transition = animate === false ? 'none' : 'transform 0.6s cubic-bezier(.4,0,.2,1)';
+    track.style.transform = `translateX(-${i * slideW()}px)`;
+  }
+  // Init position sin animación
+  setTimeout(() => goTo(idx, false), 50);
+  track.addEventListener('transitionend', () => {
+    if (idx >= images.length * 2) { idx = images.length; goTo(idx, false); }
+    if (idx < images.length) { idx = images.length * 2 - 1; goTo(idx, false); }
+  });
+  // Touch swipe
+  let startX = 0;
+  const carouselWrap = wrap.querySelector('.carousel-wrap');
+  carouselWrap.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+  carouselWrap.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) { dx < 0 ? idx++ : idx--; goTo(idx, true); }
+  });
+  // Auto-slide
+  setInterval(() => { idx++; goTo(idx, true); }, 3000);
+}
+
+function renderFrase(c) {
+  if (!c.frase_emotiva) return;
+  document.getElementById('frase').style.display = '';
+  document.getElementById('frase-text').textContent = c.frase_emotiva;
+}
+
+function renderRegalo(c) {
+  if (!c.alias_mp && !c.cbu) return;
+  document.getElementById('regalo').style.display = '';
+  if (c.regalo_texto) document.getElementById('regalo-texto-sec').textContent = c.regalo_texto;
+  document.getElementById('reg-alias').textContent = c.alias_mp || '';
+  document.getElementById('reg-bank').textContent = c.alias_banco || 'Mercado Pago';
+  document.getElementById('reg-titular').textContent = c.alias_titular ? 'Titular: ' + c.alias_titular : '';
+  if (c.cbu) {
+    document.getElementById('reg-cbu-wrap').style.display = '';
+    document.getElementById('reg-cbu').textContent = c.cbu;
+  }
+}
+
+function toggleRegalo() {
+  const rev = document.getElementById('regalo-reveal');
+  rev.style.display = rev.style.display === 'block' ? 'none' : 'block';
+}
+
+function copiarAlias() {
+  if (!cfg) return;
+  navigator.clipboard.writeText(cfg.alias_mp || '').then(() => toast('¡Alias copiado!'));
+}
+
+function copiarCBU() {
+  if (!cfg) return;
+  navigator.clipboard.writeText(cfg.cbu || '').then(() => toast('¡CBU copiado!'));
+}
+
+// ── TRIVIA ────────────────────────────────────────────────────
+let _triviaPreguntas = [], _triviaIdx = 0, _triviaScore = 0, _triviaAnswered = false;
+
+function openTrivia() {
+  if (!_triviaPreguntas.length) return;
+  _triviaIdx = 0; _triviaScore = 0;
+  document.getElementById('trivia-modal').classList.add('open');
+  document.getElementById('trivia-result').style.display = 'none';
+  document.getElementById('trivia-content').style.display = '';
+  mostrarPregunta();
+}
+
+function closeTrivia() {
+  document.getElementById('trivia-modal').classList.remove('open');
+}
+
+function mostrarPregunta() {
+  const p = _triviaPreguntas[_triviaIdx];
+  _triviaAnswered = false;
+  document.getElementById('trivia-progress').textContent = `Pregunta ${_triviaIdx + 1} de ${_triviaPreguntas.length}`;
+  document.getElementById('trivia-question').textContent = p.pregunta;
+  document.getElementById('trivia-next').style.display = 'none';
+  document.getElementById('trivia-options').innerHTML = p.opciones.map((op, i) =>
+    `<button class="trivia-option" onclick="responder(${i})">${op}</button>`
+  ).join('');
+}
+
+function responder(idx) {
+  if (_triviaAnswered) return;
+  _triviaAnswered = true;
+  const p = _triviaPreguntas[_triviaIdx];
+  document.querySelectorAll('.trivia-option').forEach((b, i) => {
+    if (i === p.correcta) b.classList.add('correct');
+    else if (i === idx && idx !== p.correcta) b.classList.add('wrong');
+    b.disabled = true;
+  });
+  if (idx === p.correcta) _triviaScore++;
+  const nextBtn = document.getElementById('trivia-next');
+  nextBtn.style.display = 'block';
+  nextBtn.textContent = _triviaIdx < _triviaPreguntas.length - 1 ? 'Siguiente →' : 'Ver resultado';
+}
+
+function nextPregunta() {
+  _triviaIdx++;
+  if (_triviaIdx >= _triviaPreguntas.length) {
+    document.getElementById('trivia-content').style.display = 'none';
+    document.getElementById('trivia-result').style.display = '';
+    document.getElementById('trivia-score').textContent = _triviaScore + '/' + _triviaPreguntas.length;
+    const nombre = (cfg.novios || cfg.titulo || '').split('&')[0].trim();
+    const pct = _triviaScore / _triviaPreguntas.length;
+    document.getElementById('trivia-msg').textContent =
+      pct === 1 ? `¡Perfecto! Sos un experto en ${nombre} 🏆` :
+      pct >= 0.6 ? `¡Muy bien! La conocés bastante 😊` :
+      `¡Seguí intentando! Todavía hay mucho por aprender 😄`;
+    document.getElementById('trivia-progress').textContent = '¡Trivia completa!';
+  } else {
+    mostrarPregunta();
+  }
+}
+
+function renderRSVP(c) {
+  if (!c.rsvp_activo) return;
+  document.getElementById('rsvp').style.display = '';
+  document.getElementById('rsvp-fecha-limite').textContent = formatFechaLimite(c.rsvp_limite) || '';
+}
+
+async function submitRSVP() {
+  const nombre = document.getElementById('rsvp-nombre').value.trim();
+  const apellido = document.getElementById('rsvp-apellido').value.trim();
+  const asistencia = document.getElementById('rsvp-asistencia').value;
+  const errorEl = document.getElementById('rsvp-error');
+  errorEl.style.display = 'none';
+  if (!nombre || !apellido) { errorEl.textContent = 'Por favor ingresá nombre y apellido.'; errorEl.style.display = 'block'; return; }
+  if (!asistencia) { errorEl.textContent = 'Por favor confirmá si vas a asistir.'; errorEl.style.display = 'block'; return; }
+  const btn = document.getElementById('rsvp-btn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  const data = {
+    evento: cfg.titulo || cfg.novios || 'Invitación',
+    nombre, apellido,
+    asistencia: { si: 'Sí, confirma asistencia', no: 'No puede asistir' }[asistencia] || asistencia,
+    restricciones: 'Ninguna',
+    mensaje: document.getElementById('rsvp-mensaje').value.trim() || ''
+  };
+  const tasks = [];
+  if (cfg.gsheet_url) tasks.push(fetch(cfg.gsheet_url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) }).catch(()=>{}));
+  if (cfg.emailjs_service && cfg.emailjs_template && cfg.emailjs_key) {
+    emailjs.init({ publicKey: cfg.emailjs_key });
+    tasks.push(emailjs.send(cfg.emailjs_service, cfg.emailjs_template, data).catch(()=>{}));
+  }
+  await Promise.all(tasks).catch(()=>{});
+  document.getElementById('rsvp-form-wrap').style.display = 'none';
+  document.getElementById('rsvp-success').style.display = 'block';
+}
+
+function initScrollReveal() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
+// ── YOUTUBE AUDIO ──────────────────────────────────────────────
+let _ytReady = false, _ytPlayer = null;
+function initYoutubeAudio(videoId) {
+  if (!videoId) return;
+  const btn = document.getElementById('btn-yt-audio');
+  btn.style.display = 'block';
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+  window.onYouTubeIframeAPIReady = function() {
+    const div = document.createElement('div');
+    div.id = '_yt_hidden';
+    div.style.cssText = 'position:fixed;bottom:-999px;left:-999px;width:1px;height:1px;opacity:0;pointer-events:none';
+    document.body.appendChild(div);
+    _ytPlayer = new YT.Player('_yt_hidden', {
+      videoId, playerVars:{ autoplay:1, loop:1, playlist:videoId, controls:0 },
+      events:{ onReady: e => { e.target.setVolume(0); e.target.playVideo(); _ytReady = true; } }
+    });
+  };
+  function triggerUnmute() {
+    if (_ytReady && _ytPlayer) { _ytPlayer.setVolume(50); _ytPlayer.unMute(); btn.innerHTML = '⏸'; }
+  }
+  btn.onclick = function() {
+    if (!_ytReady) return;
+    if (_ytPlayer.isMuted() || _ytPlayer.getVolume() === 0) { triggerUnmute(); }
+    else { _ytPlayer.setVolume(0); _ytPlayer.mute(); btn.innerHTML = '▶'; }
+  };
+  const onGesture = () => { triggerUnmute(); };
+  document.addEventListener('click', onGesture, { once:true });
+  document.addEventListener('touchstart', onGesture, { once:true, passive:true });
+}
+
+// ── INIT ───────────────────────────────────────────────────────
+async function init() {
+  cfg = await parseConfig();
+  if (!cfg) { document.getElementById('placeholder').style.display = 'flex'; return; }
+
+  // Aplicar tema de color
+  const tema = cfg.color_tema || 'mauve';
+  if (TEMAS[tema]) {
+    const root = document.documentElement;
+    Object.entries(TEMAS[tema]).forEach(([k,v]) => root.style.setProperty(k, v));
+  }
+
+  document.getElementById('invite-app').style.display = 'block';
+
+  renderHero(cfg);
+  renderCuando(cfg);
+  renderDonde(cfg);
+  renderDresscode(cfg);
+  renderFotos(cfg);
+  buildCarrusel('carrusel-1-track', 'carrusel-1-wrap', cfg.carousel_images_1);
+  renderFrase(cfg);
+  renderRegalo(cfg);
+
+  // Trivia
+  _triviaPreguntas = (cfg.trivia_preguntas || []).filter(p => p.activa !== false);
+  if (_triviaPreguntas.length) document.getElementById('trivia').style.display = '';
+
+  buildCarrusel('carrusel-2-track', 'carrusel-2-wrap', cfg.carousel_images_2);
+  renderRSVP(cfg);
+
+  // Logo footer
+  const logoSrc = cfg.logo_dark || localStorage.getItem('crd_site_logo');
+  if (logoSrc) { const l = document.getElementById('footer-logo'); l.src = logoSrc; l.style.display = 'block'; }
+
+  // Branding footer desde crd_settings
+  try {
+    const sRes = await fetch(CONFIG.CF_URL + '/crd_settings?t=' + Date.now());
+    const sText = await sRes.text();
+    if (sText && sText !== 'null') {
+      const s = JSON.parse(sText);
+      const webEl = document.getElementById('footer-web');
+      if (webEl && s.entregaWebUrl) webEl.href = s.entregaWebUrl;
+    }
+  } catch(e) {}
+
+  if (cfg.youtube_audio) initYoutubeAudio(cfg.youtube_audio);
+
+  initScrollReveal();
+}
+
+init();
+</script>
+</body>
+</html>
