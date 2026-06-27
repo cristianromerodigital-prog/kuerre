@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.50</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.51</div>
     </div>
   </aside>
 
@@ -7857,7 +7857,7 @@ let ctTipo = null;
 let ctSvcData = [];
 const CT_CFG_KEY = 'crd_contratos_cfg';
 
-function initContratosPage() {
+async function initContratosPage() {
   const saved = S.get(CT_CFG_KEY);
   if (saved) {
     if (saved.url)           document.getElementById('ct-apps-url').value = saved.url;
@@ -7866,13 +7866,20 @@ function initContratosPage() {
   }
   document.getElementById('ct-dia-firma').valueAsDate = new Date();
   if (ctSvcData.length === 0 && ctGetUrl()) ctCargarServicios();
-  // Historial: abrir y cargar automáticamente
   const histBody  = document.getElementById('ct-hist-body');
   const histArrow = document.getElementById('ct-hist-arrow');
   if (histBody) { histBody.style.display = 'block'; if (histArrow) histArrow.textContent = '▲'; }
   if (ctGetUrl()) ctLoadHistorial();
-  // Borrador
   ctRestoreDraft();
+  const cloud = await fetchFromCloud(CT_CFG_KEY);
+  if (cloud && cloud.url) {
+    const hadUrl = !!(saved && saved.url);
+    S.set(CT_CFG_KEY, cloud);
+    document.getElementById('ct-apps-url').value = cloud.url;
+    if (cloud.driveRootId) document.getElementById('ct-drive-root-id').value = cloud.driveRootId;
+    if (cloud.presupuestosId) document.getElementById('ct-presupuestos-id').value = cloud.presupuestosId;
+    if (!hadUrl) { ctCargarServicios(); ctLoadHistorial(); }
+  }
 }
 
 function _ctBuildPage_UNUSED() {
@@ -8158,8 +8165,7 @@ function ctCargarServicios() {
   const grid = document.getElementById('ct-svc-grid');
   if (!grid) return;
   grid.innerHTML = '<div style="color:var(--gray);font-size:12px;grid-column:1/-1">Cargando...</div>';
-  fetch(url, { method:'POST', redirect:'follow', body: JSON.stringify({action:'getServicios'}) })
-    .then(r => r.json())
+  _jsonp(url + '?action=getServicios')
     .then(data => ctRenderServicios(data))
     .catch(err => {
       console.error('[ctCargarServicios]', err);
@@ -8210,6 +8216,8 @@ function ctSelTipo(tipo) {
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
     if (el.id === 'ct-precio') {
       el.oninput = () => { ctCalcTotal(true); ctScheduleSaveDraft(); };
+    } else if (el.getAttribute('onchange')?.includes('ctToggleEvento')) {
+      el.addEventListener('change', ctScheduleSaveDraft);
     } else {
       el.oninput  = ctScheduleSaveDraft;
       el.onchange = ctScheduleSaveDraft;
@@ -8217,8 +8225,8 @@ function ctSelTipo(tipo) {
   });
 }
 
-function ctToggleEvento(tipo, visible) {
-  const el = document.getElementById('ct-sub-' + tipo);
+function ctToggleEvento(tipo, visible, cb) {
+  const el = cb ? cb.closest('label').nextElementSibling : document.getElementById('ct-sub-' + tipo);
   if (el) el.style.display = visible ? 'block' : 'none';
 }
 
@@ -8468,15 +8476,16 @@ function ctInitSolicitudes() {
 }
 
 async function ctRefreshSolicitudes() {
-  const url = ctGetUrl();
-  if (!url) { document.getElementById('ct-sol-list').innerHTML = '<div style="color:var(--gray);font-size:12px">Configurá la URL del Apps Script primero.</div>'; return; }
-  // Mostrar cache inmediato si existe
+  const jwt = getAdminJWT();
+  if (!jwt) { document.getElementById('ct-sol-list').innerHTML = '<div style="color:var(--gray);font-size:12px">Sesión expirada. Reiniciá el admin.</div>'; return; }
   try { const c = JSON.parse(localStorage.getItem('crd_ct_sol_cache')); if(c) ctRenderSolicitudes(c); } catch(e) {}
   try {
-    const res  = await fetch(url, { method:'POST', redirect:'follow', body: JSON.stringify({action:'getSolicitudes'}) });
+    const res  = await fetch(CONFIG.CRCLUB_URL + '/solicitudes?nuevas=1', { headers: { Authorization: 'Bearer ' + jwt } });
     const data = await res.json();
-    localStorage.setItem('crd_ct_sol_cache', JSON.stringify(data));
-    ctRenderSolicitudes(data);
+    const soles = (data.solicitudes || [])
+      .map(function(s){ return { tipo:s.tipo, cliente:s.nombre_display, fecha:s.fecha, id:s.id, data:JSON.parse(s.data_json||'{}') }; });
+    localStorage.setItem('crd_ct_sol_cache', JSON.stringify(soles));
+    ctRenderSolicitudes(soles);
   } catch(e) {
     if (!localStorage.getItem('crd_ct_sol_cache'))
       document.getElementById('ct-sol-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error cargando solicitudes.</div>';
@@ -8503,11 +8512,11 @@ function ctRenderSolicitudes(data) {
 }
 
 async function ctCargarSolicitud(sol) {
-  const url = ctGetUrl();
-  if (url && sol.id) {
-    fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'marcarSolicitudUsada', id: sol.id }) })
-      .then(() => { setTimeout(ctRefreshSolicitudes, 800); })
-      .catch(() => {});
+  if (sol.id) {
+    fetch(CONFIG.CRCLUB_URL + '/solicitudes/' + sol.id + '/procesada', {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + getAdminJWT() }
+    }).then(function(){ setTimeout(ctRefreshSolicitudes, 500); }).catch(function(){});
   }
   showPage('contratos');
   const d = sol.data;
@@ -8682,16 +8691,14 @@ function ctCargarContrato(idx) {
       set('ct-b-paquete',         d.nombrePaquete);
       if (d.civil) {
         set('ct-b-tiene-civil', true);
-        const f = document.getElementById('ct-b-civil-fields');
-        if (f) f.style.display = 'block';
+        document.getElementById('ct-sub-civil').style.display = 'block';
         set('ct-b-civil-fecha', d.civil.fecha);
         set('ct-b-civil-hora',  d.civil.horario);
         set('ct-b-civil-dir',   d.civil.direccion);
       }
       if (d.religiosa) {
         set('ct-b-tiene-reli', true);
-        const f = document.getElementById('ct-b-reli-fields');
-        if (f) f.style.display = 'block';
+        document.getElementById('ct-sub-reli').style.display = 'block';
         set('ct-b-reli-fecha', d.religiosa.fecha);
         set('ct-b-reli-hora',  d.religiosa.horario);
         set('ct-b-reli-dir',   d.religiosa.direccion);
@@ -9291,7 +9298,7 @@ function calSyncEvento(ev) {
     fecha: ev.fecha, hora: ev.hora || '09:00',
     tipo: ev.tipo, nombre: ev.nombre, lugar: ev.lugar || ''
   };
-  fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncCalendar', events: [payload] }) })
+  _jsonp(url + '?action=syncCalendar&events=' + encodeURIComponent(JSON.stringify([payload])))
     .catch(function(){});
 }
 
@@ -9307,7 +9314,7 @@ async function calSyncGAS() {
       fecha: ev.fecha, hora: ev.hora || '09:00',
       tipo: ev.tipo, nombre: ev.nombre, lugar: ev.lugar || ''
     }; });
-    const res = await fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'syncCalendar', events: eventos }) }).then(function(r){ return r.json(); });
+    const res = await _jsonp(url + '?action=syncCalendar&events=' + encodeURIComponent(JSON.stringify(eventos)));
     if (res.ok) toast('Sincronizado: ' + res.synced + ' eventos en Google Calendar ✓');
     else toast(res.error || 'Error al sincronizar', 'error');
   } catch(e) { toast('Error: ' + e.message, 'error'); }

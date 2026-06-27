@@ -330,28 +330,26 @@ function enviar() {
   document.getElementById('btn-submit').disabled = true;
   document.getElementById('spinner').style.display = 'block';
 
-  var gasFetch = fetch(CONFIG.APPS_URL, {
-    method: 'POST',
-    redirect: 'follow',
-    body: JSON.stringify({ action: 'guardarSolicitud', formData: data })
-  }).then(function(r){ return r.json(); });
+  var gasFetch = CONFIG.APPS_URL
+    ? fetch(CONFIG.APPS_URL, { method:'POST', redirect:'follow', body:JSON.stringify({action:'guardarSolicitud',formData:data}) }).then(function(r){return r.json();}).catch(function(){return null;})
+    : Promise.resolve(null);
 
   var workerFetch = fetch(CONFIG.CF_URL + '/solicitudes', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  }).catch(function(){ return null; });
+  }).then(function(r){ return r.json(); });
 
   Promise.allSettled([gasFetch, workerFetch])
     .then(function(results) {
       document.getElementById('spinner').style.display = 'none';
-      var gasResult = results[0];
-      if (gasResult.status === 'fulfilled' && gasResult.value && gasResult.value.ok) {
+      var workerResult = results[1];
+      if (workerResult.status === 'fulfilled' && workerResult.value && workerResult.value.ok) {
         document.getElementById('form-area').style.display = 'none';
         document.getElementById('success').style.display = 'block';
       } else {
-        var errMsg = (gasResult.status === 'fulfilled' && gasResult.value && gasResult.value.error)
-          ? gasResult.value.error : 'Error desconocido';
+        var errMsg = (workerResult.status === 'fulfilled' && workerResult.value && workerResult.value.error)
+          ? workerResult.value.error : 'Error al guardar la solicitud';
         throw new Error(errMsg);
       }
     })

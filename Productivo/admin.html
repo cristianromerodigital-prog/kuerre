@@ -8476,15 +8476,16 @@ function ctInitSolicitudes() {
 }
 
 async function ctRefreshSolicitudes() {
-  const url = ctGetUrl();
-  if (!url) { document.getElementById('ct-sol-list').innerHTML = '<div style="color:var(--gray);font-size:12px">Configurá la URL del Apps Script primero.</div>'; return; }
-  // Mostrar cache inmediato si existe
+  const jwt = getAdminJWT();
+  if (!jwt) { document.getElementById('ct-sol-list').innerHTML = '<div style="color:var(--gray);font-size:12px">Sesión expirada. Reiniciá el admin.</div>'; return; }
   try { const c = JSON.parse(localStorage.getItem('crd_ct_sol_cache')); if(c) ctRenderSolicitudes(c); } catch(e) {}
   try {
-    const res  = await fetch(url, { method:'POST', redirect:'follow', body: JSON.stringify({action:'getSolicitudes'}) });
+    const res  = await fetch(CONFIG.CRCLUB_URL + '/solicitudes?nuevas=1', { headers: { Authorization: 'Bearer ' + jwt } });
     const data = await res.json();
-    localStorage.setItem('crd_ct_sol_cache', JSON.stringify(data));
-    ctRenderSolicitudes(data);
+    const soles = (data.solicitudes || [])
+      .map(function(s){ return { tipo:s.tipo, cliente:s.nombre_display, fecha:s.fecha, id:s.id, data:JSON.parse(s.data_json||'{}') }; });
+    localStorage.setItem('crd_ct_sol_cache', JSON.stringify(soles));
+    ctRenderSolicitudes(soles);
   } catch(e) {
     if (!localStorage.getItem('crd_ct_sol_cache'))
       document.getElementById('ct-sol-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error cargando solicitudes.</div>';
@@ -8511,11 +8512,11 @@ function ctRenderSolicitudes(data) {
 }
 
 async function ctCargarSolicitud(sol) {
-  const url = ctGetUrl();
-  if (url && sol.id) {
-    fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'marcarSolicitudUsada', id: sol.id }) })
-      .then(() => { setTimeout(ctRefreshSolicitudes, 800); })
-      .catch(() => {});
+  if (sol.id) {
+    fetch(CONFIG.CRCLUB_URL + '/solicitudes/' + sol.id + '/procesada', {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + getAdminJWT() }
+    }).then(function(){ setTimeout(ctRefreshSolicitudes, 500); }).catch(function(){});
   }
   showPage('contratos');
   const d = sol.data;
