@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.54</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.55</div>
     </div>
   </aside>
 
@@ -6680,7 +6680,7 @@ function readInviteForm() {
       regalo_label: document.getElementById('inv-regalo-label').value.trim(),
       regalo_titulo: document.getElementById('inv-regalo-titulo').value.trim(),
       regalo_texto: document.getElementById('inv-regalo-texto').value.trim(),
-      youtube_audio: document.getElementById('inv-youtube-audio').value.trim(),
+      youtube_audio: extractYouTubeId(document.getElementById('inv-youtube-audio').value),
       env_mostrar: document.getElementById('inv-env-mostrar').checked,
       env_slogan: document.getElementById('inv-env-slogan').value.trim(),
       env_color: document.getElementById('inv-env-color').value,
