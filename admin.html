@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.53</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.54</div>
     </div>
   </aside>
 
@@ -1042,7 +1042,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 </div>
                 <div class="form-group">
                   <label class="form-label">Audio YouTube (ID del video)</label>
-                  <input class="form-input" id="inv-s-youtube-audio" placeholder="dQw4w9WgXcQ">
+                  <input class="form-input" id="inv-s-youtube-audio" placeholder="https://www.youtube.com/watch?v=... o solo el ID">
                 </div>
               </div>
 
@@ -6277,6 +6277,12 @@ function autoSlug(val) {
 function saveInvBaseUrl(val) { const v = val.trim(); localStorage.setItem('crd_inv_base', v); syncToCloud('crd_inv_base', JSON.stringify(v)); }
 function saveInvSocialBaseUrl(val) { localStorage.setItem('crd_inv_social_base', val.trim()); }
 function getInvSocialBaseUrl() { return (localStorage.getItem('crd_inv_social_base') || '').trim() || getInvBaseUrl().replace('invite.html','invite-social.html'); }
+function extractYouTubeId(input) {
+  if (!input) return '';
+  const s = input.trim();
+  const m = s.match(/(?:[?&]v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : (/^[A-Za-z0-9_-]{11}$/.test(s) ? s : '');
+}
 
 const TEMA_COLORS_ADMIN = [
   {key:'mauve',       label:'Mauve',          color:'#8b5e6e'},
@@ -6698,7 +6704,7 @@ function readInviteForm() {
       fecha_iso: document.getElementById('inv-s-fecha-iso').value,
       media_url: document.getElementById('inv-s-media-url').value.trim(),
       media_type: mType ? mType.value : 'image',
-      youtube_audio: document.getElementById('inv-s-youtube-audio').value.trim(),
+      youtube_audio: extractYouTubeId(document.getElementById('inv-s-youtube-audio').value),
       recepcion_hora: document.getElementById('inv-s-recepcion-hora').value.trim(),
       lugar_nombre: document.getElementById('inv-s-lugar-nombre').value.trim(),
       lugar_direccion: document.getElementById('inv-s-lugar-dir').value.trim(),
