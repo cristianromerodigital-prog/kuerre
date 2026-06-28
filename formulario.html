@@ -154,8 +154,9 @@
         <div class="section-title">Datos del Evento</div>
         <div class="grid2">
           <div class="field"><label>Fecha estimada *</label><input id="x-fecha" type="date"></div>
-          <div class="field"><label>Hora inicio aprox. *</label><input id="x-hora" type="text" placeholder="21:30"></div>
           <div class="field"><label>Salón / Lugar *</label><input id="x-salon" type="text"></div>
+          <div class="field"><label>Hora inicio aprox. *</label><input id="x-hora" type="text" placeholder="21:30"></div>
+          <div class="field"><label>Hora fin aprox.</label><input id="x-hora-fin" type="text" placeholder="5:30"></div>
           <div class="field col-full"><label>Dirección del Salón *</label><input id="x-dir" type="text"></div>
           <div class="field"><label>Invitados aprox. *</label><input id="x-invitados" type="number" inputmode="numeric"></div>
         </div>
@@ -177,8 +178,9 @@
         <div class="section-title">Datos del Evento</div>
         <div class="grid2">
           <div class="field"><label>Fecha estimada *</label><input id="c-fecha" type="date"></div>
-          <div class="field"><label>Hora inicio aprox. *</label><input id="c-hora" type="text" placeholder="20:00"></div>
           <div class="field"><label>Salón / Lugar *</label><input id="c-salon" type="text"></div>
+          <div class="field"><label>Hora inicio aprox. *</label><input id="c-hora" type="text" placeholder="20:00"></div>
+          <div class="field"><label>Hora fin aprox.</label><input id="c-hora-fin" type="text" placeholder="4:00"></div>
           <div class="field col-full"><label>Dirección del Salón *</label><input id="c-dir" type="text"></div>
           <div class="field"><label>Invitados aprox. *</label><input id="c-invitados" type="number" inputmode="numeric"></div>
         </div>
@@ -305,12 +307,13 @@ function enviar() {
     chk('x-cliente-email','email',true,'Email del cliente inválido (debe tener @)',errores);
     if (!v('x-fecha')) errores.push('Fecha estimada del evento');
     chk('x-hora','hora',true,'Hora de inicio inválida (usar formato HH:MM, solo números)',errores);
+    if (v('x-hora-fin')) chk('x-hora-fin','hora',false,'Hora fin inválida (usar formato HH:MM, solo números)',errores);
     chk('x-salon','text',true,'Salón / Lugar (mín. 2 caracteres)',errores);
     chk('x-dir','dir',true,'Dirección del salón (debe incluir número)',errores);
     if (!v('x-invitados') || Number(v('x-invitados')) < 1) errores.push('Cantidad de invitados (número mayor a 0)');
     data.quinceanera = { nombre: v('x-quince-nombre'), fechaNacimiento: v('x-quince-nac') };
     data.cliente     = { nombre: v('x-cliente-nombre'), dni: v('x-cliente-dni'), telefono: v('x-cliente-tel'), email: v('x-cliente-email') };
-    data.evento      = { fecha: v('x-fecha'), horaInicio: v('x-hora'), salon: v('x-salon'), direccion: v('x-dir'), invitados: v('x-invitados') };
+    data.evento      = { fecha: v('x-fecha'), horaInicio: v('x-hora'), horaFin: v('x-hora-fin'), salon: v('x-salon'), direccion: v('x-dir'), invitados: v('x-invitados') };
   } else if (tipo === 'CUMPLE') {
     chk('c-nombre','text',true,'Nombre del cliente',errores);
     chk('c-dni','dni',true,'DNI del cliente (7 u 8 dígitos)',errores);
@@ -318,11 +321,12 @@ function enviar() {
     chk('c-email','email',true,'Email del cliente inválido (debe tener @)',errores);
     if (!v('c-fecha')) errores.push('Fecha estimada del evento');
     chk('c-hora','hora',true,'Hora de inicio inválida (usar formato HH:MM, solo números)',errores);
+    if (v('c-hora-fin')) chk('c-hora-fin','hora',false,'Hora fin inválida (usar formato HH:MM, solo números)',errores);
     chk('c-salon','text',true,'Salón / Lugar (mín. 2 caracteres)',errores);
     chk('c-dir','dir',true,'Dirección del salón (debe incluir número)',errores);
     if (!v('c-invitados') || Number(v('c-invitados')) < 1) errores.push('Cantidad de invitados (número mayor a 0)');
     data.cliente = { nombre: v('c-nombre'), dni: v('c-dni'), telefono: v('c-tel'), email: v('c-email') };
-    data.evento  = { fecha: v('c-fecha'), horaInicio: v('c-hora'), salon: v('c-salon'), direccion: v('c-dir'), invitados: v('c-invitados') };
+    data.evento  = { fecha: v('c-fecha'), horaInicio: v('c-hora'), horaFin: v('c-hora-fin'), salon: v('c-salon'), direccion: v('c-dir'), invitados: v('c-invitados') };
   }
 
   if (errores.length) { alert('Completá los campos requeridos:\n• ' + errores.join('\n• ')); return; }
@@ -330,28 +334,26 @@ function enviar() {
   document.getElementById('btn-submit').disabled = true;
   document.getElementById('spinner').style.display = 'block';
 
-  var gasFetch = fetch(CONFIG.APPS_URL, {
-    method: 'POST',
-    redirect: 'follow',
-    body: JSON.stringify({ action: 'guardarSolicitud', formData: data })
-  }).then(function(r){ return r.json(); });
+  var gasFetch = CONFIG.APPS_URL
+    ? fetch(CONFIG.APPS_URL, { method:'POST', redirect:'follow', body:JSON.stringify({action:'guardarSolicitud',formData:data}) }).then(function(r){return r.json();}).catch(function(){return null;})
+    : Promise.resolve(null);
 
   var workerFetch = fetch(CONFIG.CF_URL + '/solicitudes', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
-  }).catch(function(){ return null; });
+  }).then(function(r){ return r.json(); });
 
   Promise.allSettled([gasFetch, workerFetch])
     .then(function(results) {
       document.getElementById('spinner').style.display = 'none';
-      var gasResult = results[0];
-      if (gasResult.status === 'fulfilled' && gasResult.value && gasResult.value.ok) {
+      var workerResult = results[1];
+      if (workerResult.status === 'fulfilled' && workerResult.value && workerResult.value.ok) {
         document.getElementById('form-area').style.display = 'none';
         document.getElementById('success').style.display = 'block';
       } else {
-        var errMsg = (gasResult.status === 'fulfilled' && gasResult.value && gasResult.value.error)
-          ? gasResult.value.error : 'Error desconocido';
+        var errMsg = (workerResult.status === 'fulfilled' && workerResult.value && workerResult.value.error)
+          ? workerResult.value.error : 'Error al guardar la solicitud';
         throw new Error(errMsg);
       }
     })
@@ -391,10 +393,10 @@ const _BLUR = {
   'b-salon':['text',true], 'b-dir':['dir',true],
   'b-contacto-nombre':['text',true], 'b-contacto-rel':['text',true], 'b-contacto-tel':['tel',true],
   'x-quince-nombre':['text',true], 'x-cliente-nombre':['text',true], 'x-cliente-dni':['dni',true],
-  'x-cliente-tel':['tel',true], 'x-cliente-email':['email',true], 'x-hora':['hora',true],
+  'x-cliente-tel':['tel',true], 'x-cliente-email':['email',true], 'x-hora':['hora',true], 'x-hora-fin':['hora',false],
   'x-salon':['text',true], 'x-dir':['dir',true],
   'c-nombre':['text',true], 'c-dni':['dni',true], 'c-tel':['tel',true], 'c-email':['email',true],
-  'c-hora':['hora',true], 'c-salon':['text',true], 'c-dir':['dir',true],
+  'c-hora':['hora',true], 'c-hora-fin':['hora',false], 'c-salon':['text',true], 'c-dir':['dir',true],
 };
 Object.entries(_BLUR).forEach(([id,[type,req]])=>{
   const el=document.getElementById(id);
