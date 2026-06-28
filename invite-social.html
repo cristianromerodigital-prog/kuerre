@@ -663,8 +663,13 @@ const SVG_MUTE = `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" st
 
 function getYtId(url) {
   if (!url) return null;
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([A-Za-z0-9_-]{11})/);
-  return m ? m[1] : (/^[A-Za-z0-9_-]{11}$/.test(url.trim()) ? url.trim() : null);
+  const s = url.trim();
+  const v = s.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if (v) return v[1];
+  const u = s.match(/(?:youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+  if (u) return u[1];
+  if (s.length === 11) return s; // ID directo
+  return null;
 }
 
 function _ytSend(cmd, args) {
