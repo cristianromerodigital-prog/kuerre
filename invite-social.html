@@ -674,7 +674,7 @@ function getYtId(url) {
 
 function _ytSend(cmd, args) {
   if (_ytIframe && _ytIframe.contentWindow)
-    _ytIframe.contentWindow.postMessage(JSON.stringify({ event:'command', func:cmd, args: args || [] }), 'https://www.youtube.com');
+    _ytIframe.contentWindow.postMessage(JSON.stringify({ event:'command', func:cmd, args: args || [] }), '*');
 }
 
 function _ytSetBtn(state) {
