@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.60</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.61</div>
     </div>
   </aside>
 
@@ -2177,9 +2177,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <span style="font-size:11px;color:var(--gold);letter-spacing:1px">Editando contrato <strong id="ct-edit-num"></strong></span>
             <button onclick="ctCancelEdit()" style="background:none;border:none;color:var(--gray);font-size:11px;cursor:pointer;text-decoration:underline">Cancelar edición</button>
           </div>
-          <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:stretch">
+          <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:10px;align-items:stretch">
             <button class="btn-add" id="ct-btn-gen" onclick="ctGenerar()" style="padding:16px;font-size:11px;letter-spacing:3px">GENERAR CONTRATO</button>
             <button onclick="ctSaveDraftManual()" style="padding:16px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);color:var(--gold);font-size:10px;letter-spacing:1.5px;cursor:pointer">Guardar borrador</button>
+            <button onclick="showPage('clientes')" style="padding:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--gray);font-size:10px;letter-spacing:1.5px;cursor:pointer">Cancelar</button>
+            <button onclick="ctEliminarSolicitud()" style="padding:16px;background:rgba(224,85,85,0.08);border:1px solid rgba(224,85,85,0.25);color:var(--red);font-size:10px;letter-spacing:1.5px;cursor:pointer">Eliminar</button>
             <button onclick="ctClearDraft()" style="padding:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--gray);font-size:10px;letter-spacing:1.5px;cursor:pointer">Limpiar</button>
           </div>
           <div id="ct-spinner" style="display:none;text-align:center;padding:20px;color:var(--gray);font-size:11px;letter-spacing:2px">
@@ -8833,6 +8835,22 @@ function ctCancelarGeneracion() {
   document.getElementById('ct-spinner').style.display = 'none';
   document.getElementById('ct-btn-gen').disabled = false;
   toast('Generación cancelada — datos conservados');
+}
+
+async function ctEliminarSolicitud() {
+  if (_ctSolicitudId) {
+    if (!confirm('¿Eliminar esta solicitud? Esta acción no se puede deshacer.')) return;
+    try {
+      await fetch(CLIENTES_WORKER + '/solicitudes/' + _ctSolicitudId, {
+        method: 'DELETE', headers: { Authorization: 'Bearer ' + getAdminJWT() }
+      });
+    } catch(e) {}
+    setTimeout(function(){ ctRefreshSolicitudes(); _fetchClientes({ search:_clientesSearch, offset:0 }).then(function(){ if(currentPage==='clientes') renderClientes(); }); }, 300);
+    toast('Solicitud eliminada');
+  }
+  _ctSolicitudId = null;
+  ctClearDraft();
+  showPage('clientes');
 }
 
 async function ctSaveDraftManual() {
