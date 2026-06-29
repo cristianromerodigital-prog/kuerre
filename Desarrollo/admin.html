@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.57</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.58</div>
     </div>
   </aside>
 
@@ -8770,37 +8770,47 @@ async function ctGenerar() {
       document.getElementById('ct-result').style.display = 'block';
       toast((ctEditingNumero ? 'Contrato ' + json.numero + ' actualizado ✓' : 'Contrato ' + json.numero + ' generado ✓'));
       if (!ctEditingNumero && CLIENTES_WORKER) {
-        const payload = { tipo: data.tipo };
-        if (data.tipo === 'BODA') {
-          payload.novia = data.novia; payload.novio = data.novio;
-          payload.fiesta = Object.assign({}, data.fiesta, { salon: data.fiesta.lugar });
-          payload.contacto = data.contacto;
-        } else if (data.tipo === 'XV') {
-          payload.quinceanera = data.quinceanera; payload.cliente = data.cliente; payload.evento = data.evento;
-        } else {
-          payload.cliente = data.cliente; payload.evento = data.evento;
-        }
-        fetch(CLIENTES_WORKER + '/solicitudes', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).then(function(r){ return r.json(); }).then(function(d){
-          if (d.ok) {
-            // Auto-sync evento al Google Calendar
-            let evFecha = '';
-            if (data.tipo === 'BODA') evFecha = data.fiesta?.fecha || '';
-            else if (data.tipo === 'XV') evFecha = data.evento?.fecha || '';
-            else evFecha = data.evento?.fecha || '';
-            if (evFecha) calSyncEvento({ tipo: 'evento', fecha: evFecha, hora: '', lugar: '', nombre: payload.tipo === 'BODA' ? (data.novia?.nombre||'') + ' & ' + (data.novio?.nombre||'') : payload.tipo === 'XV' ? 'XV ' + (data.quinceanera?.nombre||'') : 'Cumple ' + (data.cliente?.nombre||'') });
-            // Guardar número de contrato en D1
-            fetch(CLIENTES_WORKER + '/solicitudes/' + d.id + '/contrato', {
-              method: 'PATCH', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
-              body: JSON.stringify({ codigo_contrato: String(json.numero) })
-            }).catch(function(){});
+        const solId = _ctSolicitudId;
+        _ctSolicitudId = null;
+        const patchContrato = function(id, fromForm) {
+          fetch(CLIENTES_WORKER + '/solicitudes/' + id + '/contrato', {
+            method: 'PATCH', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codigo_contrato: String(json.numero) })
+          }).then(function(){
+            if (fromForm) {
+              fetch(CONFIG.CRCLUB_URL + '/solicitudes/' + id + '/procesada', {
+                method: 'PATCH', headers: { Authorization: 'Bearer ' + getAdminJWT() }
+              }).then(function(){ setTimeout(ctRefreshSolicitudes, 500); }).catch(function(){});
+            }
             _fetchClientes({ search: _clientesSearch, offset: 0 }).then(function(){
               if (currentPage === 'clientes') renderClientes();
             });
+          }).catch(function(){});
+        };
+        if (solId) {
+          patchContrato(solId, true);
+        } else {
+          const payload = { tipo: data.tipo };
+          if (data.tipo === 'BODA') {
+            payload.novia = data.novia; payload.novio = data.novio;
+            payload.fiesta = Object.assign({}, data.fiesta, { salon: data.fiesta.lugar });
+            payload.contacto = data.contacto;
+          } else if (data.tipo === 'XV') {
+            payload.quinceanera = data.quinceanera; payload.cliente = data.cliente; payload.evento = data.evento;
+          } else {
+            payload.cliente = data.cliente; payload.evento = data.evento;
           }
-        }).catch(function(){});
+          fetch(CLIENTES_WORKER + '/solicitudes', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).then(function(r){ return r.json(); }).then(function(d){
+            if (d.ok) {
+              let evFecha = data.tipo === 'BODA' ? (data.fiesta?.fecha||'') : (data.evento?.fecha||'');
+              if (evFecha) calSyncEvento({ tipo:'evento', fecha:evFecha, hora:'', lugar:'', nombre: data.tipo==='BODA' ? (data.novia?.nombre||'')+' & '+(data.novio?.nombre||'') : data.tipo==='XV' ? 'XV '+(data.quinceanera?.nombre||'') : 'Cumple '+(data.cliente?.nombre||'') });
+              patchContrato(d.id, false);
+            }
+          }).catch(function(){});
+        }
       }
       ctCancelEdit();
       ctClearDraft();
@@ -8847,7 +8857,7 @@ function ctSaveDraft() {
     if (!el.id) return;
     fields[el.id] = el.type === 'checkbox' ? el.checked : el.value;
   });
-  S.set(CT_DRAFT_KEY, { tipo: ctTipo, fields });
+  S.set(CT_DRAFT_KEY, { tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null });
   const banner = document.getElementById('ct-draft-banner');
   if (banner) banner.style.display = 'flex';
 }
@@ -8862,6 +8872,7 @@ function ctRestoreDraft() {
 
 function _ctApplyDraft(draft) {
   ctSelTipo(draft.tipo);
+  if (draft.solicitudId) _ctSolicitudId = draft.solicitudId;
   setTimeout(() => {
     Object.entries(draft.fields || {}).forEach(([id, val]) => {
       const el = document.getElementById(id);
@@ -8888,6 +8899,7 @@ function ctClearDraft() {
   document.getElementById('ct-form-area').style.display = 'none';
   document.getElementById('ct-num-preview').style.display = 'none';
   ctTipo = null;
+  _ctSolicitudId = null;
   ctCalcTotal();
 }
 
@@ -8938,12 +8950,7 @@ function ctRenderSolicitudes(data) {
 }
 
 async function ctCargarSolicitud(sol) {
-  if (sol.id) {
-    fetch(CONFIG.CRCLUB_URL + '/solicitudes/' + sol.id + '/procesada', {
-      method: 'PATCH',
-      headers: { Authorization: 'Bearer ' + getAdminJWT() }
-    }).then(function(){ setTimeout(ctRefreshSolicitudes, 500); }).catch(function(){});
-  }
+  _ctSolicitudId = sol.id || null;
   showPage('contratos');
   const d = sol.data;
   ctSelTipo(sol.tipo);
@@ -9002,7 +9009,8 @@ async function ctCargarSolicitud(sol) {
 // ── HISTORIAL ──
 let ctHistLoaded    = false;
 let ctHistData      = [];
-let ctEditingNumero = null;
+let ctEditingNumero  = null;
+let _ctSolicitudId   = null;
 
 function ctToggleHistorial() {
   const body  = document.getElementById('ct-hist-body');
@@ -9196,6 +9204,7 @@ function ctCargarContrato(idx) {
 
 function ctCancelEdit() {
   ctEditingNumero = null;
+  _ctSolicitudId  = null;
   const banner = document.getElementById('ct-edit-banner');
   if (banner) banner.style.display = 'none';
   const btn = document.getElementById('ct-btn-gen');
