@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.82</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.83</div>
     </div>
   </aside>
 
@@ -8303,6 +8303,7 @@ async function initContratosPage() {
     if (cloud.presupuestosId) document.getElementById('ct-presupuestos-id').value = cloud.presupuestosId;
     if (!hadUrl) { ctCargarServicios(); ctLoadHistorial(); }
   }
+  ctRestoreDraft();
 }
 
 function _ctBuildPage_UNUSED() {
@@ -8907,6 +8908,10 @@ function ctSaveDraft() {
   const data = JSON.stringify({ tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems });
   try { localStorage.setItem(key, data); } catch(e) {}
   syncToCloud(key, data);
+  if (key !== CT_DRAFT_KEY) {
+    try { localStorage.setItem(CT_DRAFT_KEY, data); } catch(e) {}
+    syncToCloud(CT_DRAFT_KEY, data);
+  }
 }
 
 let _ctSkipNextRestore = false;
@@ -8942,6 +8947,10 @@ function ctClearDraft() {
   const key = ctDraftKey();
   localStorage.removeItem(key);
   syncToCloud(key, JSON.stringify(null));
+  if (key !== CT_DRAFT_KEY) {
+    localStorage.removeItem(CT_DRAFT_KEY);
+    syncToCloud(CT_DRAFT_KEY, JSON.stringify(null));
+  }
   // Reset form
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
