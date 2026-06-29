@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.64</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.65</div>
     </div>
   </aside>
 
@@ -8889,7 +8889,7 @@ function ctRestoreDraft() {
   const local = S.get(CT_DRAFT_KEY);
   if (local && local.tipo) { _ctApplyDraft(local); return; }
   fetchFromCloud(CT_DRAFT_KEY).then(function(cloud) {
-    if (cloud && cloud.tipo) { S.set(CT_DRAFT_KEY, cloud); _ctApplyDraft(cloud); }
+    if (cloud && cloud.tipo && !_ctSolicitudId) { S.set(CT_DRAFT_KEY, cloud); _ctApplyDraft(cloud); }
   }).catch(function(){});
 }
 
