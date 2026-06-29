@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.67</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.68</div>
     </div>
   </aside>
 
@@ -8976,11 +8976,17 @@ async function ctCargarSolicitud(sol) {
   localStorage.removeItem(CT_DRAFT_KEY);
   syncToCloud(CT_DRAFT_KEY, JSON.stringify(null)); // evita que ctRestoreDraft sobreescriba los campos de esta solicitud
   showPage('contratos');
+  // Limpiar form y checkboxes antes de cargar el nuevo cliente
+  document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.id !== 'ct-dia-firma') el.value = '';
+  });
+  document.querySelectorAll('[id^="ct-svc-"]').forEach(cb => { cb.checked = false; });
   const d = sol.data;
   ctSelTipo(sol.tipo);
 
   if (sol.tipo === 'BODA') {
-    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     set('ct-b-novia-nombre', d.novia?.nombre);
     set('ct-b-novia-dni',    d.novia?.dni);
     set('ct-b-novia-tel',    d.novia?.telefono);
@@ -8997,7 +9003,7 @@ async function ctCargarSolicitud(sol) {
     set('ct-b-contacto-rel',    d.contacto?.relacion);
     set('ct-b-contacto-tel',    d.contacto?.telefono);
   } else if (sol.tipo === 'XV') {
-    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     set('ct-x-quince-nombre', d.quinceanera?.nombre);
     set('ct-x-quince-nac',    d.quinceanera?.fechaNacimiento);
     set('ct-x-cliente-nombre', d.cliente?.nombre);
@@ -9011,7 +9017,7 @@ async function ctCargarSolicitud(sol) {
     set('ct-x-dir',            d.evento?.direccion);
     set('ct-x-invitados',      d.evento?.invitados);
   } else if (sol.tipo === 'CUMPLE') {
-    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     set('ct-c-nombre',     d.cliente?.nombre);
     set('ct-c-dni',        d.cliente?.dni);
     set('ct-c-tel',        d.cliente?.telefono);
