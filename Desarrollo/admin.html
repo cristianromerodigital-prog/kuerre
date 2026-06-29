@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.68</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.69</div>
     </div>
   </aside>
 
@@ -3562,7 +3562,7 @@ async function crclubDeleteReward(id, name) {
 const CF_SYNC_KEYS = ["crd_portfolio","crd_testimonials","crd_posts","crd_settings","crd_content","crd_site_photos","crd_hero_video_url","crd_invites","crd_messages","crd_inv_base","crd_presupuesto","crd_presupuesto_boda","crd_editable","crd_opcionales","crd_entregas","crd_pedidos","crd_contratos_cfg","crd_ct_draft"];
 
 async function syncToCloud(key, value) {
-  if (!CF_SYNC_KEYS.includes(key)) return;
+  if (!CF_SYNC_KEYS.includes(key) && !key.startsWith('crd_ct_draft')) return;
   try {
     await fetch(CONFIG.CF_URL + '/' + key, {
       method: 'POST',
@@ -8875,6 +8875,10 @@ function ctScheduleSaveDraft() {
   ctDraftTimer = setTimeout(ctSaveDraft, 800);
 }
 
+function ctDraftKey() {
+  return _ctSolicitudId ? 'crd_ct_draft_' + _ctSolicitudId : CT_DRAFT_KEY;
+}
+
 function ctSaveDraft() {
   if (!ctTipo) return;
   const fields = {};
@@ -8882,13 +8886,15 @@ function ctSaveDraft() {
     if (!el.id) return;
     fields[el.id] = el.type === 'checkbox' ? el.checked : el.value;
   });
-  localStorage.removeItem(CT_DRAFT_KEY);
-  syncToCloud(CT_DRAFT_KEY, JSON.stringify({ tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems }));
+  const key = ctDraftKey();
+  localStorage.removeItem(key);
+  syncToCloud(key, JSON.stringify({ tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems }));
 }
 
 function ctRestoreDraft() {
+  if (_ctSolicitudId) return; // ctCargarSolicitud maneja su propio restore
   fetchFromCloud(CT_DRAFT_KEY).then(function(cloud) {
-    if (cloud && cloud.tipo && !_ctSolicitudId) { _ctApplyDraft(cloud); }
+    if (cloud && cloud.tipo) { _ctApplyDraft(cloud); }
   }).catch(function(){});
 }
 
@@ -8908,8 +8914,9 @@ function _ctApplyDraft(draft) {
 }
 
 function ctClearDraft() {
-  localStorage.removeItem(CT_DRAFT_KEY);
-  syncToCloud(CT_DRAFT_KEY, JSON.stringify(null));
+  const key = ctDraftKey();
+  localStorage.removeItem(key);
+  syncToCloud(key, JSON.stringify(null));
   // Reset form
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
@@ -8971,10 +8978,7 @@ function ctRenderSolicitudes(data) {
 
 async function ctCargarSolicitud(sol) {
   _ctSolicitudId = sol.id || null;
-  const prevDraft = await fetchFromCloud(CT_DRAFT_KEY).catch(() => null);
-  const prevPagoItems = (prevDraft && prevDraft.solicitudId === sol.id && Array.isArray(prevDraft.pagoItems)) ? prevDraft.pagoItems : null;
-  localStorage.removeItem(CT_DRAFT_KEY);
-  syncToCloud(CT_DRAFT_KEY, JSON.stringify(null)); // evita que ctRestoreDraft sobreescriba los campos de esta solicitud
+  const prevDraft = sol.id ? await fetchFromCloud('crd_ct_draft_' + sol.id).catch(() => null) : null;
   showPage('contratos');
   // Limpiar form y checkboxes antes de cargar el nuevo cliente
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
@@ -8985,8 +8989,9 @@ async function ctCargarSolicitud(sol) {
   const d = sol.data;
   ctSelTipo(sol.tipo);
 
+  // Datos del cliente desde la solicitud (siempre frescos)
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   if (sol.tipo === 'BODA') {
-    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     set('ct-b-novia-nombre', d.novia?.nombre);
     set('ct-b-novia-dni',    d.novia?.dni);
     set('ct-b-novia-tel',    d.novia?.telefono);
@@ -9003,7 +9008,6 @@ async function ctCargarSolicitud(sol) {
     set('ct-b-contacto-rel',    d.contacto?.relacion);
     set('ct-b-contacto-tel',    d.contacto?.telefono);
   } else if (sol.tipo === 'XV') {
-    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     set('ct-x-quince-nombre', d.quinceanera?.nombre);
     set('ct-x-quince-nac',    d.quinceanera?.fechaNacimiento);
     set('ct-x-cliente-nombre', d.cliente?.nombre);
@@ -9017,7 +9021,6 @@ async function ctCargarSolicitud(sol) {
     set('ct-x-dir',            d.evento?.direccion);
     set('ct-x-invitados',      d.evento?.invitados);
   } else if (sol.tipo === 'CUMPLE') {
-    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     set('ct-c-nombre',     d.cliente?.nombre);
     set('ct-c-dni',        d.cliente?.dni);
     set('ct-c-tel',        d.cliente?.telefono);
@@ -9030,8 +9033,21 @@ async function ctCargarSolicitud(sol) {
     set('ct-c-invitados',  d.evento?.invitados);
   }
 
+  // Restaurar servicios, precio y pago del borrador propio de esta solicitud
+  if (prevDraft) {
+    if (prevDraft.pagoItems && Array.isArray(prevDraft.pagoItems)) {
+      ctPagoItems = prevDraft.pagoItems; ctRenderPagoItems();
+    }
+    Object.entries(prevDraft.fields || {}).forEach(function([id, val]) {
+      if (!id.startsWith('ct-svc-') && id !== 'ct-precio') return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === 'checkbox') el.checked = val;
+      else el.value = val;
+    });
+    ctCalcTotal();
+  }
 
-  if (prevPagoItems) { ctPagoItems = prevPagoItems; ctRenderPagoItems(); }
   setTimeout(ctSaveDraft, 200);
   toast('Datos cargados del cliente — completá precio y servicios');
   document.getElementById('ct-form-area').scrollIntoView({ behavior: 'smooth' });
