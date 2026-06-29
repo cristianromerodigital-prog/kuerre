@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.72</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.73</div>
     </div>
   </aside>
 
@@ -8294,7 +8294,6 @@ async function initContratosPage() {
   const histArrow = document.getElementById('ct-hist-arrow');
   if (histBody) { histBody.style.display = 'block'; if (histArrow) histArrow.textContent = '▲'; }
   if (ctGetUrl()) ctLoadHistorial();
-  ctRestoreDraft();
   const cloud = await fetchFromCloud(CT_CFG_KEY);
   if (cloud && cloud.url) {
     const hadUrl = !!(saved && saved.url);
@@ -8883,7 +8882,6 @@ async function ctSaveDraftManual() {
   }
   ctSaveDraft();
   toast('Borrador guardado ✓');
-  showPage('clientes');
 }
 
 function ctScheduleSaveDraft() {
