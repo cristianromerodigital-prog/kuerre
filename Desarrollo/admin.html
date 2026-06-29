@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.62</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.63</div>
     </div>
   </aside>
 
@@ -8971,6 +8971,8 @@ function ctRenderSolicitudes(data) {
 
 async function ctCargarSolicitud(sol) {
   _ctSolicitudId = sol.id || null;
+  const prevDraft = S.get(CT_DRAFT_KEY);
+  const prevPagoItems = (prevDraft && prevDraft.solicitudId === sol.id && Array.isArray(prevDraft.pagoItems)) ? prevDraft.pagoItems : null;
   showPage('contratos');
   const d = sol.data;
   ctSelTipo(sol.tipo);
@@ -9021,6 +9023,7 @@ async function ctCargarSolicitud(sol) {
   }
 
 
+  if (prevPagoItems) { ctPagoItems = prevPagoItems; ctRenderPagoItems(); }
   setTimeout(ctSaveDraft, 200);
   toast('Datos cargados del cliente — completá precio y servicios');
   document.getElementById('ct-form-area').scrollIntoView({ behavior: 'smooth' });
