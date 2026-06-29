@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.69</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.70</div>
     </div>
   </aside>
 
@@ -8413,6 +8413,8 @@ function _ctBuildPage_UNUSED() {
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
                 <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="ct-b-fiesta-fecha"></div>
                 <div class="form-group"><label class="form-label">Hora inicio estimada</label><input class="form-input" id="ct-b-fiesta-hora" placeholder="19:30"></div>
+                <div class="form-group"><label class="form-label">Hora fin estimada</label><input class="form-input" id="ct-b-fiesta-hora-fin" placeholder="5:00"></div>
+                <div class="form-group"><label class="form-label">Invitados aprox.</label><input class="form-input" type="number" id="ct-b-invitados" placeholder="150"></div>
                 <div class="form-group"><label class="form-label">Nombre del Salón</label><input class="form-input" id="ct-b-fiesta-salon"></div>
                 <div class="form-group" style="grid-column:1/-1"><label class="form-label">Dirección del Salón</label><input class="form-input" id="ct-b-fiesta-dir"></div>
               </div>
@@ -8723,7 +8725,7 @@ function ctBuildData() {
     novio:     { nombre: ctV('ct-b-novio-nombre'), dni: ctV('ct-b-novio-dni'), domicilio: ctV('ct-b-novio-dom'), telefono: ctV('ct-b-novio-tel'), email: ctV('ct-b-novio-email') },
     civil:     document.getElementById('ct-b-tiene-civil')?.checked ? { fecha: ctV('ct-b-civil-fecha'), horario: ctV('ct-b-civil-hora'), direccion: ctV('ct-b-civil-dir') } : null,
     religiosa: document.getElementById('ct-b-tiene-reli')?.checked ? { fecha: ctV('ct-b-reli-fecha'), horario: ctV('ct-b-reli-hora'), direccion: ctV('ct-b-reli-dir') } : null,
-    fiesta:    { fecha: ctV('ct-b-fiesta-fecha'), horarioInicio: ctV('ct-b-fiesta-hora'), lugar: ctV('ct-b-fiesta-salon'), direccion: ctV('ct-b-fiesta-dir') },
+    fiesta:    { fecha: ctV('ct-b-fiesta-fecha'), horaInicio: ctV('ct-b-fiesta-hora'), horaFin: ctV('ct-b-fiesta-hora-fin'), invitados: ctV('ct-b-invitados'), lugar: ctV('ct-b-fiesta-salon'), direccion: ctV('ct-b-fiesta-dir') },
     contacto:  { nombre: ctV('ct-b-contacto-nombre'), relacion: ctV('ct-b-contacto-rel'), telefono: ctV('ct-b-contacto-tel') },
     nombrePaquete: ctV('ct-b-paquete') || 'EXPERIENCIA BASE'
   });
@@ -9001,9 +9003,12 @@ async function ctCargarSolicitud(sol) {
     set('ct-b-novio-dom',    d.novio?.domicilio);
     set('ct-b-novio-tel',    d.novio?.telefono);
     set('ct-b-novio-email',  d.novio?.email);
-    set('ct-b-fiesta-fecha', d.fiesta?.fecha);
-    set('ct-b-fiesta-salon', d.fiesta?.salon);
-    set('ct-b-fiesta-dir',   d.fiesta?.direccion);
+    set('ct-b-fiesta-fecha',     d.fiesta?.fecha);
+    set('ct-b-fiesta-hora',      d.fiesta?.horaInicio);
+    set('ct-b-fiesta-hora-fin',  d.fiesta?.horaFin);
+    set('ct-b-invitados',        d.fiesta?.invitados);
+    set('ct-b-fiesta-salon',     d.fiesta?.salon);
+    set('ct-b-fiesta-dir',       d.fiesta?.direccion);
     set('ct-b-contacto-nombre', d.contacto?.nombre);
     set('ct-b-contacto-rel',    d.contacto?.relacion);
     set('ct-b-contacto-tel',    d.contacto?.telefono);
@@ -9165,7 +9170,9 @@ function ctCargarContrato(idx) {
       set('ct-b-novio-tel',       d.novio?.telefono);
       set('ct-b-novio-email',     d.novio?.email);
       set('ct-b-fiesta-fecha',    d.fiesta?.fecha);
-      set('ct-b-fiesta-hora',     d.fiesta?.horarioInicio);
+      set('ct-b-fiesta-hora',     d.fiesta?.horaInicio || d.fiesta?.horarioInicio);
+      set('ct-b-fiesta-hora-fin', d.fiesta?.horaFin);
+      set('ct-b-invitados',       d.fiesta?.invitados);
       set('ct-b-fiesta-salon',    d.fiesta?.lugar);
       set('ct-b-fiesta-dir',      d.fiesta?.direccion);
       set('ct-b-contacto-nombre', d.contacto?.nombre);

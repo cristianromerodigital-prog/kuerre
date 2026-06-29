@@ -119,6 +119,9 @@
         <div class="grid2">
           <div class="field"><label>Fecha estimada *</label><input id="b-fecha" type="date"></div>
           <div class="field"><label>Salón / Lugar *</label><input id="b-salon" type="text"></div>
+          <div class="field"><label>Hora inicio aprox. *</label><input id="b-hora" type="text" placeholder="20:00"></div>
+          <div class="field"><label>Hora fin aprox.</label><input id="b-hora-fin" type="text" placeholder="5:00"></div>
+          <div class="field"><label>Invitados aprox. *</label><input id="b-invitados" type="number" inputmode="numeric"></div>
           <div class="field col-full"><label>Dirección del Salón *</label><input id="b-dir" type="text"></div>
         </div>
       </div>
@@ -276,6 +279,9 @@ function enviar() {
     if (v('b-novio-email')) chk('b-novio-email','email',false,'Email del novio inválido',errores);
     if (!v('b-fecha')) errores.push('Fecha estimada del evento');
     chk('b-salon','text',true,'Salón / Lugar (mín. 2 caracteres)',errores);
+    chk('b-hora','hora',true,'Hora de inicio inválida (usar formato HH:MM)',errores);
+    if (v('b-hora-fin')) chk('b-hora-fin','hora',false,'Hora fin inválida (usar formato HH:MM)',errores);
+    if (!v('b-invitados') || Number(v('b-invitados')) < 1) errores.push('Cantidad de invitados (número mayor a 0)');
     chk('b-dir','dir',true,'Dirección del salón (debe incluir número)',errores);
     chk('b-contacto-nombre','text',true,'Nombre del contacto de referencia',errores);
     chk('b-contacto-rel','text',true,'Relación del contacto',errores);
@@ -292,7 +298,7 @@ function enviar() {
     }
     data.novia    = { nombre: v('b-novia-nombre'), dni: v('b-novia-dni'), telefono: v('b-novia-tel'), email: v('b-novia-email') };
     data.novio    = { nombre: v('b-novio-nombre'), dni: v('b-novio-dni'), domicilio: v('b-novio-dom'), telefono: v('b-novio-tel'), email: v('b-novio-email') };
-    data.fiesta   = { fecha: v('b-fecha'), salon: v('b-salon'), direccion: v('b-dir') };
+    data.fiesta   = { fecha: v('b-fecha'), horaInicio: v('b-hora'), horaFin: v('b-hora-fin'), salon: v('b-salon'), direccion: v('b-dir'), invitados: v('b-invitados') };
     data.contacto = { nombre: v('b-contacto-nombre'), relacion: v('b-contacto-rel'), telefono: v('b-contacto-tel') };
     if (document.getElementById('b-tiene-civil').checked)
       data.civil = { fecha: v('b-civil-fecha'), horario: v('b-civil-hora'), direccion: v('b-civil-dir') };
