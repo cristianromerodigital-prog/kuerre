@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.71</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.72</div>
     </div>
   </aside>
 
@@ -2509,15 +2509,15 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
         <!-- Nuevo contrato -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px">
-          <div class="ct-tipo-btn" data-tipo="BODA" onclick="showPage('contratos');ctSelTipo('BODA')">
+          <div class="ct-tipo-btn" data-tipo="BODA" onclick="ctNuevoCliente('BODA')">
             <div style="font-size:1.5rem;margin-bottom:6px">💍</div>
             <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">Boda</div>
           </div>
-          <div class="ct-tipo-btn" data-tipo="XV" onclick="showPage('contratos');ctSelTipo('XV')">
+          <div class="ct-tipo-btn" data-tipo="XV" onclick="ctNuevoCliente('XV')">
             <div style="font-size:1.5rem;margin-bottom:6px">🌟</div>
             <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">XV Años</div>
           </div>
-          <div class="ct-tipo-btn" data-tipo="CUMPLE" onclick="showPage('contratos');ctSelTipo('CUMPLE')">
+          <div class="ct-tipo-btn" data-tipo="CUMPLE" onclick="ctNuevoCliente('CUMPLE')">
             <div style="font-size:1.5rem;margin-bottom:6px">🎂</div>
             <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600">Cumpleaños</div>
           </div>
@@ -8612,6 +8612,20 @@ function ctRenderServicios(data) {
     d.onmouseleave = () => d.style.borderColor = 'rgba(255,255,255,0.05)';
     grid.appendChild(d);
   });
+}
+
+function ctNuevoCliente(tipo) {
+  _ctSolicitudId = null;
+  _ctSkipNextRestore = true;
+  showPage('contratos');
+  document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.id !== 'ct-dia-firma') el.value = '';
+  });
+  document.querySelectorAll('[id^="ct-svc-"]').forEach(cb => { cb.checked = false; });
+  localStorage.removeItem(CT_DRAFT_KEY);
+  syncToCloud(CT_DRAFT_KEY, JSON.stringify(null));
+  ctSelTipo(tipo);
 }
 
 function ctSelTipo(tipo) {
