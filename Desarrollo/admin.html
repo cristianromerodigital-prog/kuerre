@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.66</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.67</div>
     </div>
   </aside>
 
@@ -3610,7 +3610,7 @@ async function doLogin() {
       localStorage.setItem('crd_admin_jwt', data.token);
       if (data.cf_auth) {
         CONFIG.CF_AUTH = data.cf_auth;
-        sessionStorage.setItem('crd_cf_auth', data.cf_auth);
+        localStorage.setItem('crd_cf_auth', data.cf_auth);
       }
       document.getElementById('login-screen').style.display='none';
       document.getElementById('app').classList.add('visible');
@@ -3640,7 +3640,7 @@ async function doLogin() {
 
 function doLogout() {
   localStorage.removeItem('crd_admin_jwt');
-  sessionStorage.removeItem('crd_cf_auth');
+  localStorage.removeItem('crd_cf_auth');
   CONFIG.CF_AUTH = '';
   document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display='flex';
@@ -3655,7 +3655,7 @@ function doLogout() {
     try {
       const payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
       if (payload.exp && payload.exp > Math.floor(Date.now() / 1000)) {
-        const cfAuth = sessionStorage.getItem('crd_cf_auth');
+        const cfAuth = localStorage.getItem('crd_cf_auth');
         if (cfAuth) CONFIG.CF_AUTH = cfAuth;
         document.getElementById('login-screen').style.display='none';
         document.getElementById('app').classList.add('visible');
