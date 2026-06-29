@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.77</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.78</div>
     </div>
   </aside>
 
@@ -8290,7 +8290,6 @@ async function initContratosPage() {
   }
   document.getElementById('ct-dia-firma').valueAsDate = new Date();
   if (ctSvcData.length === 0 && ctGetUrl()) ctCargarServicios();
-  ctRestoreDraft();
   const histBody  = document.getElementById('ct-hist-body');
   const histArrow = document.getElementById('ct-hist-arrow');
   if (histBody) { histBody.style.display = 'block'; if (histArrow) histArrow.textContent = '▲'; }
