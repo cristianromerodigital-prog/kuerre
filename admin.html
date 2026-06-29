@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.70</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.71</div>
     </div>
   </aside>
 
@@ -8893,9 +8893,11 @@ function ctSaveDraft() {
   syncToCloud(key, JSON.stringify({ tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems }));
 }
 
+let _ctSkipNextRestore = false;
+
 function ctRestoreDraft() {
-  if (_ctSolicitudId) return; // ctCargarSolicitud maneja su propio restore
-  fetchFromCloud(CT_DRAFT_KEY).then(function(cloud) {
+  if (_ctSkipNextRestore) { _ctSkipNextRestore = false; return; }
+  fetchFromCloud(ctDraftKey()).then(function(cloud) {
     if (cloud && cloud.tipo) { _ctApplyDraft(cloud); }
   }).catch(function(){});
 }
@@ -8981,6 +8983,7 @@ function ctRenderSolicitudes(data) {
 async function ctCargarSolicitud(sol) {
   _ctSolicitudId = sol.id || null;
   const prevDraft = sol.id ? await fetchFromCloud('crd_ct_draft_' + sol.id).catch(() => null) : null;
+  _ctSkipNextRestore = true;
   showPage('contratos');
   // Limpiar form y checkboxes antes de cargar el nuevo cliente
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
