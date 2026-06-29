@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.59</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.60</div>
     </div>
   </aside>
 
@@ -2172,10 +2172,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 <span id="ct-total-display" style="font-size:22px;font-weight:600;color:var(--gold)">$0</span>
               </div>
             </div>
-          </div>
-          <div id="ct-draft-banner" style="display:none;margin-bottom:12px;padding:10px 14px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:11px;color:var(--gold)">📋 Borrador guardado — datos del cliente cargados</span>
-            <button onclick="ctClearDraft()" style="font-size:9px;color:var(--gray);background:none;border:none;cursor:pointer;letter-spacing:1px">✕ Limpiar</button>
           </div>
           <div id="ct-edit-banner" style="display:none;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);padding:10px 14px;margin-bottom:10px;justify-content:space-between;align-items:center">
             <span style="font-size:11px;color:var(--gold);letter-spacing:1px">Editando contrato <strong id="ct-edit-num"></strong></span>
@@ -8869,8 +8865,6 @@ function ctSaveDraft() {
     fields[el.id] = el.type === 'checkbox' ? el.checked : el.value;
   });
   S.set(CT_DRAFT_KEY, { tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null });
-  const banner = document.getElementById('ct-draft-banner');
-  if (banner) banner.style.display = 'flex';
 }
 
 function ctRestoreDraft() {
@@ -8892,15 +8886,11 @@ function _ctApplyDraft(draft) {
       else el.value = val;
     });
     ctCalcTotal();
-    const banner = document.getElementById('ct-draft-banner');
-    if (banner) banner.style.display = 'flex';
   }, 100);
 }
 
 function ctClearDraft() {
   S.set(CT_DRAFT_KEY, null);
-  const banner = document.getElementById('ct-draft-banner');
-  if (banner) banner.style.display = 'none';
   // Reset form
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
