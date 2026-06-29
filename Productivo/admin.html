@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.81</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.82</div>
     </div>
   </aside>
 
@@ -8904,15 +8904,21 @@ function ctSaveDraft() {
     fields[el.id] = el.type === 'checkbox' ? el.checked : el.value;
   });
   const key = ctDraftKey();
-  localStorage.removeItem(key);
-  syncToCloud(key, JSON.stringify({ tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems }));
+  const data = JSON.stringify({ tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems });
+  try { localStorage.setItem(key, data); } catch(e) {}
+  syncToCloud(key, data);
 }
 
 let _ctSkipNextRestore = false;
 
 function ctRestoreDraft() {
   if (_ctSkipNextRestore) { _ctSkipNextRestore = false; return; }
-  fetchFromCloud(ctDraftKey()).then(function(cloud) {
+  const key = ctDraftKey();
+  try {
+    const local = JSON.parse(localStorage.getItem(key));
+    if (local && local.tipo) { _ctApplyDraft(local); return; }
+  } catch(e) {}
+  fetchFromCloud(key).then(function(cloud) {
     if (cloud && cloud.tipo) { _ctApplyDraft(cloud); }
   }).catch(function(){});
 }
