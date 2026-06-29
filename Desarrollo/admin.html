@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.79</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.80</div>
     </div>
   </aside>
 
@@ -8614,17 +8614,7 @@ function ctRenderServicios(data) {
 }
 
 function ctNuevoCliente(tipo) {
-  _ctSolicitudId = null;
-  _ctSkipNextRestore = true;
-  showPage('contratos');
-  document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
-    if (el.type === 'checkbox') el.checked = false;
-    else if (el.id !== 'ct-dia-firma') el.value = '';
-  });
-  document.querySelectorAll('[id^="ct-svc-"]').forEach(cb => { cb.checked = false; });
-  localStorage.removeItem(CT_DRAFT_KEY);
-  syncToCloud(CT_DRAFT_KEY, JSON.stringify(null));
-  ctSelTipo(tipo);
+  ctAbrirModalFormulario(tipo);
 }
 
 function ctSelTipo(tipo) {
@@ -9912,6 +9902,37 @@ async function calAgGuardar() {
   } catch(e) { toast('Error de conexión', 'error'); }
 }
 
+// ── MODAL FORMULARIO ──
+window.addEventListener('message', function(e) {
+  if (e.data === 'solicitud-ok') {
+    ctCerrarModalFormulario();
+    setTimeout(ctRefreshSolicitudes, 500);
+  }
+});
+
+function ctAbrirModalFormulario(tipo) {
+  var modal = document.getElementById('ct-modal-formulario');
+  var iframe = document.getElementById('ct-modal-iframe');
+  iframe.src = '/formulario.html?tipo=' + tipo;
+  modal.style.display = 'flex';
+  showPage('contratos');
+}
+
+function ctCerrarModalFormulario() {
+  var modal = document.getElementById('ct-modal-formulario');
+  var iframe = document.getElementById('ct-modal-iframe');
+  modal.style.display = 'none';
+  iframe.src = '';
+}
+
 </script>
+
+<div id="ct-modal-formulario" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center">
+  <div style="position:relative;width:92%;max-width:860px;height:92vh;background:#060d14;border:1px solid rgba(0,200,150,0.15);overflow:hidden">
+    <button onclick="ctCerrarModalFormulario()" style="position:absolute;top:10px;right:14px;z-index:10;background:none;border:none;color:rgba(255,255,255,0.5);font-size:22px;cursor:pointer;line-height:1">✕</button>
+    <iframe id="ct-modal-iframe" src="" style="width:100%;height:100%;border:none"></iframe>
+  </div>
+</div>
+
 </body>
 </html>

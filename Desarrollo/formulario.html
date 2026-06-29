@@ -357,6 +357,7 @@ function enviar() {
       if (workerResult.status === 'fulfilled' && workerResult.value && workerResult.value.ok) {
         document.getElementById('form-area').style.display = 'none';
         document.getElementById('success').style.display = 'block';
+        if (window.parent !== window) window.parent.postMessage('solicitud-ok', '*');
       } else {
         var errMsg = (workerResult.status === 'fulfilled' && workerResult.value && workerResult.value.error)
           ? workerResult.value.error : 'Error al guardar la solicitud';
@@ -408,6 +409,10 @@ Object.entries(_BLUR).forEach(([id,[type,req]])=>{
   const el=document.getElementById(id);
   if(el) el.addEventListener('blur',()=>vf(id,type,req));
 });
+(function(){
+  var t = new URLSearchParams(location.search).get('tipo');
+  if (t) selTipo(t);
+})();
 </script>
 </body>
 </html>
