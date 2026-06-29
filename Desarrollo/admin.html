@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.58</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.59</div>
     </div>
   </aside>
 
@@ -8839,7 +8839,18 @@ function ctCancelarGeneracion() {
   toast('Generación cancelada — datos conservados');
 }
 
-function ctSaveDraftManual() {
+async function ctSaveDraftManual() {
+  if (ctTipo && !_ctSolicitudId && CLIENTES_WORKER) {
+    try {
+      var p = {};
+      if (ctTipo === 'XV')     p = { tipo:'XV',    quinceanera:{ nombre:ctV('ct-x-quince-nombre') }, cliente:{ nombre:ctV('ct-x-cliente-nombre'), telefono:ctV('ct-x-cliente-tel'), email:ctV('ct-x-cliente-email') }, evento:{ fecha:ctV('ct-x-fecha'), salon:ctV('ct-x-salon'), direccion:ctV('ct-x-dir') } };
+      else if (ctTipo==='CUMPLE') p = { tipo:'CUMPLE', cliente:{ nombre:ctV('ct-c-nombre'), telefono:ctV('ct-c-tel'), email:ctV('ct-c-email') }, evento:{ fecha:ctV('ct-c-fecha'), salon:ctV('ct-c-salon'), direccion:ctV('ct-c-dir') } };
+      else                     p = { tipo:'BODA',   novia:{ nombre:ctV('ct-b-novia-nombre'), telefono:ctV('ct-b-novia-tel'), email:ctV('ct-b-novia-email') }, novio:{ nombre:ctV('ct-b-novio-nombre') }, fiesta:{ fecha:ctV('ct-b-fiesta-fecha'), salon:ctV('ct-b-fiesta-salon'), direccion:ctV('ct-b-fiesta-dir') } };
+      var r = await fetch(CLIENTES_WORKER + '/solicitudes', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
+      var d = await r.json();
+      if (d.ok) _ctSolicitudId = d.id;
+    } catch(e) {}
+  }
   ctSaveDraft();
   toast('Borrador guardado ✓');
   showPage('clientes');
