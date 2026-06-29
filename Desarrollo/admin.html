@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.78</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.79</div>
     </div>
   </aside>
 
@@ -9019,7 +9019,21 @@ async function ctCargarSolicitud(sol) {
   const d = sol.data;
   ctSelTipo(sol.tipo);
 
-  // Datos del cliente desde la solicitud (siempre frescos)
+  // 1. Aplicar borrador completo primero (cubre campos que D1 no tiene en solicitudes viejas)
+  if (prevDraft) {
+    if (prevDraft.pagoItems && Array.isArray(prevDraft.pagoItems)) {
+      ctPagoItems = prevDraft.pagoItems; ctRenderPagoItems();
+    }
+    Object.entries(prevDraft.fields || {}).forEach(function([id, val]) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === 'checkbox') el.checked = val;
+      else el.value = val;
+    });
+    ctCalcTotal();
+  }
+
+  // 2. Datos frescos de D1 por encima (sobreescriben el borrador)
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   if (sol.tipo === 'BODA') {
     set('ct-b-novia-nombre', d.novia?.nombre);
@@ -9066,20 +9080,6 @@ async function ctCargarSolicitud(sol) {
     set('ct-c-invitados',  d.evento?.invitados);
   }
 
-  // Restaurar servicios, precio y pago del borrador propio de esta solicitud
-  if (prevDraft) {
-    if (prevDraft.pagoItems && Array.isArray(prevDraft.pagoItems)) {
-      ctPagoItems = prevDraft.pagoItems; ctRenderPagoItems();
-    }
-    Object.entries(prevDraft.fields || {}).forEach(function([id, val]) {
-      if (!id.startsWith('ct-svc-') && id !== 'ct-precio') return;
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (el.type === 'checkbox') el.checked = val;
-      else el.value = val;
-    });
-    ctCalcTotal();
-  }
 
   setTimeout(ctSaveDraft, 200);
   toast('Datos cargados del cliente — completá precio y servicios');
