@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.65</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.66</div>
     </div>
   </aside>
 
@@ -8882,14 +8882,13 @@ function ctSaveDraft() {
     if (!el.id) return;
     fields[el.id] = el.type === 'checkbox' ? el.checked : el.value;
   });
-  S.set(CT_DRAFT_KEY, { tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems });
+  localStorage.removeItem(CT_DRAFT_KEY);
+  syncToCloud(CT_DRAFT_KEY, JSON.stringify({ tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems }));
 }
 
 function ctRestoreDraft() {
-  const local = S.get(CT_DRAFT_KEY);
-  if (local && local.tipo) { _ctApplyDraft(local); return; }
   fetchFromCloud(CT_DRAFT_KEY).then(function(cloud) {
-    if (cloud && cloud.tipo && !_ctSolicitudId) { S.set(CT_DRAFT_KEY, cloud); _ctApplyDraft(cloud); }
+    if (cloud && cloud.tipo && !_ctSolicitudId) { _ctApplyDraft(cloud); }
   }).catch(function(){});
 }
 
@@ -8909,7 +8908,8 @@ function _ctApplyDraft(draft) {
 }
 
 function ctClearDraft() {
-  S.set(CT_DRAFT_KEY, null);
+  localStorage.removeItem(CT_DRAFT_KEY);
+  syncToCloud(CT_DRAFT_KEY, JSON.stringify(null));
   // Reset form
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
@@ -8971,9 +8971,10 @@ function ctRenderSolicitudes(data) {
 
 async function ctCargarSolicitud(sol) {
   _ctSolicitudId = sol.id || null;
-  const prevDraft = S.get(CT_DRAFT_KEY);
+  const prevDraft = await fetchFromCloud(CT_DRAFT_KEY).catch(() => null);
   const prevPagoItems = (prevDraft && prevDraft.solicitudId === sol.id && Array.isArray(prevDraft.pagoItems)) ? prevDraft.pagoItems : null;
-  S.set(CT_DRAFT_KEY, null); // evita que ctRestoreDraft sobreescriba los campos de esta solicitud
+  localStorage.removeItem(CT_DRAFT_KEY);
+  syncToCloud(CT_DRAFT_KEY, JSON.stringify(null)); // evita que ctRestoreDraft sobreescriba los campos de esta solicitud
   showPage('contratos');
   const d = sol.data;
   ctSelTipo(sol.tipo);
