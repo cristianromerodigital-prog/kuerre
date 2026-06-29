@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.76</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.77</div>
     </div>
   </aside>
 
@@ -8873,9 +8873,21 @@ async function ctSaveDraftManual() {
   if (ctTipo && !_ctSolicitudId && CLIENTES_WORKER) {
     try {
       var p = {};
-      if (ctTipo === 'XV')     p = { tipo:'XV',    quinceanera:{ nombre:ctV('ct-x-quince-nombre') }, cliente:{ nombre:ctV('ct-x-cliente-nombre'), telefono:ctV('ct-x-cliente-tel'), email:ctV('ct-x-cliente-email') }, evento:{ fecha:ctV('ct-x-fecha'), salon:ctV('ct-x-salon'), direccion:ctV('ct-x-dir') } };
-      else if (ctTipo==='CUMPLE') p = { tipo:'CUMPLE', cliente:{ nombre:ctV('ct-c-nombre'), telefono:ctV('ct-c-tel'), email:ctV('ct-c-email') }, evento:{ fecha:ctV('ct-c-fecha'), salon:ctV('ct-c-salon'), direccion:ctV('ct-c-dir') } };
-      else                     p = { tipo:'BODA',   novia:{ nombre:ctV('ct-b-novia-nombre'), telefono:ctV('ct-b-novia-tel'), email:ctV('ct-b-novia-email') }, novio:{ nombre:ctV('ct-b-novio-nombre') }, fiesta:{ fecha:ctV('ct-b-fiesta-fecha'), salon:ctV('ct-b-fiesta-salon'), direccion:ctV('ct-b-fiesta-dir') } };
+      if (ctTipo === 'XV')
+        p = { tipo:'XV',
+          quinceanera:{ nombre:ctV('ct-x-quince-nombre'), fechaNacimiento:ctV('ct-x-quince-nac') },
+          cliente:{ nombre:ctV('ct-x-cliente-nombre'), dni:ctV('ct-x-cliente-dni'), telefono:ctV('ct-x-cliente-tel'), email:ctV('ct-x-cliente-email') },
+          evento:{ fecha:ctV('ct-x-fecha'), horaInicio:ctV('ct-x-hora-inicio'), horaFin:ctV('ct-x-hora-fin'), salon:ctV('ct-x-salon'), direccion:ctV('ct-x-dir'), invitados:ctV('ct-x-invitados') } };
+      else if (ctTipo === 'CUMPLE')
+        p = { tipo:'CUMPLE',
+          cliente:{ nombre:ctV('ct-c-nombre'), dni:ctV('ct-c-dni'), telefono:ctV('ct-c-tel'), email:ctV('ct-c-email') },
+          evento:{ fecha:ctV('ct-c-fecha'), horaInicio:ctV('ct-c-hora-inicio'), horaFin:ctV('ct-c-hora-fin'), salon:ctV('ct-c-salon'), direccion:ctV('ct-c-dir'), invitados:ctV('ct-c-invitados') } };
+      else
+        p = { tipo:'BODA',
+          novia:{ nombre:ctV('ct-b-novia-nombre'), dni:ctV('ct-b-novia-dni'), telefono:ctV('ct-b-novia-tel'), email:ctV('ct-b-novia-email') },
+          novio:{ nombre:ctV('ct-b-novio-nombre'), dni:ctV('ct-b-novio-dni'), domicilio:ctV('ct-b-novio-dom'), telefono:ctV('ct-b-novio-tel'), email:ctV('ct-b-novio-email') },
+          fiesta:{ fecha:ctV('ct-b-fiesta-fecha'), horaInicio:ctV('ct-b-fiesta-hora'), horaFin:ctV('ct-b-fiesta-hora-fin'), salon:ctV('ct-b-fiesta-salon'), direccion:ctV('ct-b-fiesta-dir'), invitados:ctV('ct-b-invitados') },
+          contacto:{ nombre:ctV('ct-b-contacto-nombre'), relacion:ctV('ct-b-contacto-rel'), telefono:ctV('ct-b-contacto-tel') } };
       var r = await fetch(CLIENTES_WORKER + '/solicitudes', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
       var d = await r.json();
       if (d.ok) _ctSolicitudId = d.id;
