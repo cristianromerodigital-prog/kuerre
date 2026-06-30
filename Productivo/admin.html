@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.83</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.84</div>
     </div>
   </aside>
 
@@ -6504,6 +6504,13 @@ function renderInvitesPage() {
         document.getElementById('inv-s-lugar-nombre').value = s.salon || '';
         document.getElementById('inv-s-lugar-dir').value = s.direccion || '';
         document.getElementById('inv-s-recepcion-hora').value = document.getElementById('inv-recepcion-hora').value;
+        // Slug automático basado en nombre + año
+        const slugEl = document.getElementById('inv-slug');
+        if (slugEl && !slugEl.dataset.manual) {
+          const nombreBase = (s.tipo === 'XV' && d.quinceanera && d.quinceanera.nombre) ? d.quinceanera.nombre : s.nombre_display;
+          const año = s.fecha ? s.fecha.slice(0, 4) : '';
+          slugEl.value = toSlug(nombreBase + (año ? ' ' + año : ''));
+        }
         toast('Datos de ' + s.nombre_display + ' pre-cargados');
       }, 50);
     }
