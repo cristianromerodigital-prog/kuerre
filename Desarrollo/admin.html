@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.88</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.89</div>
     </div>
   </aside>
 
@@ -3702,6 +3702,7 @@ let _clientesSearch = '';
 let _clientesOffset = 0;
 let _pendingClienteId = null;
 let _invClienteId = null;
+let _prefillFiestaLink = null;
 
 function _startClientesPoller() {
   _stopClientesPoller();
@@ -9442,6 +9443,7 @@ async function fiestasFetch(path, opts = {}) {
 }
 
 async function loadFiestasPage() {
+  _prefillFiestaLink = null;
   fiestasFetch('/eventos/admin/vision-stats').then(r => r.json()).then(d => {
     let html = `<span style="color:var(--cyan);font-size:22px;font-weight:500">${d.count}</span> fotos moderadas este mes`;
     if (d.costEstimado !== undefined) html += ` · costo estimado: <span style="color:var(--gold)">$${d.costEstimado}</span>`;
@@ -9481,6 +9483,7 @@ async function loadFiestasPage() {
       if (nombreEl && !nombreEl.value) nombreEl.value = s.nombre_display || '';
       if (fechaEl  && !fechaEl.value)  fechaEl.value  = s.fecha || '';
       if (folderEl && !folderEl.value) folderEl.value = s.drive_fiesta_id || '';
+      _prefillFiestaLink = { fiestaId: s.fiesta_id, clienteId: s.id };
       const nuevoEvtSec = document.getElementById('fi-nombre');
       if (nuevoEvtSec) nuevoEvtSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
       toast('Datos de ' + s.nombre_display + ' pre-cargados');
@@ -9530,16 +9533,32 @@ async function fiestaCrear() {
   if (!nombre || !fecha || !folder) { showToast('Nombre, fecha y carpeta son obligatorios.'); return; }
   const body = { nombre, fecha, folder_id: folder, portada, moderacion: mod };
   if (cierre) body.cierre_auto = new Date(cierre).toISOString();
+  const link = _prefillFiestaLink;
   try {
-    const r = await fiestasFetch('/eventos/admin', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    const d = await r.json();
-    if (d.id) {
-      showToast('Evento creado: ' + d.id);
+    let d;
+    if (link) {
+      // Viene de "Ir a Fiestas" desde un cliente: actualiza el evento placeholder ya vinculado en vez de crear uno huérfano
+      body.estado = 'activo';
+      const r = await fiestasFetch('/eventos/admin/' + link.fiestaId, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      d = await r.json();
+      if (d.ok) {
+        showToast('Evento activado');
+        const idx = _clientes.findIndex(x => x.id === link.clienteId);
+        if (idx !== -1) { _clientes[idx].fiesta_estado = 'activo'; _clientes[idx].drive_fiesta_id = folder; renderClientes(); }
+      } else {
+        showToast(d.error || 'Error al activar');
+      }
+    } else {
+      const r = await fiestasFetch('/eventos/admin', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      d = await r.json();
+      if (d.id) showToast('Evento creado: ' + d.id);
+      else showToast(d.error || 'Error al crear');
+    }
+    if (d.id || d.ok) {
+      _prefillFiestaLink = null;
       ['fi-nombre','fi-fecha','fi-folder','fi-cierre','fi-portada'].forEach(id => { document.getElementById(id).value = ''; });
       document.getElementById('fi-moderacion').checked = false;
       loadFiestasPage();
-    } else {
-      showToast(d.error || 'Error al crear');
     }
   } catch(e) { showToast('Error de conexión'); }
 }
