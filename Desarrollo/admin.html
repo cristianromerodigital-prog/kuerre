@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.87</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.88</div>
     </div>
   </aside>
 
@@ -3863,6 +3863,18 @@ function cmGoFiesta() {
 function cmGoEntrega() {
   document.getElementById('cliente-modal').style.display = 'none';
   showPage('entregas');
+  if (_clienteActual) {
+    document.getElementById('ent-nombres').value = _clienteActual.nombre_display || '';
+    const tipoMap = { BODA: 'Boda', XV: 'XV Años', CUMPLE: 'Cumpleaños' };
+    document.getElementById('ent-tipo').value = tipoMap[_clienteActual.tipo] || 'Evento';
+    if (_clienteActual.fecha) {
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const [y, m, d] = _clienteActual.fecha.split('-');
+      document.getElementById('ent-fecha').value = parseInt(d, 10) + ' ' + meses[parseInt(m, 10) - 1] + ' ' + y;
+    }
+    if (_clienteActual.entrega_folder) document.getElementById('ent-folder').value = _clienteActual.entrega_folder;
+    updateEntregaPreview();
+  }
 }
 
 function cmGetFiestaUrl() {
