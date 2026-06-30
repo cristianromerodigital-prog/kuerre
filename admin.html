@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.82</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.83</div>
     </div>
   </aside>
 
@@ -6469,13 +6469,42 @@ function renderInvitesPage() {
         : '';
       setTimeout(function() {
         openInviteModal();
+        const d = typeof s.data_json === 'string' ? JSON.parse(s.data_json || '{}') : (s.data_json || {});
+        // Tipo + nombre + fecha
         document.getElementById('inv-tipo').value = tipo;
+        invTipoChange();
         document.getElementById('inv-novios').value = s.nombre_display || '';
         document.getElementById('inv-fecha-display').value = fechaFmt;
         document.getElementById('inv-fecha-iso').value = s.fecha || '';
+        // Lugar general
         document.getElementById('inv-lugar-nombre').value = s.salon || '';
         document.getElementById('inv-lugar-dir').value = s.direccion || '';
-        toast('Datos de ' + s.nombre_display + ' pre-cargados en invitación');
+        if (s.tipo === 'BODA') {
+          const fiesta = d.fiesta || {};
+          const civil = d.civil || {};
+          const reli = d.religiosa || {};
+          // Recepción = fiesta
+          document.getElementById('inv-recepcion-hora').value = fiesta.horarioInicio || fiesta.horaInicio || '';
+          document.getElementById('inv-fin-fiesta-hora').value = fiesta.horaFin || '';
+          document.getElementById('inv-recepcion-lugar').value = fiesta.lugar || fiesta.salon || '';
+          // Ceremonia = civil si tiene fecha, sino religiosa
+          const cer = civil.fecha ? civil : reli;
+          document.getElementById('inv-ceremonia-hora').value = cer.horario || cer.horaInicio || '';
+          document.getElementById('inv-ceremonia-lugar').value = cer.lugar || '';
+          document.getElementById('inv-ceremonia-dir').value = cer.direccion || '';
+        } else {
+          const ev = d.evento || {};
+          document.getElementById('inv-recepcion-hora').value = ev.horaInicio || '';
+          document.getElementById('inv-fin-fiesta-hora').value = ev.horaFin || '';
+        }
+        // Tab social — mismos datos
+        document.getElementById('inv-s-novios').value = s.nombre_display || '';
+        document.getElementById('inv-s-fecha-display').value = fechaFmt;
+        document.getElementById('inv-s-fecha-iso').value = s.fecha || '';
+        document.getElementById('inv-s-lugar-nombre').value = s.salon || '';
+        document.getElementById('inv-s-lugar-dir').value = s.direccion || '';
+        document.getElementById('inv-s-recepcion-hora').value = document.getElementById('inv-recepcion-hora').value;
+        toast('Datos de ' + s.nombre_display + ' pre-cargados');
       }, 50);
     }
   }
