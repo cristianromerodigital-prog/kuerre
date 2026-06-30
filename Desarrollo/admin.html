@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.82</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.86</div>
     </div>
   </aside>
 
@@ -864,18 +864,30 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                   <input class="form-input" type="date" id="inv-rsvp-limite">
                 </div>
               </div>
-              <div class="form-group">
-                <label class="form-label">URL del Apps Script de Google Sheets</label>
-                <input class="form-input" id="inv-gsheet-url" placeholder="https://script.google.com/macros/s/.../exec">
-                <small style="color:var(--gray);font-size:10px;margin-top:4px;display:block">Las respuestas del formulario se guardarán en tu Google Sheet.</small>
+              <div style="margin-top:8px">
+                <label class="form-label">Panel de Invitados</label>
+                <small style="color:var(--gray);font-size:10px;margin-bottom:10px;display:block">Las confirmaciones se guardan automáticamente. Generá un link para que el cliente vea quién confirmó.</small>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+                  <button type="button" class="btn-sm" onclick="genRsvpPanelLink()" id="btn-gen-rsvp">Generar link</button>
+                  <button type="button" class="btn-sm" style="display:none;color:#25D366;border-color:#25D366" onclick="copyRsvpPanelLink()" id="btn-copy-rsvp">WhatsApp 📲</button>
+                </div>
+                <div id="inv-rsvp-panel-url" style="font-size:10px;color:var(--gold);word-break:break-all;margin-bottom:8px"></div>
+                <div id="inv-rsvp-summary" style="font-size:11px;color:var(--gray2)"></div>
               </div>
-              <details style="margin-top:12px">
-                <summary style="font-size:11px;color:var(--cyan);cursor:pointer;letter-spacing:1px">¿Cómo configurar Google Sheets?</summary>
-                <div style="margin-top:12px;font-size:12px;color:var(--gray2);line-height:1.8">
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">1.</strong> Creá una Google Sheet nueva para este evento.</p>
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">2.</strong> En la hoja, ir a <strong style="color:var(--white)">Extensiones → Apps Script</strong>.</p>
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">3.</strong> Reemplazá todo el código con esto:</p>
-                  <div class="inv-gsheet-code">function doPost(e){
+              <details style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
+                <summary style="font-size:11px;color:var(--gray);cursor:pointer;letter-spacing:1px">Método anterior — Google Sheets / Email (opcional)</summary>
+                <div class="form-group" style="margin-top:12px">
+                  <label class="form-label">URL del Apps Script de Google Sheets</label>
+                  <input class="form-input" id="inv-gsheet-url" placeholder="https://script.google.com/macros/s/.../exec">
+                  <small style="color:var(--gray);font-size:10px;margin-top:4px;display:block">Las respuestas del formulario se guardarán en tu Google Sheet.</small>
+                </div>
+                <details style="margin-top:12px">
+                  <summary style="font-size:11px;color:var(--cyan);cursor:pointer;letter-spacing:1px">¿Cómo configurar Google Sheets?</summary>
+                  <div style="margin-top:12px;font-size:12px;color:var(--gray2);line-height:1.8">
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">1.</strong> Creá una Google Sheet nueva para este evento.</p>
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">2.</strong> En la hoja, ir a <strong style="color:var(--white)">Extensiones → Apps Script</strong>.</p>
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">3.</strong> Reemplazá todo el código con esto:</p>
+                    <div class="inv-gsheet-code">function doPost(e){
   var ss=SpreadsheetApp.getActiveSpreadsheet();
   var sh=ss.getActiveSheet();
   if(sh.getLastRow()===0)
@@ -887,16 +899,17 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   return ContentService.createTextOutput(JSON.stringify({ok:true}))
     .setMimeType(ContentService.MimeType.JSON);
 }</div>
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">4.</strong> Guardar → <strong style="color:var(--white)">Implementar → Nueva implementación</strong>.</p>
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">5.</strong> Tipo: <em>Aplicación web</em> · Ejecutar como: <em>Yo</em> · Acceso: <em>Cualquier persona</em>.</p>
-                  <p><strong style="color:var(--white)">6.</strong> Copiá la URL del deploy y pegala arriba.</p>
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">4.</strong> Guardar → <strong style="color:var(--white)">Implementar → Nueva implementación</strong>.</p>
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">5.</strong> Tipo: <em>Aplicación web</em> · Ejecutar como: <em>Yo</em> · Acceso: <em>Cualquier persona</em>.</p>
+                    <p><strong style="color:var(--white)">6.</strong> Copiá la URL del deploy y pegala arriba.</p>
+                  </div>
+                </details>
+                <div class="form-group" style="margin-top:16px">
+                  <label class="form-label">EmailJS — Template ID (opcional, para notificación)</label>
+                  <input class="form-input" id="inv-emailjs-template" placeholder="template_rsvp">
+                  <small style="color:var(--gray);font-size:10px;margin-top:4px;display:block">Si lo completás, también recibirás un email por cada RSVP.</small>
                 </div>
               </details>
-              <div class="form-group" style="margin-top:16px">
-                <label class="form-label">EmailJS — Template ID (opcional, para notificación)</label>
-                <input class="form-input" id="inv-emailjs-template" placeholder="template_rsvp">
-                <small style="color:var(--gray);font-size:10px;margin-top:4px;display:block">Si lo completás, también recibirás un email por cada RSVP.</small>
-              </div>
             </div>
 
             <!-- SPOTIFY -->
@@ -6469,13 +6482,54 @@ function renderInvitesPage() {
         : '';
       setTimeout(function() {
         openInviteModal();
+        const d = typeof s.data_json === 'string' ? JSON.parse(s.data_json || '{}') : (s.data_json || {});
+        // Tipo + nombre + fecha
         document.getElementById('inv-tipo').value = tipo;
+        invTipoChange();
         document.getElementById('inv-novios').value = s.nombre_display || '';
         document.getElementById('inv-fecha-display').value = fechaFmt;
         document.getElementById('inv-fecha-iso').value = s.fecha || '';
+        // Lugar general
         document.getElementById('inv-lugar-nombre').value = s.salon || '';
         document.getElementById('inv-lugar-dir').value = s.direccion || '';
-        toast('Datos de ' + s.nombre_display + ' pre-cargados en invitación');
+        if (s.direccion || s.salon) {
+          const q = [s.salon, s.direccion].filter(Boolean).join(', ');
+          document.getElementById('inv-lugar-maps').value = 'https://maps.google.com/?q=' + encodeURIComponent(q);
+        }
+        if (s.tipo === 'BODA') {
+          const fiesta = d.fiesta || {};
+          const civil = d.civil || {};
+          const reli = d.religiosa || {};
+          // Recepción = fiesta
+          document.getElementById('inv-recepcion-hora').value = fiesta.horarioInicio || fiesta.horaInicio || '';
+          document.getElementById('inv-fin-fiesta-hora').value = fiesta.horaFin || '';
+          document.getElementById('inv-recepcion-lugar').value = fiesta.lugar || fiesta.salon || '';
+          // Ceremonia = civil si tiene fecha, sino religiosa
+          const cer = civil.fecha ? civil : reli;
+          document.getElementById('inv-ceremonia-hora').value = cer.horario || cer.horaInicio || '';
+          document.getElementById('inv-ceremonia-lugar').value = cer.lugar || '';
+          document.getElementById('inv-ceremonia-dir').value = cer.direccion || '';
+        } else {
+          const ev = d.evento || {};
+          document.getElementById('inv-recepcion-hora').value = ev.horaInicio || '';
+          document.getElementById('inv-fin-fiesta-hora').value = ev.horaFin || '';
+        }
+        // Tab social — mismos datos
+        document.getElementById('inv-s-novios').value = s.nombre_display || '';
+        document.getElementById('inv-s-fecha-display').value = fechaFmt;
+        document.getElementById('inv-s-fecha-iso').value = s.fecha || '';
+        document.getElementById('inv-s-lugar-nombre').value = s.salon || '';
+        document.getElementById('inv-s-lugar-dir').value = s.direccion || '';
+        document.getElementById('inv-s-lugar-maps').value = document.getElementById('inv-lugar-maps').value;
+        document.getElementById('inv-s-recepcion-hora').value = document.getElementById('inv-recepcion-hora').value;
+        // Slug automático basado en nombre + año
+        const slugEl = document.getElementById('inv-slug');
+        if (slugEl && !slugEl.dataset.manual) {
+          const nombreBase = (s.tipo === 'XV' && d.quinceanera && d.quinceanera.nombre) ? d.quinceanera.nombre : s.nombre_display;
+          const año = s.fecha ? s.fecha.slice(0, 4) : '';
+          slugEl.value = toSlug(nombreBase + (año ? ' ' + año : ''));
+        }
+        toast('Datos de ' + s.nombre_display + ' pre-cargados');
       }, 50);
     }
   }
@@ -6602,6 +6656,12 @@ function openInviteModal(id) {
     _invCarousel1 = c.carousel_images_1 || []; renderCarouselPreview(1, _invCarousel1);
     _invCarousel2 = c.carousel_images_2 || []; renderCarouselPreview(2, _invCarousel2);
     _invTrivia = c.trivia_preguntas ? c.trivia_preguntas.map(p => ({...p,opciones:[...p.opciones]})) : TRIVIA_DEFAULT.map(p => ({...p,opciones:[...p.opciones]}));
+    document.getElementById('inv-rsvp-summary').textContent = '';
+    document.getElementById('inv-rsvp-panel-url').textContent = '';
+    document.getElementById('inv-rsvp-panel-url').dataset.url = '';
+    document.getElementById('btn-copy-rsvp').style.display = 'none';
+    document.getElementById('btn-gen-rsvp').textContent = 'Generar link';
+    if (inv.slug) loadRsvpSummary(inv.slug);
   } else {
     invSetMode('invitacion');
     setInvModelo('clasico');
@@ -6731,6 +6791,54 @@ function readInviteForm() {
     if (!data.slug) data.slug = toSlug(data.config.novios) || 'invitacion';
   }
   return data;
+}
+
+async function genRsvpPanelLink() {
+  const slug = (document.getElementById('inv-slug').value || '').trim();
+  if (!slug) { toast('Guardá la invitación primero para generar el link', 'error'); return; }
+  const btn = document.getElementById('btn-gen-rsvp');
+  btn.textContent = 'Generando...'; btn.disabled = true;
+  try {
+    const res = await fetch(CONFIG.CRCLUB_URL + '/rsvp-token/' + slug, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+    });
+    const data = await res.json();
+    if (!data.token) throw new Error('Sin token');
+    const url = 'https://kuerre.com.ar/rsvp-panel.html?slug=' + encodeURIComponent(slug) + '&t=' + encodeURIComponent(data.token);
+    document.getElementById('inv-rsvp-panel-url').textContent = url;
+    document.getElementById('inv-rsvp-panel-url').dataset.url = url;
+    document.getElementById('btn-copy-rsvp').style.display = '';
+    toast('Link generado');
+    loadRsvpSummary(slug);
+  } catch(e) {
+    toast('Error al generar link', 'error');
+  } finally {
+    btn.textContent = 'Regenerar link'; btn.disabled = false;
+  }
+}
+
+function copyRsvpPanelLink() {
+  const url = document.getElementById('inv-rsvp-panel-url').dataset.url || '';
+  if (!url) return;
+  const wa = 'https://wa.me/?text=' + encodeURIComponent('Podés ver los confirmados de tu invitación acá:\n' + url);
+  window.open(wa, '_blank');
+}
+
+async function loadRsvpSummary(slug) {
+  if (!slug) return;
+  try {
+    const res = await fetch(CONFIG.CRCLUB_URL + '/rsvp/' + slug, {
+      headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const el = document.getElementById('inv-rsvp-summary');
+    if (!el) return;
+    el.innerHTML = data.total
+      ? '✅ ' + data.total_si + ' confirmados · ❌ ' + data.total_no + ' no asisten · Total: ' + data.total
+      : 'Aún no hay confirmaciones.';
+  } catch(e) {}
 }
 
 function saveInvite() {
