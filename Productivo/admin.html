@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.84</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.85</div>
     </div>
   </aside>
 
@@ -6479,6 +6479,10 @@ function renderInvitesPage() {
         // Lugar general
         document.getElementById('inv-lugar-nombre').value = s.salon || '';
         document.getElementById('inv-lugar-dir').value = s.direccion || '';
+        if (s.direccion || s.salon) {
+          const q = [s.salon, s.direccion].filter(Boolean).join(', ');
+          document.getElementById('inv-lugar-maps').value = 'https://maps.google.com/?q=' + encodeURIComponent(q);
+        }
         if (s.tipo === 'BODA') {
           const fiesta = d.fiesta || {};
           const civil = d.civil || {};
@@ -6503,6 +6507,7 @@ function renderInvitesPage() {
         document.getElementById('inv-s-fecha-iso').value = s.fecha || '';
         document.getElementById('inv-s-lugar-nombre').value = s.salon || '';
         document.getElementById('inv-s-lugar-dir').value = s.direccion || '';
+        document.getElementById('inv-s-lugar-maps').value = document.getElementById('inv-lugar-maps').value;
         document.getElementById('inv-s-recepcion-hora').value = document.getElementById('inv-recepcion-hora').value;
         // Slug automático basado en nombre + año
         const slugEl = document.getElementById('inv-slug');
