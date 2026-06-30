@@ -6661,7 +6661,7 @@ function openInviteModal(id) {
     document.getElementById('inv-rsvp-panel-url').dataset.url = '';
     document.getElementById('btn-copy-rsvp').style.display = 'none';
     document.getElementById('btn-gen-rsvp').textContent = 'Generar link';
-    if (inv.slug) loadRsvpSummary(inv.slug);
+    loadRsvpSummary(getRealInviteSlug());
   } else {
     invSetMode('invitacion');
     setInvModelo('clasico');
@@ -6793,8 +6793,17 @@ function readInviteForm() {
   return data;
 }
 
+function getRealInviteSlug() {
+  if (!invEditingId) return '';
+  const nombre = toSlug(document.getElementById('inv-novios').value.trim() || document.getElementById('inv-titulo').value.trim() || 'invitacion');
+  const fechaRaw = document.getElementById('inv-fecha-display').value || document.getElementById('inv-fecha-iso').value || '';
+  const fecha = toSlug(fechaRaw);
+  const suffix = String(invEditingId).slice(-4);
+  return nombre + (fecha ? '-' + fecha : '') + '-' + suffix;
+}
+
 async function genRsvpPanelLink() {
-  const slug = (document.getElementById('inv-slug').value || '').trim();
+  const slug = getRealInviteSlug();
   if (!slug) { toast('Guardá la invitación primero para generar el link', 'error'); return; }
   const btn = document.getElementById('btn-gen-rsvp');
   btn.textContent = 'Generando...'; btn.disabled = true;
