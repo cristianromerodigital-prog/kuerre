@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invitados</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060d0f;color:#fff;font-family:'Montserrat',sans-serif;min-height:100vh;padding:24px 16px}
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&family=Cormorant+Garamond:wght@300;400&display=swap');
+h1{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:28px;color:#00c896;margin-bottom:4px}
+.meta{font-size:10px;letter-spacing:2px;color:#555;margin-bottom:32px;text-transform:uppercase}
+.stats{display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap}
+.stat{background:#0a1416;border:1px solid #15201f;border-radius:8px;padding:16px 24px;text-align:center;min-width:100px}
+.stat-n{font-size:32px;font-weight:500;color:#00c896}
+.stat-l{font-size:9px;letter-spacing:2px;color:#555;text-transform:uppercase;margin-top:4px}
+.stat.si .stat-n{color:#4caf50}
+.stat.no .stat-n{color:#e57373}
+.actions{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.btn{padding:10px 20px;border:1px solid #1e2c2e;background:transparent;color:#aaa;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.btn:hover{border-color:#00c896;color:#00c896}
+.btn-share{border-color:#25D366;color:#25D366}
+.btn-share:hover{background:#25D36620}
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-btn{padding:6px 16px;border:1px solid #15201f;background:transparent;color:#666;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;border-radius:20px}
+.filter-btn.active{border-color:#00c896;color:#00c896;background:#00c89612}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:10px 12px;font-size:9px;letter-spacing:2px;color:#555;text-transform:uppercase;border-bottom:1px solid #15201f}
+td{padding:12px 12px;border-bottom:1px solid #0e1718;color:#ccc;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.badge.si{background:#4caf5020;color:#4caf50;border:1px solid #4caf5040}
+.badge.no{background:#e5737320;color:#e57373;border:1px solid #e5737340}
+.restricciones{font-size:10px;color:#666;margin-top:4px}
+.empty{text-align:center;padding:64px 0;color:#444;font-size:13px}
+.mesa-select{background:#0a1416;border:1px solid #15201f;color:#ccc;padding:6px 10px;font-size:11px;font-family:inherit;outline:none;border-radius:4px;cursor:pointer}
+.mesa-select:focus{border-color:#00c896}
+#search{background:#0a1416;border:1px solid #15201f;color:#fff;padding:10px 16px;font-size:12px;font-family:inherit;outline:none;width:100%;max-width:300px;margin-bottom:16px}
+#search::placeholder{color:#444}
+</style>
+</head>
+<body>
+<h1 id="panel-titulo">Invitados</h1>
+<div class="meta" id="panel-meta"></div>
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="st-total">—</div><div class="stat-l">Total</div></div>
+  <div class="stat si"><div class="stat-n" id="st-si">—</div><div class="stat-l">Confirmados</div></div>
+  <div class="stat no"><div class="stat-n" id="st-no">—</div><div class="stat-l">No asisten</div></div>
+</div>
+<div class="actions">
+  <button class="btn" onclick="exportCSV()">⬇ Exportar CSV</button>
+  <button class="btn btn-share" onclick="shareUrl()">WhatsApp 📲</button>
+</div>
+<input id="search" placeholder="Buscar por nombre..." oninput="renderTable()">
+<div class="filters">
+  <button class="filter-btn active" data-f="todos" onclick="setFilter('todos',this)">Todos</button>
+  <button class="filter-btn" data-f="si" onclick="setFilter('si',this)">Confirmados</button>
+  <button class="filter-btn" data-f="no" onclick="setFilter('no',this)">No asisten</button>
+</div>
+<div id="table-wrap"></div>
+<script>
+const params = new URLSearchParams(location.search);
+const slug = params.get('slug') || '';
+const token = params.get('t') || '';
+const WORKER = 'https://KUERRE-worker.cristian-romero-digital.workers.dev';
+let _all = [];
+let _filter = 'todos';
+
+async function init() {
+  if (!slug || !token) {
+    document.getElementById('table-wrap').innerHTML = '<div class="empty">URL inválida. Pedile el link al organizador.</div>';
+    return;
+  }
+  try {
+    const res = await fetch(WORKER + '/rsvp/' + slug + '?t=' + encodeURIComponent(token));
+    if (!res.ok) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Acceso denegado o invitación no encontrada.</div>'; return; }
+    const data = await res.json();
+    _all = data.responses || [];
+    document.getElementById('st-total').textContent = data.total;
+    document.getElementById('st-si').textContent = data.total_si;
+    document.getElementById('st-no').textContent = data.total_no;
+    document.getElementById('panel-titulo').textContent = slug.split('-').slice(0,-1).join(' ') || 'Invitados';
+    document.getElementById('panel-meta').textContent = 'Confirmaciones de asistencia';
+    renderTable();
+  } catch(e) {
+    document.getElementById('table-wrap').innerHTML = '<div class="empty">Error al cargar. Intentá de nuevo.</div>';
+  }
+}
+
+function setFilter(f, btn) {
+  _filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = document.getElementById('search').value.toLowerCase();
+  let rows = _all.filter(r => {
+    const matchFilter = _filter === 'todos' || r.asistencia === _filter;
+    const matchSearch = !q || (r.nombre + ' ' + r.apellido).toLowerCase().includes(q);
+    return matchFilter && matchSearch;
+  });
+  if (!rows.length) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
+  document.getElementById('table-wrap').innerHTML = `<table>
+    <thead><tr><th>#</th><th>Nombre</th><th>Asistencia</th><th>Fecha</th><th>Mesa</th></tr></thead>
+    <tbody>${rows.map((r, i) => `<tr>
+      <td style="color:#555">${i+1}</td>
+      <td>
+        <div>${esc(r.nombre)} ${esc(r.apellido)}</div>
+        ${r.restricciones ? '<div class="restricciones">🥗 ' + esc(r.restricciones) + '</div>' : ''}
+        ${r.mensaje ? '<div class="restricciones">💬 ' + esc(r.mensaje) + '</div>' : ''}
+      </td>
+      <td><span class="badge ${r.asistencia}">${r.asistencia === 'si' ? 'Confirma ✓' : 'No asiste'}</span></td>
+      <td style="color:#555;white-space:nowrap">${fmtDate(r.created_at)}</td>
+      <td><select class="mesa-select" onchange="setMesa(${r.id}, this.value)">${mesaOptions(r.mesa)}</select></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function mesaOptions(current) {
+  let opts = '<option value="">Sin mesa</option>';
+  for (let n = 1; n <= 20; n++) opts += `<option value="${n}"${current === n ? ' selected' : ''}>Mesa ${n}</option>`;
+  return opts;
+}
+async function setMesa(id, value) {
+  try {
+    await fetch(WORKER + '/rsvp/' + slug + '/' + id + '?t=' + encodeURIComponent(token), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mesa: value || null })
+    });
+    const r = _all.find(r => r.id === id);
+    if (r) r.mesa = value ? Number(value) : null;
+  } catch(e) {}
+}
+function fmtDate(s) { if (!s) return ''; const d = new Date(s+'Z'); return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); }
+
+function exportCSV() {
+  const rows = _all.filter(r => _filter === 'todos' || r.asistencia === _filter);
+  const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa','Fecha'];
+  const csv = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', r.mesa||'', r.created_at])].map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,﻿' + encodeURIComponent(csv);
+  a.download = 'invitados-' + slug + '.csv';
+  a.click();
+}
+
+function shareUrl() {
+  const url = location.href;
+  const wa = 'https://wa.me/?text=' + encodeURIComponent('Podés ver los confirmados acá: ' + url);
+  window.open(wa, '_blank');
+}
+
+init();
+</script>
+</body>
+</html>

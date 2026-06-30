@@ -732,6 +732,14 @@ async function submitRSVP() {
     mensaje: document.getElementById('rsvp-mensaje').value.trim() || ''
   };
   const tasks = [];
+  const _rsvpSlug = new URLSearchParams(location.search).get('i') || '';
+  if (_rsvpSlug) {
+    tasks.push(fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/rsvp/' + _rsvpSlug, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, apellido, asistencia, restricciones: restricciones.length ? restricciones.join(', ') : '', mensaje: data.mensaje })
+    }).catch(() => {}));
+  }
   if (cfg.gsheet_url) {
     tasks.push(fetch(cfg.gsheet_url, {
       method: 'POST', mode: 'no-cors',

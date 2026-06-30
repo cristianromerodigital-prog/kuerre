@@ -411,7 +411,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.85</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.89</div>
     </div>
   </aside>
 
@@ -654,6 +654,18 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <button id="inv-modelo-social" onclick="setInvModelo('social')" style="flex:1;padding:14px;border:2px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);background:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.2s">SOCIAL ✦</button>
             </div>
 
+            <!-- PANEL DE INVITADOS (compartido, no depende del modelo) -->
+            <div class="inv-modal-section">
+              <div class="inv-modal-section-title">Panel de Invitados</div>
+              <small style="color:var(--gray);font-size:10px;margin-bottom:10px;display:block">Las confirmaciones se guardan automáticamente (clásico o social). Generá un link para que el cliente vea quién confirmó.</small>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+                <button type="button" class="btn-sm" onclick="genRsvpPanelLink()" id="btn-gen-rsvp">Generar link</button>
+                <button type="button" class="btn-sm" style="display:none;color:#25D366;border-color:#25D366" onclick="copyRsvpPanelLink()" id="btn-copy-rsvp">WhatsApp 📲</button>
+              </div>
+              <div id="inv-rsvp-panel-url" style="font-size:10px;color:var(--gold);word-break:break-all;margin-bottom:8px"></div>
+              <div id="inv-rsvp-summary" style="font-size:11px;color:var(--gray2)"></div>
+            </div>
+
             <div id="inv-campos-clasico">
             <!-- BÁSICO -->
             <div class="inv-modal-section">
@@ -864,18 +876,20 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                   <input class="form-input" type="date" id="inv-rsvp-limite">
                 </div>
               </div>
-              <div class="form-group">
-                <label class="form-label">URL del Apps Script de Google Sheets</label>
-                <input class="form-input" id="inv-gsheet-url" placeholder="https://script.google.com/macros/s/.../exec">
-                <small style="color:var(--gray);font-size:10px;margin-top:4px;display:block">Las respuestas del formulario se guardarán en tu Google Sheet.</small>
-              </div>
-              <details style="margin-top:12px">
-                <summary style="font-size:11px;color:var(--cyan);cursor:pointer;letter-spacing:1px">¿Cómo configurar Google Sheets?</summary>
-                <div style="margin-top:12px;font-size:12px;color:var(--gray2);line-height:1.8">
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">1.</strong> Creá una Google Sheet nueva para este evento.</p>
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">2.</strong> En la hoja, ir a <strong style="color:var(--white)">Extensiones → Apps Script</strong>.</p>
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">3.</strong> Reemplazá todo el código con esto:</p>
-                  <div class="inv-gsheet-code">function doPost(e){
+              <details style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
+                <summary style="font-size:11px;color:var(--gray);cursor:pointer;letter-spacing:1px">Método anterior — Google Sheets / Email (opcional)</summary>
+                <div class="form-group" style="margin-top:12px">
+                  <label class="form-label">URL del Apps Script de Google Sheets</label>
+                  <input class="form-input" id="inv-gsheet-url" placeholder="https://script.google.com/macros/s/.../exec">
+                  <small style="color:var(--gray);font-size:10px;margin-top:4px;display:block">Las respuestas del formulario se guardarán en tu Google Sheet.</small>
+                </div>
+                <details style="margin-top:12px">
+                  <summary style="font-size:11px;color:var(--cyan);cursor:pointer;letter-spacing:1px">¿Cómo configurar Google Sheets?</summary>
+                  <div style="margin-top:12px;font-size:12px;color:var(--gray2);line-height:1.8">
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">1.</strong> Creá una Google Sheet nueva para este evento.</p>
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">2.</strong> En la hoja, ir a <strong style="color:var(--white)">Extensiones → Apps Script</strong>.</p>
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">3.</strong> Reemplazá todo el código con esto:</p>
+                    <div class="inv-gsheet-code">function doPost(e){
   var ss=SpreadsheetApp.getActiveSpreadsheet();
   var sh=ss.getActiveSheet();
   if(sh.getLastRow()===0)
@@ -887,16 +901,17 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   return ContentService.createTextOutput(JSON.stringify({ok:true}))
     .setMimeType(ContentService.MimeType.JSON);
 }</div>
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">4.</strong> Guardar → <strong style="color:var(--white)">Implementar → Nueva implementación</strong>.</p>
-                  <p style="margin-bottom:8px"><strong style="color:var(--white)">5.</strong> Tipo: <em>Aplicación web</em> · Ejecutar como: <em>Yo</em> · Acceso: <em>Cualquier persona</em>.</p>
-                  <p><strong style="color:var(--white)">6.</strong> Copiá la URL del deploy y pegala arriba.</p>
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">4.</strong> Guardar → <strong style="color:var(--white)">Implementar → Nueva implementación</strong>.</p>
+                    <p style="margin-bottom:8px"><strong style="color:var(--white)">5.</strong> Tipo: <em>Aplicación web</em> · Ejecutar como: <em>Yo</em> · Acceso: <em>Cualquier persona</em>.</p>
+                    <p><strong style="color:var(--white)">6.</strong> Copiá la URL del deploy y pegala arriba.</p>
+                  </div>
+                </details>
+                <div class="form-group" style="margin-top:16px">
+                  <label class="form-label">EmailJS — Template ID (opcional, para notificación)</label>
+                  <input class="form-input" id="inv-emailjs-template" placeholder="template_rsvp">
+                  <small style="color:var(--gray);font-size:10px;margin-top:4px;display:block">Si lo completás, también recibirás un email por cada RSVP.</small>
                 </div>
               </details>
-              <div class="form-group" style="margin-top:16px">
-                <label class="form-label">EmailJS — Template ID (opcional, para notificación)</label>
-                <input class="form-input" id="inv-emailjs-template" placeholder="template_rsvp">
-                <small style="color:var(--gray);font-size:10px;margin-top:4px;display:block">Si lo completás, también recibirás un email por cada RSVP.</small>
-              </div>
             </div>
 
             <!-- SPOTIFY -->
@@ -1142,20 +1157,21 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                     Activar sección de confirmación
                   </label>
                 </div>
-                <div class="inv-form-2col">
-                  <div class="form-group">
-                    <label class="form-label">Confirmar antes del</label>
-                    <input class="form-input" type="date" id="inv-s-rsvp-limite">
-                  </div>
-                  <div class="form-group">
+                <div class="form-group">
+                  <label class="form-label">Confirmar antes del</label>
+                  <input class="form-input" type="date" id="inv-s-rsvp-limite">
+                </div>
+                <details style="margin-top:8px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
+                  <summary style="font-size:11px;color:var(--gray);cursor:pointer;letter-spacing:1px">Método anterior — Google Sheets / Email (opcional)</summary>
+                  <div class="form-group" style="margin-top:12px">
                     <label class="form-label">URL Google Sheets (GAS)</label>
                     <input class="form-input" id="inv-s-gsheet-url" placeholder="https://script.google.com/...">
                   </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">EmailJS Template ID</label>
-                  <input class="form-input" id="inv-s-emailjs-template" placeholder="template_xxxxxxx">
-                </div>
+                  <div class="form-group" style="margin-top:12px">
+                    <label class="form-label">EmailJS Template ID</label>
+                    <input class="form-input" id="inv-s-emailjs-template" placeholder="template_xxxxxxx">
+                  </div>
+                </details>
               </div>
 
               <div class="inv-modal-section" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px">
@@ -3686,6 +3702,7 @@ let _clientesSearch = '';
 let _clientesOffset = 0;
 let _pendingClienteId = null;
 let _invClienteId = null;
+let _prefillFiestaLink = null;
 
 function _startClientesPoller() {
   _stopClientesPoller();
@@ -3847,6 +3864,18 @@ function cmGoFiesta() {
 function cmGoEntrega() {
   document.getElementById('cliente-modal').style.display = 'none';
   showPage('entregas');
+  if (_clienteActual) {
+    document.getElementById('ent-nombres').value = _clienteActual.nombre_display || '';
+    const tipoMap = { BODA: 'Boda', XV: 'XV Años', CUMPLE: 'Cumpleaños' };
+    document.getElementById('ent-tipo').value = tipoMap[_clienteActual.tipo] || 'Evento';
+    if (_clienteActual.fecha) {
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const [y, m, d] = _clienteActual.fecha.split('-');
+      document.getElementById('ent-fecha').value = parseInt(d, 10) + ' ' + meses[parseInt(m, 10) - 1] + ' ' + y;
+    }
+    if (_clienteActual.entrega_folder) document.getElementById('ent-folder').value = _clienteActual.entrega_folder;
+    updateEntregaPreview();
+  }
 }
 
 function cmGetFiestaUrl() {
@@ -6643,6 +6672,12 @@ function openInviteModal(id) {
     _invCarousel1 = c.carousel_images_1 || []; renderCarouselPreview(1, _invCarousel1);
     _invCarousel2 = c.carousel_images_2 || []; renderCarouselPreview(2, _invCarousel2);
     _invTrivia = c.trivia_preguntas ? c.trivia_preguntas.map(p => ({...p,opciones:[...p.opciones]})) : TRIVIA_DEFAULT.map(p => ({...p,opciones:[...p.opciones]}));
+    document.getElementById('inv-rsvp-summary').textContent = '';
+    document.getElementById('inv-rsvp-panel-url').textContent = '';
+    document.getElementById('inv-rsvp-panel-url').dataset.url = '';
+    document.getElementById('btn-copy-rsvp').style.display = 'none';
+    document.getElementById('btn-gen-rsvp').textContent = 'Generar link';
+    loadRsvpSummary(getRealInviteSlug());
   } else {
     invSetMode('invitacion');
     setInvModelo('clasico');
@@ -6772,6 +6807,63 @@ function readInviteForm() {
     if (!data.slug) data.slug = toSlug(data.config.novios) || 'invitacion';
   }
   return data;
+}
+
+function getRealInviteSlug() {
+  if (!invEditingId) return '';
+  const nombre = toSlug(document.getElementById('inv-novios').value.trim() || document.getElementById('inv-titulo').value.trim() || 'invitacion');
+  const fechaRaw = document.getElementById('inv-fecha-display').value || document.getElementById('inv-fecha-iso').value || '';
+  const fecha = toSlug(fechaRaw);
+  const suffix = String(invEditingId).slice(-4);
+  return nombre + (fecha ? '-' + fecha : '') + '-' + suffix;
+}
+
+async function genRsvpPanelLink() {
+  const slug = getRealInviteSlug();
+  if (!slug) { toast('Guardá la invitación primero para generar el link', 'error'); return; }
+  const btn = document.getElementById('btn-gen-rsvp');
+  btn.textContent = 'Generando...'; btn.disabled = true;
+  try {
+    const res = await fetch(CONFIG.CRCLUB_URL + '/rsvp-token/' + slug, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+    });
+    const data = await res.json();
+    if (!data.token) throw new Error('Sin token');
+    const url = 'https://kuerre.com.ar/rsvp-panel.html?slug=' + encodeURIComponent(slug) + '&t=' + encodeURIComponent(data.token);
+    document.getElementById('inv-rsvp-panel-url').textContent = url;
+    document.getElementById('inv-rsvp-panel-url').dataset.url = url;
+    document.getElementById('btn-copy-rsvp').style.display = '';
+    toast('Link generado');
+    loadRsvpSummary(slug);
+  } catch(e) {
+    toast('Error al generar link', 'error');
+  } finally {
+    btn.textContent = 'Regenerar link'; btn.disabled = false;
+  }
+}
+
+function copyRsvpPanelLink() {
+  const url = document.getElementById('inv-rsvp-panel-url').dataset.url || '';
+  if (!url) return;
+  const wa = 'https://wa.me/?text=' + encodeURIComponent('Podés ver los confirmados de tu invitación acá:\n' + url);
+  window.open(wa, '_blank');
+}
+
+async function loadRsvpSummary(slug) {
+  if (!slug) return;
+  try {
+    const res = await fetch(CONFIG.CRCLUB_URL + '/rsvp/' + slug, {
+      headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const el = document.getElementById('inv-rsvp-summary');
+    if (!el) return;
+    el.innerHTML = data.total
+      ? '✅ ' + data.total_si + ' confirmados · ❌ ' + data.total_no + ' no asisten · Total: ' + data.total
+      : 'Aún no hay confirmaciones.';
+  } catch(e) {}
 }
 
 function saveInvite() {
@@ -9351,6 +9443,7 @@ async function fiestasFetch(path, opts = {}) {
 }
 
 async function loadFiestasPage() {
+  _prefillFiestaLink = null;
   fiestasFetch('/eventos/admin/vision-stats').then(r => r.json()).then(d => {
     let html = `<span style="color:var(--cyan);font-size:22px;font-weight:500">${d.count}</span> fotos moderadas este mes`;
     if (d.costEstimado !== undefined) html += ` · costo estimado: <span style="color:var(--gold)">$${d.costEstimado}</span>`;
@@ -9390,6 +9483,7 @@ async function loadFiestasPage() {
       if (nombreEl && !nombreEl.value) nombreEl.value = s.nombre_display || '';
       if (fechaEl  && !fechaEl.value)  fechaEl.value  = s.fecha || '';
       if (folderEl && !folderEl.value) folderEl.value = s.drive_fiesta_id || '';
+      _prefillFiestaLink = { fiestaId: s.fiesta_id, clienteId: s.id };
       const nuevoEvtSec = document.getElementById('fi-nombre');
       if (nuevoEvtSec) nuevoEvtSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
       toast('Datos de ' + s.nombre_display + ' pre-cargados');
@@ -9439,16 +9533,32 @@ async function fiestaCrear() {
   if (!nombre || !fecha || !folder) { showToast('Nombre, fecha y carpeta son obligatorios.'); return; }
   const body = { nombre, fecha, folder_id: folder, portada, moderacion: mod };
   if (cierre) body.cierre_auto = new Date(cierre).toISOString();
+  const link = _prefillFiestaLink;
   try {
-    const r = await fiestasFetch('/eventos/admin', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    const d = await r.json();
-    if (d.id) {
-      showToast('Evento creado: ' + d.id);
+    let d;
+    if (link) {
+      // Viene de "Ir a Fiestas" desde un cliente: actualiza el evento placeholder ya vinculado en vez de crear uno huérfano
+      body.estado = 'activo';
+      const r = await fiestasFetch('/eventos/admin/' + link.fiestaId, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      d = await r.json();
+      if (d.ok) {
+        showToast('Evento activado');
+        const idx = _clientes.findIndex(x => x.id === link.clienteId);
+        if (idx !== -1) { _clientes[idx].fiesta_estado = 'activo'; _clientes[idx].drive_fiesta_id = folder; renderClientes(); }
+      } else {
+        showToast(d.error || 'Error al activar');
+      }
+    } else {
+      const r = await fiestasFetch('/eventos/admin', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      d = await r.json();
+      if (d.id) showToast('Evento creado: ' + d.id);
+      else showToast(d.error || 'Error al crear');
+    }
+    if (d.id || d.ok) {
+      _prefillFiestaLink = null;
       ['fi-nombre','fi-fecha','fi-folder','fi-cierre','fi-portada'].forEach(id => { document.getElementById(id).value = ''; });
       document.getElementById('fi-moderacion').checked = false;
       loadFiestasPage();
-    } else {
-      showToast(d.error || 'Error al crear');
     }
   } catch(e) { showToast('Error de conexión'); }
 }
