@@ -170,6 +170,63 @@ async function handleSolicitudesDelete(id, env) {
   return json({ ok: true });
 }
 
+async function handleCrearCarpetas(id, request, env) {
+  const sol = await env.DB.prepare('SELECT * FROM solicitudes WHERE id = ?').bind(id).first();
+  if (!sol) return json({ error: 'Solicitud no encontrada' }, 404);
+
+  const { codigoContrato, driveRoot } = await request.json();
+  if (!codigoContrato) return json({ error: 'codigoContrato requerido' }, 400);
+
+  if (sol.drive_cliente_id) {
+    return json({
+      ok: true,
+      alreadyExists: true,
+      ids: {
+        cliente: sol.drive_cliente_id,
+        fiesta: sol.drive_fiesta_id,
+        entrega: sol.drive_entrega_id,
+        contrato: sol.drive_contrato_id,
+        invitacion: sol.drive_invitacion_id
+      }
+    });
+  }
+
+  const gasUrl = await env.KV.get('fiestas_gas_url');
+  if (!gasUrl) return json({ error: 'GAS URL no configurada. Configurá el GAS en el panel QR - Fiestas.' }, 500);
+
+  const gasRes = await fetch(gasUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'crearCarpetasCliente',
+      codigoContrato,
+      nombreDisplay: sol.nombre_display,
+      fecha: sol.fecha,
+      tipo: sol.tipo,
+      driveRoot: driveRoot || ''
+    })
+  });
+
+  const gasData = await gasRes.json();
+  if (!gasData.ok) return json({ error: gasData.error || 'Error en GAS al crear carpetas' }, 500);
+
+  const { ids } = gasData;
+
+  await env.DB.batch([
+    env.DB.prepare(`
+      UPDATE solicitudes
+      SET codigo_contrato=?, drive_cliente_id=?, drive_fiesta_id=?, drive_entrega_id=?, drive_contrato_id=?, drive_invitacion_id=?
+      WHERE id=?
+    `).bind(codigoContrato, ids.cliente, ids.fiesta, ids.entrega, ids.contrato || '', ids.invitacion || '', id),
+    env.DB.prepare(`UPDATE eventos_foto SET folder_id=?, estado='activo' WHERE id=?`)
+      .bind(ids.fiesta, sol.fiesta_id),
+    env.DB.prepare(`UPDATE entrega_configs SET folder_id=? WHERE id=?`)
+      .bind(ids.entrega, id),
+  ]);
+
+  return json({ ok: true, ids });
+}
+
 async function proxyGdrive(fileId, request, env) {
   const rangeHeader = request.headers.get('Range') || '';
   const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
@@ -421,6 +478,12 @@ export default {
       if (path === '/api/health') return json({ ok: true, worker: 'kuerre-worker', ts: new Date().toISOString() });
 
       const solicitudDelMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})$/);
+      if (solicitudDelMatch && method === 'GET') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        const row = await env.DB.prepare('SELECT * FROM solicitudes WHERE id=?').bind(solicitudDelMatch[1]).first();
+        if (!row) return json({ error: 'Not found' }, 404);
+        return json({ id: row.id, tipo: row.tipo, data: JSON.parse(row.data_json || '{}') });
+      }
       if (solicitudDelMatch && method === 'DELETE') {
         if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
         return await handleSolicitudesDelete(solicitudDelMatch[1], env);
@@ -453,6 +516,11 @@ export default {
         await env.DB.prepare('UPDATE solicitudes SET drive_cliente_id=? WHERE id=?').bind(drive_cliente_id||'', carpetasDriveMatch[1]).run();
         return json({ ok: true });
       }
+      const carpetasMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/carpetas$/);
+      if (carpetasMatch && method === 'POST') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        return await handleCrearCarpetas(carpetasMatch[1], request, env);
+      }
       const contratoPdfMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/contrato-pdf$/);
       if (contratoPdfMatch && method === 'PATCH') {
         if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
@@ -476,6 +544,15 @@ export default {
           dj[tipo] = { fecha: fecha||'', horario: hora||'', direccion: lugar||'' };
           await env.DB.prepare('UPDATE solicitudes SET data_json=? WHERE id=?').bind(JSON.stringify(dj), sid).run();
         }
+        return json({ ok: true });
+      }
+      const solicitudDataMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/data$/);
+      if (solicitudDataMatch && method === 'PATCH') {
+        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        const sid = solicitudDataMatch[1];
+        const body = await request.json().catch(() => ({}));
+        await env.DB.prepare('UPDATE solicitudes SET data_json=? WHERE id=?')
+          .bind(JSON.stringify(body), sid).run();
         return json({ ok: true });
       }
 

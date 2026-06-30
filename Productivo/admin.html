@@ -1436,6 +1436,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="page" id="page-settings">
         <h2 class="section-h" style="margin-bottom:24px">Configuración del Sitio</h2>
         <div class="settings-section">
+          <div class="settings-section-title">Google Drive — Carpeta Raíz <i class="tip" data-tip="Carpeta de Drive desde la que arranca siempre el selector visual de Drive (el de 'Agregar desde Drive', carrusel, entregas, etc) y donde se crea la estructura de carpetas por cliente. Pegá la URL completa de la carpeta o solo el ID.">?</i></div>
+          <div class="form-group"><label class="form-label">URL o ID de la carpeta raíz</label><input class="form-input" id="set-drive-root" placeholder="https://drive.google.com/drive/folders/..."></div>
+        </div>
+        <div class="settings-section">
           <div class="settings-section-title">Disponibilidad & Urgencia <i class="tip" data-tip="Textos que generan urgencia en el sitio. El texto de disponibilidad aparece en el hero. El countdown muestra una cuenta regresiva hacia la próxima fecha disponible.">?</i></div>
           <div class="settings-row">
             <div class="form-group">
@@ -3779,7 +3783,7 @@ async function cargarMasClientes() {
 }
 
 function renderClientes() {
-  const list = _clientes;
+  const list = _clientes.slice().sort(function(a, b) { return (b.fecha || '').localeCompare(a.fecha || ''); });
   const el = document.getElementById('clientes-list');
   if (!list.length) {
     el.innerHTML = '<div style="color:var(--gray2);font-size:12px;padding:20px 0">Sin registros. Los clientes aparecerán aquí al completar el formulario de solicitud.</div>';
@@ -4122,7 +4126,7 @@ async function cmCrearCarpetas() {
     const r = await fetch(CLIENTES_WORKER + '/solicitudes/' + _clienteActual.id + '/carpetas', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ codigoContrato: codigo })
+      body: JSON.stringify({ codigoContrato: codigo, driveRoot: dbExtractId(getDriveRoot()) })
     });
     const d = await r.json();
     if (!d.ok) { toast(d.error || 'Error al crear carpetas', 'error'); return; }
@@ -4937,6 +4941,7 @@ function renderTestimonialsAdmin() {
 // ── SETTINGS ──
 function loadSettings() {
   const s = S.get('crd_settings') || {};
+  document.getElementById('set-drive-root').value = s.driveRoot || '';
   document.getElementById('set-availability').value = s.availability || '';
   document.getElementById('set-countdown-msg').value = s.countdownMsg || '';
   if (s.countdownDate) {
@@ -4996,6 +5001,7 @@ function saveSettings() {
   const existing = S.get('crd_settings') || {};
   const s = {
     ...existing,
+    driveRoot:         document.getElementById('set-drive-root').value.trim(),
     availability:      document.getElementById('set-availability').value.trim(),
     countdownMsg:      document.getElementById('set-countdown-msg').value.trim(),
     countdownDate:     cdRaw ? new Date(cdRaw).toISOString() : existing.countdownDate || null,
@@ -6378,8 +6384,16 @@ function openDriveBrowserCarousel(target) {
   document.getElementById('drive-browser-modal').style.display = 'block';
   document.getElementById('db-btn-portfolio').style.display = 'none';
   document.getElementById('db-btn-carousel').style.display = 'inline-block';
-  const last = localStorage.getItem('crd_last_drive_folder');
-  if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
+  const cliente = _invClienteId ? _clientes.find(function(c){ return c.id === _invClienteId; }) : null;
+  const root = (cliente && cliente.drive_invitacion_id) ? cliente.drive_invitacion_id : getDriveRoot();
+  if(root) {
+    _dbStack = []; _dbCurrent = '';
+    document.getElementById('db-folder-input').value = root;
+    dbLoadFolder(root);
+  } else {
+    const last = localStorage.getItem('crd_last_drive_folder');
+    if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
+  }
 }
 
 function dbConfirmCarousel() {
@@ -7631,13 +7645,24 @@ let _dbCurrent = '';
 let pendingPhotoCallback = null;
 const _dbSelected = new Map();
 
+function getDriveRoot() {
+  return ((S.get('crd_settings') || {}).driveRoot || '').trim();
+}
+
 function openDriveBrowser(callback) {
   if(callback) pendingPhotoCallback = callback;
   _dbSelected.clear();
   dbUpdateSelectionBar();
   document.getElementById('drive-browser-modal').style.display = 'block';
-  const last = localStorage.getItem('crd_last_drive_folder');
-  if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
+  const root = getDriveRoot();
+  if(root) {
+    _dbStack = []; _dbCurrent = '';
+    document.getElementById('db-folder-input').value = root;
+    dbLoadFolder(root);
+  } else {
+    const last = localStorage.getItem('crd_last_drive_folder');
+    if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
+  }
 }
 function closeDriveBrowser() {
   _dbSelected.clear();
@@ -8913,6 +8938,21 @@ async function ctGenerar() {
             method: 'PATCH', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ codigo_contrato: String(json.numero) })
           }).then(function(){
+            fetch(CLIENTES_WORKER + '/solicitudes/' + id + '/carpetas', {
+              method: 'POST', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+              body: JSON.stringify({ codigoContrato: String(json.numero), driveRoot: dbExtractId(getDriveRoot()) })
+            }).then(function(r){ return r.json(); }).then(function(d){
+              const carpetaId = d && d.ids && d.ids.contrato;
+              const ctUrl = ctGetUrl();
+              if (!carpetaId || !ctUrl) return;
+              const mover = function(fileUrl) {
+                const m = fileUrl && fileUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (!m) return;
+                fetch(ctUrl, { method: 'POST', body: JSON.stringify({ action: 'moverArchivo', fileId: m[1], carpetaId: carpetaId }) }).catch(function(){});
+              };
+              mover(json.docUrl);
+              mover(json.pdfUrl);
+            }).catch(function(){});
             if (fromForm) {
               fetch(CONFIG.CRCLUB_URL + '/solicitudes/' + id + '/procesada', {
                 method: 'PATCH', headers: { Authorization: 'Bearer ' + getAdminJWT() }
@@ -9248,11 +9288,29 @@ async function ctLoadHistorial() {
   }
 }
 
+function _parseFechaEsLarga(str) {
+  if (!str) return null;
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const m = String(str).toLowerCase().match(/(\d{1,2}) de ([a-záéíóúñ]+) de (\d{4})/);
+  if (!m) return null;
+  const mesIdx = meses.indexOf(m[2]);
+  if (mesIdx < 0) return null;
+  return new Date(Number(m[3]), mesIdx, Number(m[1]));
+}
+
 function ctRenderHistorial(data) {
   const el = document.getElementById('ct-hist-list');
   if (!data.length) { el.innerHTML = '<div style="color:var(--gray);font-size:12px">No hay contratos registrados.</div>'; return; }
-  const reversed = data.slice().reverse();
-  const rows = reversed.map((c, i) => `
+  const ordenado = data.slice().sort(function(a, b) {
+    const da = _parseFechaEsLarga(a.fechaEvento), db = _parseFechaEsLarga(b.fechaEvento);
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return db - da;
+  });
+  const rows = ordenado.map((c) => {
+    const idx = data.indexOf(c);
+    return `
     <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
       <td style="padding:8px 10px;font-size:12px;color:var(--gold);white-space:nowrap">${c.numero}</td>
       <td style="padding:8px 10px;font-size:11px;color:var(--gray);letter-spacing:1px">${c.tipo}</td>
@@ -9262,10 +9320,11 @@ function ctRenderHistorial(data) {
       <td style="padding:8px 10px;white-space:nowrap">
         ${c.docUrl ? `<a href="${c.docUrl}" target="_blank" style="font-size:10px;color:var(--gold);text-decoration:none;margin-right:8px">DOC</a>` : ''}
         ${c.pdfUrl ? `<a href="${c.pdfUrl}" target="_blank" style="font-size:10px;color:var(--red);text-decoration:none;margin-right:8px">PDF</a>` : ''}
-        <button onclick="ctCargarContrato(${data.length - 1 - i})" style="font-size:10px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);color:var(--gold);padding:3px 8px;cursor:pointer;margin-right:4px">Cargar</button>
+        <button onclick="ctCargarContrato(${idx})" style="font-size:10px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);color:var(--gold);padding:3px 8px;cursor:pointer;margin-right:4px">Cargar</button>
         <button onclick="ctDeleteContrato('${c.numero}')" style="font-size:10px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.3);color:var(--red);padding:3px 8px;cursor:pointer">Borrar</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   el.innerHTML = `<table style="width:100%;border-collapse:collapse">
     <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.08)">
       <th style="padding:6px 10px;font-size:9px;letter-spacing:2px;color:var(--gray);text-align:left;text-transform:uppercase">N°</th>
