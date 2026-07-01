@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS eventos_foto (
   estado      TEXT DEFAULT 'activo',
   moderacion  INTEGER DEFAULT 0,
   storage     TEXT DEFAULT 'drive',
+  evento_slug TEXT DEFAULT NULL,
   created_at  TEXT NOT NULL
 );
 
@@ -50,7 +51,8 @@ CREATE TABLE IF NOT EXISTS solicitudes (
   drive_cliente_id TEXT,
   drive_fiesta_id  TEXT,
   drive_entrega_id TEXT,
-  created_at      TEXT NOT NULL
+  evento_slug      TEXT DEFAULT NULL,
+  created_at       TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS entrega_configs (
@@ -61,8 +63,9 @@ CREATE TABLE IF NOT EXISTS entrega_configs (
   folder_id  TEXT DEFAULT '',
   portada    TEXT DEFAULT '',
   overlay    TEXT DEFAULT 'violeta',
-  allow_dl   INTEGER DEFAULT 1,
-  created_at TEXT NOT NULL
+  allow_dl    INTEGER DEFAULT 1,
+  evento_slug TEXT DEFAULT NULL,
+  created_at  TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS rsvp_responses (
