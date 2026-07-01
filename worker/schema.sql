@@ -69,6 +69,11 @@ CREATE TABLE IF NOT EXISTS contratos (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS config (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT ''
+);
+
 CREATE TABLE IF NOT EXISTS eventos (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   slug       TEXT    NOT NULL UNIQUE,
