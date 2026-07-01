@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.80</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.81</div>
     </div>
   </aside>
 
@@ -3802,18 +3802,16 @@ function cmCopyFiesta() {
 
 function cmBuildResumen(s) {
   try {
-    const d = typeof s.data_json === 'string' ? JSON.parse(s.data_json) : (s.data_json || {});
     const lines = [];
     const fmtF = function(f) { return f ? f.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1') : ''; };
     const partes = function(parts) { return parts.filter(Boolean).join(' · '); };
     if (s.tipo === 'BODA') {
-      if (d.fiesta?.fecha)    lines.push('🎉 Fiesta: '    + partes([fmtF(d.fiesta.fecha), d.fiesta.horarioInicio, d.fiesta.lugar||d.fiesta.salon, d.fiesta.direccion]));
-      if (d.civil?.fecha)     lines.push('⚖️ Civil: '     + partes([fmtF(d.civil.fecha),    d.civil.horario,    d.civil.lugar||d.civil.direccion]));
-      if (d.religiosa?.fecha) lines.push('⛪ Religiosa: '  + partes([fmtF(d.religiosa.fecha), d.religiosa.horario, d.religiosa.lugar||d.religiosa.direccion]));
+      if (s.fecha)      lines.push('🎉 Fiesta: '   + partes([fmtF(s.fecha), s.hora_inicio, s.salon, s.direccion]));
+      if (s.civil_fecha)lines.push('⚖️ Civil: '    + partes([fmtF(s.civil_fecha), s.civil_hora, s.civil_lugar || s.civil_dir]));
+      if (s.reli_fecha) lines.push('⛪ Religiosa: ' + partes([fmtF(s.reli_fecha),  s.reli_hora,  s.reli_lugar  || s.reli_dir]));
     } else {
-      const ev = d.evento || {};
-      if (ev.fecha)     lines.push('🎉 Evento: ' + partes([fmtF(ev.fecha), ev.horaInicio, ev.salon, ev.direccion]));
-      if (ev.invitados) lines.push('👥 Invitados: ' + ev.invitados);
+      if (s.fecha)      lines.push('🎉 Evento: '   + partes([fmtF(s.fecha), s.hora_inicio, s.salon, s.direccion]));
+      if (s.invitados)  lines.push('👥 Invitados: ' + s.invitados);
     }
     if (s.book_fecha) lines.push('📸 Book: ' + partes([fmtF(s.book_fecha), s.book_hora, s.book_zona]));
     return lines.length ? lines.join('<br>') : '<span style="color:var(--gray2)">Sin datos del evento cargados.</span>';
@@ -6246,7 +6244,6 @@ function renderInvitesPage() {
         : '';
       setTimeout(function() {
         openInviteModal();
-        const d = typeof s.data_json === 'string' ? JSON.parse(s.data_json || '{}') : (s.data_json || {});
         // Tipo + nombre + fecha
         document.getElementById('inv-tipo').value = tipo;
         invTipoChange();
@@ -6261,22 +6258,17 @@ function renderInvitesPage() {
           document.getElementById('inv-lugar-maps').value = 'https://maps.google.com/?q=' + encodeURIComponent(q);
         }
         if (s.tipo === 'BODA') {
-          const fiesta = d.fiesta || {};
-          const civil = d.civil || {};
-          const reli = d.religiosa || {};
-          // Recepción = fiesta
-          document.getElementById('inv-recepcion-hora').value = fiesta.horarioInicio || fiesta.horaInicio || '';
-          document.getElementById('inv-fin-fiesta-hora').value = fiesta.horaFin || '';
-          document.getElementById('inv-recepcion-lugar').value = fiesta.lugar || fiesta.salon || '';
+          document.getElementById('inv-recepcion-hora').value = s.hora_inicio || '';
+          document.getElementById('inv-fin-fiesta-hora').value = s.hora_fin || '';
+          document.getElementById('inv-recepcion-lugar').value = s.salon || '';
           // Ceremonia = civil si tiene fecha, sino religiosa
-          const cer = civil.fecha ? civil : reli;
-          document.getElementById('inv-ceremonia-hora').value = cer.horario || cer.horaInicio || '';
-          document.getElementById('inv-ceremonia-lugar').value = cer.lugar || '';
-          document.getElementById('inv-ceremonia-dir').value = cer.direccion || '';
+          const hasCivil = !!s.civil_fecha;
+          document.getElementById('inv-ceremonia-hora').value = hasCivil ? (s.civil_hora || '') : (s.reli_hora || '');
+          document.getElementById('inv-ceremonia-lugar').value = hasCivil ? (s.civil_lugar || '') : (s.reli_lugar || '');
+          document.getElementById('inv-ceremonia-dir').value = hasCivil ? (s.civil_dir || '') : (s.reli_dir || '');
         } else {
-          const ev = d.evento || {};
-          document.getElementById('inv-recepcion-hora').value = ev.horaInicio || '';
-          document.getElementById('inv-fin-fiesta-hora').value = ev.horaFin || '';
+          document.getElementById('inv-recepcion-hora').value = s.hora_inicio || '';
+          document.getElementById('inv-fin-fiesta-hora').value = s.hora_fin || '';
         }
         // Tab social — mismos datos
         document.getElementById('inv-s-novios').value = s.nombre_display || '';
@@ -6289,7 +6281,7 @@ function renderInvitesPage() {
         // Slug automático basado en nombre + año
         const slugEl = document.getElementById('inv-slug');
         if (slugEl && !slugEl.dataset.manual) {
-          const nombreBase = (s.tipo === 'XV' && d.quinceanera && d.quinceanera.nombre) ? d.quinceanera.nombre : s.nombre_display;
+          const nombreBase = (s.tipo === 'XV' && s.quinceanera_nombre) ? s.quinceanera_nombre : s.nombre_display;
           const año = s.fecha ? s.fecha.slice(0, 4) : '';
           slugEl.value = toSlug(nombreBase + (año ? ' ' + año : ''));
         }
@@ -8904,6 +8896,7 @@ async function ctGenerar() {
             reli_fecha:      data.religiosa?.fecha || '',
             reli_hora:       data.religiosa?.horario || '',
             reli_dir:        data.religiosa?.direccion || '',
+            formas_pago:     JSON.stringify(ctPagoItems.filter(Boolean)),
           })
         }).catch(() => {});
       }
@@ -9334,6 +9327,7 @@ async function ctLoadHistorial() {
         reliFecha:      r.reli_fecha || '',
         reliHora:       r.reli_hora || '',
         reliDir:        r.reli_dir || '',
+        formasPago:     (() => { try { return JSON.parse(r.formas_pago || '[]'); } catch(e) { return []; } })(),
       }));
       localStorage.setItem('crd_ct_hist_cache', JSON.stringify(data));
       ctHistLoaded = true;
@@ -9547,6 +9541,7 @@ function ctCargarContrato(idx) {
     const btn = document.getElementById('ct-btn-gen');
     if (btn) btn.textContent = 'GUARDAR CAMBIOS';
 
+    if (c.formasPago?.length) { ctPagoItems = [...c.formasPago]; ctRenderPagoItems(); }
     toast('Contrato ' + c.numero + ' cargado — modificá y guardá los cambios');
     document.getElementById('ct-form-area').scrollIntoView({ behavior: 'smooth' });
   }, 50);
