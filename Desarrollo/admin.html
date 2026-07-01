@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.71</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.72</div>
     </div>
   </aside>
 
@@ -8122,18 +8122,20 @@ async function evHub_load() {
       return;
     }
     list.innerHTML = eventos.map(ev => `
-      <div class="settings-section" style="cursor:pointer;margin-bottom:10px" onclick="evHub_view('${ev.slug}')">
-        <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="settings-section" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="evHub_view('${ev.slug}')">
           <div>
             <div style="font-size:13px;font-weight:600">${ev.nombre}</div>
-            <div style="font-size:11px;color:var(--gray);margin-top:3px">${ev.slug} &middot; ${ev.fecha} &middot; ${ev.tipo}</div>
+            <div style="font-size:11px;color:var(--gray);margin-top:3px">${ev.fecha} &middot; ${ev.tipo}</div>
           </div>
-          <div style="display:flex;gap:5px;font-size:10px;letter-spacing:0.5px">
+          <div style="display:flex;gap:5px;align-items:center;font-size:10px;letter-spacing:0.5px">
             ${ev.qr  ? '<span style="background:rgba(0,200,120,.15);color:#00c878;padding:2px 7px;border-radius:3px">QR</span>'  : ''}
             ${ev.pm  ? '<span style="background:rgba(255,180,0,.15);color:#ffb400;padding:2px 7px;border-radius:3px">PM</span>'  : ''}
             ${ev.inv ? '<span style="background:rgba(140,100,255,.15);color:#8c64ff;padding:2px 7px;border-radius:3px">INV</span>' : ''}
+            <span id="ev-arrow-${ev.slug}" style="color:var(--gray);margin-left:6px;font-size:11px">▼</span>
           </div>
         </div>
+        <div id="ev-inline-${ev.slug}" style="display:none;margin-top:14px;border-top:1px solid rgba(255,255,255,0.07);padding-top:14px"></div>
       </div>
     `).join('');
   } catch(e) {
@@ -8172,12 +8174,19 @@ async function evHub_create() {
 
 async function evHub_view(slug) {
   if (!CLIENTES_WORKER) return;
-  const det = document.getElementById('ev-detail');
-  const content = document.getElementById('ev-detail-content');
-  document.getElementById('ev-detail-slug').textContent = slug;
-  det.style.display = 'block';
-  content.innerHTML = '<p style="color:var(--gray);font-size:12px">Cargando...</p>';
-  det.scrollIntoView({ behavior: 'smooth' });
+  const inline = document.getElementById('ev-inline-' + slug);
+  const arrow  = document.getElementById('ev-arrow-' + slug);
+  if (!inline) return;
+  // Toggle: si ya está abierto, cerrar
+  if (inline.style.display !== 'none') {
+    inline.style.display = 'none';
+    if (arrow) arrow.textContent = '▼';
+    return;
+  }
+  inline.style.display = 'block';
+  if (arrow) arrow.textContent = '▲';
+  if (inline.dataset.loaded) return; // ya cargado, solo mostrar
+  inline.innerHTML = '<p style="color:var(--gray);font-size:12px">Cargando...</p>';
   try {
     const r = await fetch(CLIENTES_WORKER + '/hub/' + slug, { headers: { Authorization: 'Bearer ' + getAdminJWT() } });
     const d = await r.json();
@@ -8185,25 +8194,21 @@ async function evHub_view(slug) {
       ? items.map(i => `<tr>${fields.map(f => `<td style="padding:4px 10px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04)">${i[f] != null ? i[f] : ''}</td>`).join('')}</tr>`).join('')
       : `<tr><td colspan="${fields.length}" style="color:var(--gray);font-size:11px;padding:6px 10px">Sin registros vinculados</td></tr>`;
     const section = (label, items, fields) => `
-      <div style="margin-bottom:16px">
+      <div style="margin-bottom:14px">
         <div style="font-size:10px;letter-spacing:1.5px;color:var(--gray);text-transform:uppercase;margin-bottom:6px">${label}</div>
         <table style="width:100%;border-collapse:collapse">${renderRows(items, fields)}</table>
       </div>`;
-    content.innerHTML = `
-      <div style="margin-bottom:18px">
-        <div style="font-size:15px;font-weight:600">${d.nombre}</div>
-        <div style="font-size:11px;color:var(--gray);margin-top:3px">${d.fecha} &middot; ${d.tipo}</div>
-      </div>
+    inline.innerHTML = `
       ${section('Solicitudes', d.solicitudes, ['id','nombre_display','fecha'])}
       ${section('Contratos',   d.contratos,   ['numero','cliente','fecha_ev'])}
       ${section('Entregas',    d.entregas,     ['id','nombres','fecha'])}
       ${section('QR Fiestas',  d.qr_eventos,  ['id','nombre','fecha'])}
-      <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:14px;margin-top:8px">
-        <div style="font-size:10px;letter-spacing:1.5px;color:var(--gray);text-transform:uppercase;margin-bottom:10px">Vincular registro</div>
+      <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;margin-top:4px">
+        <div style="font-size:10px;letter-spacing:1.5px;color:var(--gray);text-transform:uppercase;margin-bottom:8px">Vincular registro</div>
         <div class="form-row" style="align-items:flex-end">
           <div class="form-group">
             <label class="form-label">Tabla</label>
-            <select class="form-select" id="ev-link-table">
+            <select class="form-select" id="ev-link-table-${slug}">
               <option value="solicitudes">Solicitud</option>
               <option value="contratos">Contrato (número)</option>
               <option value="entrega_configs">Entrega</option>
@@ -8212,21 +8217,22 @@ async function evHub_view(slug) {
           </div>
           <div class="form-group">
             <label class="form-label">ID / Número</label>
-            <input class="form-input" id="ev-link-id" placeholder="ABC123 ó 42">
+            <input class="form-input" id="ev-link-id-${slug}" placeholder="ABC123 ó 42">
           </div>
           <button class="btn-add" onclick="evHub_link('${slug}')">Vincular</button>
         </div>
       </div>
     `;
+    inline.dataset.loaded = '1';
   } catch(e) {
-    content.innerHTML = '<p style="color:#e05;font-size:12px">Error: ' + e.message + '</p>';
+    inline.innerHTML = '<p style="color:#e05;font-size:12px">Error: ' + e.message + '</p>';
   }
 }
 
 async function evHub_link(slug) {
   if (!CLIENTES_WORKER) return;
-  const table = document.getElementById('ev-link-table').value;
-  const id    = document.getElementById('ev-link-id').value.trim();
+  const table = document.getElementById('ev-link-table-' + slug).value;
+  const id    = document.getElementById('ev-link-id-' + slug).value.trim();
   if (!id) { toast('Ingresá un ID o número'); return; }
   try {
     const r = await fetch(CLIENTES_WORKER + '/hub/' + slug + '/link', {
@@ -8236,6 +8242,9 @@ async function evHub_link(slug) {
     });
     if (!r.ok) { const e = await r.json(); toast(e.error || 'Error'); return; }
     toast('Registro vinculado');
+    // Forzar recarga del inline
+    const inl = document.getElementById('ev-inline-' + slug);
+    if (inl) { delete inl.dataset.loaded; inl.innerHTML = ''; }
     evHub_view(slug);
   } catch(e) { toast('Error: ' + e.message); }
 }
