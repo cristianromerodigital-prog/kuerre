@@ -29,10 +29,10 @@ async function checkOpenAI(base64, mimeType, apiKey) {
   }
 }
 
-async function handleFotoUploadConModeracion(identifier, request, env, ctx) {
-  const realId = await resolveEventId(identifier, env);
+async function handleFotoUploadConModeracion(identifier, request, env, ctx, coreEnv) {
+  const realId = await resolveEventId(identifier, coreEnv);
   if (!realId) return json({ error: 'Evento no encontrado' }, 404);
-  const evento = await env.DB.prepare(
+  const evento = await env.KUERRE_DB.prepare(
     'SELECT folder_id, estado, moderacion, cierre_auto, storage FROM eventos_foto WHERE id = ?'
   ).bind(realId).first();
   if (!evento) return json({ error: 'Evento no encontrado' }, 404);
@@ -98,7 +98,7 @@ async function handleFotoListR2(eventoId, request, env) {
   const fotoIds = objects.map(o => o.key);
   const ph = fotoIds.map(() => '?').join(',');
 
-  const { results: likeCounts } = await env.DB.prepare(
+  const { results: likeCounts } = await env.KUERRE_DB.prepare(
     `SELECT foto_id, COUNT(*) as total FROM foto_likes WHERE evento_id=? AND foto_id IN (${ph}) GROUP BY foto_id`
   ).bind(eventoId, ...fotoIds).all();
 
@@ -107,7 +107,7 @@ async function handleFotoListR2(eventoId, request, env) {
 
   let likedSet = new Set();
   if (sessionId) {
-    const { results: myLikes } = await env.DB.prepare(
+    const { results: myLikes } = await env.KUERRE_DB.prepare(
       `SELECT foto_id FROM foto_likes WHERE evento_id=? AND session_id=? AND foto_id IN (${ph})`
     ).bind(eventoId, sessionId, ...fotoIds).all();
     myLikes.forEach(r => likedSet.add(r.foto_id));
@@ -180,12 +180,12 @@ async function handleSolicitudesCreate(request, env) {
     const id = generateEventId();
     const fiesta_id = generateEventId();
     try {
-      await env.DB.batch([
-        env.DB.prepare(`INSERT INTO solicitudes (id,tipo,nombre_display,fecha,salon,direccion,cliente_nombre,cliente_tel,cliente_email,data_json,fiesta_id,invite_slug,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      await env.KUERRE_DB.batch([
+        env.KUERRE_DB.prepare(`INSERT INTO solicitudes (id,tipo,nombre_display,fecha,salon,direccion,cliente_nombre,cliente_tel,cliente_email,data_json,fiesta_id,invite_slug,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
           .bind(id, tipo, nombre_display, fecha, salon, direccion, cliente_nombre, cliente_tel, cliente_email, JSON.stringify(body), fiesta_id, id, now),
-        env.DB.prepare(`INSERT INTO eventos_foto (id,nombre,fecha,cierre_auto,folder_id,portada,estado,moderacion,created_at) VALUES (?,?,?,NULL,'',NULL,'pendiente',0,?)`)
+        env.KUERRE_DB.prepare(`INSERT INTO eventos_foto (id,nombre,fecha,cierre_auto,folder_id,portada,estado,moderacion,created_at) VALUES (?,?,?,NULL,'',NULL,'pendiente',0,?)`)
           .bind(fiesta_id, nombre_display, fecha, now),
-        env.DB.prepare(`INSERT INTO entrega_configs (id,nombres,fecha,tipo,folder_id,portada,overlay,allow_dl,created_at) VALUES (?,?,?,?,'','','violeta',1,?)`)
+        env.KUERRE_DB.prepare(`INSERT INTO entrega_configs (id,nombres,fecha,tipo,folder_id,portada,overlay,allow_dl,created_at) VALUES (?,?,?,?,'','','violeta',1,?)`)
           .bind(id, nombre_display, fecha, tipo, now),
       ]);
       return json({ ok: true, id });
@@ -207,12 +207,12 @@ async function handleSolicitudesList(env, request) {
     : '';
   const baseParams = search ? [likeTerm, likeTerm, likeTerm] : [];
 
-  const countRow = await env.DB.prepare(
+  const countRow = await env.KUERRE_DB.prepare(
     `SELECT COUNT(*) AS n FROM solicitudes s ${where}`
   ).bind(...baseParams).first();
   const total = countRow ? countRow.n : 0;
 
-  const { results } = await env.DB.prepare(`
+  const { results } = await env.KUERRE_DB.prepare(`
     SELECT s.*, ef.estado AS fiesta_estado, ec.folder_id AS entrega_folder
     FROM solicitudes s
     LEFT JOIN eventos_foto ef ON ef.id = s.fiesta_id
@@ -226,18 +226,18 @@ async function handleSolicitudesList(env, request) {
 }
 
 async function handleSolicitudesDelete(id, env) {
-  const sol = await env.DB.prepare('SELECT * FROM solicitudes WHERE id = ?').bind(id).first();
+  const sol = await env.KUERRE_DB.prepare('SELECT * FROM solicitudes WHERE id = ?').bind(id).first();
   if (!sol) return json({ error: 'No encontrada' }, 404);
-  await env.DB.batch([
-    env.DB.prepare('DELETE FROM solicitudes WHERE id = ?').bind(id),
-    env.DB.prepare('DELETE FROM entrega_configs WHERE id = ?').bind(id),
-    env.DB.prepare('DELETE FROM eventos_foto WHERE id = ?').bind(sol.fiesta_id),
+  await env.KUERRE_DB.batch([
+    env.KUERRE_DB.prepare('DELETE FROM solicitudes WHERE id = ?').bind(id),
+    env.KUERRE_DB.prepare('DELETE FROM entrega_configs WHERE id = ?').bind(id),
+    env.KUERRE_DB.prepare('DELETE FROM eventos_foto WHERE id = ?').bind(sol.fiesta_id),
   ]);
   return json({ ok: true });
 }
 
 async function handleCrearCarpetas(id, request, env) {
-  const sol = await env.DB.prepare('SELECT * FROM solicitudes WHERE id = ?').bind(id).first();
+  const sol = await env.KUERRE_DB.prepare('SELECT * FROM solicitudes WHERE id = ?').bind(id).first();
   if (!sol) return json({ error: 'Solicitud no encontrada' }, 404);
 
   const { codigoContrato, driveRoot } = await request.json();
@@ -278,15 +278,15 @@ async function handleCrearCarpetas(id, request, env) {
 
   const { ids } = gasData;
 
-  await env.DB.batch([
-    env.DB.prepare(`
+  await env.KUERRE_DB.batch([
+    env.KUERRE_DB.prepare(`
       UPDATE solicitudes
       SET codigo_contrato=?, drive_cliente_id=?, drive_fiesta_id=?, drive_entrega_id=?, drive_contrato_id=?, drive_invitacion_id=?
       WHERE id=?
     `).bind(codigoContrato, ids.cliente, ids.fiesta, ids.entrega, ids.contrato || '', ids.invitacion || '', id),
-    env.DB.prepare(`UPDATE eventos_foto SET folder_id=?, estado='activo' WHERE id=?`)
+    env.KUERRE_DB.prepare(`UPDATE eventos_foto SET folder_id=?, estado='activo' WHERE id=?`)
       .bind(ids.fiesta, sol.fiesta_id),
-    env.DB.prepare(`UPDATE entrega_configs SET folder_id=? WHERE id=?`)
+    env.KUERRE_DB.prepare(`UPDATE entrega_configs SET folder_id=? WHERE id=?`)
       .bind(ids.entrega, id),
   ]);
 
@@ -362,6 +362,17 @@ export default {
     const method = request.method;
 
     try {
+      // Normalizar bindings para CORE (espera DB y KV genéricos)
+      const coreEnv = {
+        DB: env.KUERRE_DB,
+        KV: env.KUERRE_KV,
+        MEDIA: env.MEDIA,
+        ADMIN_JWT_SECRET: env.ADMIN_JWT_SECRET,
+        ADMIN_USER: env.ADMIN_USER,
+        ADMIN_PASS: env.ADMIN_PASS,
+        CF_AUTH_TOKEN: env.CF_AUTH_TOKEN
+      };
+
       const CORE_OPTIONS = {
         brand: 'KUERRE',
         modules: {
@@ -378,12 +389,12 @@ export default {
       // ── Moderación fotos con OpenAI (intercepta antes del core) ─────────────
       const fotoUploadMatch = path.match(/^\/eventos\/([a-zA-Z0-9][a-zA-Z0-9-]{2,49})\/fotos$/);
       if (fotoUploadMatch && method === 'POST') {
-        return await handleFotoUploadConModeracion(fotoUploadMatch[1], request, env, ctx);
+        return await handleFotoUploadConModeracion(fotoUploadMatch[1], request, env, ctx, coreEnv);
       }
 
       // ── Vision stats ─────────────────────────────────────────────────────────
       if (path === '/eventos/admin/vision-stats' && method === 'GET') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const month = new Date().toISOString().slice(0,7);
         const count = parseInt(await env.KUERRE_KV.get(`vision_count_${month}`) || '0');
         const costEstimado = (count * 0.00015).toFixed(4);
@@ -403,9 +414,9 @@ export default {
       // ── R2: listado de fotos ───────────────────────────────────────────────
       const fotoListMatch = path.match(/^\/eventos\/([a-zA-Z0-9][a-zA-Z0-9-]{2,49})\/fotos$/);
       if (fotoListMatch && method === 'GET') {
-        const eid = await resolveEventId(fotoListMatch[1], env);
+        const eid = await resolveEventId(fotoListMatch[1], coreEnv);
         if (eid) {
-          const ev = await env.DB.prepare('SELECT storage FROM eventos_foto WHERE id=?').bind(eid).first();
+          const ev = await env.KUERRE_DB.prepare('SELECT storage FROM eventos_foto WHERE id=?').bind(eid).first();
           if (ev?.storage === 'r2') return await handleFotoListR2(eid, request, env);
         }
       }
@@ -414,11 +425,11 @@ export default {
       const fotoDelMatch = path.match(/^\/eventos\/admin\/([A-Z2-9]{6})\/fotos\/(.+)$/);
       if (fotoDelMatch && method === 'DELETE') {
         const [, eventoId, rawKey] = fotoDelMatch;
-        const ev = await env.DB.prepare('SELECT storage FROM eventos_foto WHERE id=?').bind(eventoId).first();
+        const ev = await env.KUERRE_DB.prepare('SELECT storage FROM eventos_foto WHERE id=?').bind(eventoId).first();
         if (ev?.storage === 'r2') {
           const key = decodeURIComponent(rawKey);
           await Promise.all([
-            env.DB.prepare('DELETE FROM foto_likes WHERE evento_id=? AND foto_id=?').bind(eventoId, key).run(),
+            env.KUERRE_DB.prepare('DELETE FROM foto_likes WHERE evento_id=? AND foto_id=?').bind(eventoId, key).run(),
             env.MEDIA.delete(key)
           ]);
           return json({ ok: true });
@@ -426,13 +437,13 @@ export default {
       }
 
       // ── kuerre-core: eventos, fotos, frases, likes, admin auth + UI ──────────
-      const response = await mountCoreRouter(request, env, url, CORE_OPTIONS);
+      const response = await mountCoreRouter(request, coreEnv, url, CORE_OPTIONS);
       if (response) return response;
 
       // ── Solicitudes (debe ir antes del KV match genérico) ────────────────
       if (path === '/solicitudes' && method === 'POST') return await handleSolicitudesCreate(request, env);
       if (path === '/solicitudes' && method === 'GET') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         return await handleSolicitudesList(env, request);
       }
 
@@ -585,79 +596,79 @@ export default {
 
       const solicitudDelMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})$/);
       if (solicitudDelMatch && method === 'GET') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
-        const row = await env.DB.prepare('SELECT * FROM solicitudes WHERE id=?').bind(solicitudDelMatch[1]).first();
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const row = await env.KUERRE_DB.prepare('SELECT * FROM solicitudes WHERE id=?').bind(solicitudDelMatch[1]).first();
         if (!row) return json({ error: 'Not found' }, 404);
         return json({ id: row.id, tipo: row.tipo, data: JSON.parse(row.data_json || '{}') });
       }
       if (solicitudDelMatch && method === 'DELETE') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         return await handleSolicitudesDelete(solicitudDelMatch[1], env);
       }
       const inviteMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/invite$/);
       if (inviteMatch && method === 'PATCH') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { invite_id } = await request.json().catch(() => ({}));
-        await env.DB.prepare('UPDATE solicitudes SET invite_id = ? WHERE id = ?').bind(invite_id || '', inviteMatch[1]).run();
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET invite_id = ? WHERE id = ?').bind(invite_id || '', inviteMatch[1]).run();
         return json({ ok: true });
       }
       const contratoMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/contrato$/);
       if (contratoMatch && method === 'PATCH') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { codigo_contrato } = await request.json().catch(() => ({}));
-        await env.DB.prepare('UPDATE solicitudes SET codigo_contrato = ? WHERE id = ?').bind(codigo_contrato || '', contratoMatch[1]).run();
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET codigo_contrato = ? WHERE id = ?').bind(codigo_contrato || '', contratoMatch[1]).run();
         return json({ ok: true });
       }
       const bookMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/book$/);
       if (bookMatch && method === 'PATCH') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { book_fecha, book_hora, book_zona } = await request.json().catch(() => ({}));
-        await env.DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(book_fecha||'', book_hora||'', book_zona||'', bookMatch[1]).run();
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(book_fecha||'', book_hora||'', book_zona||'', bookMatch[1]).run();
         return json({ ok: true });
       }
       const carpetasDriveMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/carpetas-drive$/);
       if (carpetasDriveMatch && method === 'PATCH') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { drive_cliente_id } = await request.json().catch(() => ({}));
-        await env.DB.prepare('UPDATE solicitudes SET drive_cliente_id=? WHERE id=?').bind(drive_cliente_id||'', carpetasDriveMatch[1]).run();
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET drive_cliente_id=? WHERE id=?').bind(drive_cliente_id||'', carpetasDriveMatch[1]).run();
         return json({ ok: true });
       }
       const carpetasMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/carpetas$/);
       if (carpetasMatch && method === 'POST') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         return await handleCrearCarpetas(carpetasMatch[1], request, env);
       }
       const contratoPdfMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/contrato-pdf$/);
       if (contratoPdfMatch && method === 'PATCH') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { contrato_pdf_url } = await request.json().catch(() => ({}));
-        await env.DB.prepare('UPDATE solicitudes SET contrato_pdf_url=? WHERE id=?').bind(contrato_pdf_url||'', contratoPdfMatch[1]).run();
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET contrato_pdf_url=? WHERE id=?').bind(contrato_pdf_url||'', contratoPdfMatch[1]).run();
         return json({ ok: true });
       }
       const agendarMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/agendar$/);
       if (agendarMatch && method === 'PATCH') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { tipo, fecha, hora, lugar } = await request.json().catch(() => ({}));
         const sid = agendarMatch[1];
         if (tipo === 'evento') {
-          await env.DB.prepare('UPDATE solicitudes SET fecha=? WHERE id=?').bind(fecha||'', sid).run();
+          await env.KUERRE_DB.prepare('UPDATE solicitudes SET fecha=? WHERE id=?').bind(fecha||'', sid).run();
         } else if (tipo === 'book') {
-          await env.DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(fecha||'', hora||'', lugar||'', sid).run();
+          await env.KUERRE_DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(fecha||'', hora||'', lugar||'', sid).run();
         } else if (tipo === 'civil' || tipo === 'religiosa') {
-          const row = await env.DB.prepare('SELECT data_json FROM solicitudes WHERE id=?').bind(sid).first();
+          const row = await env.KUERRE_DB.prepare('SELECT data_json FROM solicitudes WHERE id=?').bind(sid).first();
           let dj = {};
           try { dj = JSON.parse(row?.data_json || '{}'); } catch(e) {}
           dj[tipo] = { fecha: fecha||'', horario: hora||'', direccion: lugar||'' };
-          await env.DB.prepare('UPDATE solicitudes SET data_json=? WHERE id=?').bind(JSON.stringify(dj), sid).run();
+          await env.KUERRE_DB.prepare('UPDATE solicitudes SET data_json=? WHERE id=?').bind(JSON.stringify(dj), sid).run();
         }
         return json({ ok: true });
       }
       const solicitudDataMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/data$/);
       if (solicitudDataMatch && method === 'PATCH') {
-        if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const sid = solicitudDataMatch[1];
         const body = await request.json().catch(() => ({}));
-        await env.DB.prepare('UPDATE solicitudes SET data_json=? WHERE id=?')
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET data_json=? WHERE id=?')
           .bind(JSON.stringify(body), sid).run();
         return json({ ok: true });
       }
