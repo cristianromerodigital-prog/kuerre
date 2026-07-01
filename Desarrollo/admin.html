@@ -413,7 +413,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.69</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.70</div>
     </div>
   </aside>
 
@@ -8051,6 +8051,7 @@ function pickPortadaDrive() {
 let ctTipo = null;
 let ctSvcData = [];
 const CT_CFG_KEY = 'crd_contratos_cfg';
+const CT_USE_D1  = false; // CRP override: true (uses CLIENTES_WORKER /contratos)
 
 async function initContratosPage() {
   const saved = S.get(CT_CFG_KEY);
@@ -8365,6 +8366,7 @@ function ctExtra() {
   const o = {};
   if (c.systemSheetId)  o.systemSheetId  = c.systemSheetId;
   if (c.presupuestosId) o.presupuestosId = c.presupuestosId;
+  if (c.calendarId)     o.calendarId     = c.calendarId;
   return o;
 }
 
@@ -8658,6 +8660,30 @@ async function ctGenerar() {
       document.getElementById('ct-res-links').innerHTML = links;
       document.getElementById('ct-result').style.display = 'block';
       toast((ctEditingNumero ? 'Contrato ' + json.numero + ' actualizado ✓' : 'Contrato ' + json.numero + ' generado ✓'));
+      if (CT_USE_D1 && CLIENTES_WORKER) {
+        const _ctCliente  = data.tipo === 'BODA' ? (data.novia?.nombre || '') : (data.cliente?.nombre || '');
+        const _ctCliente2 = data.tipo === 'BODA' ? (data.novio?.nombre || '') : data.tipo === 'XV' ? (data.quinceanera?.nombre || '') : '';
+        const _ctFechaEv  = data.tipo === 'BODA' ? (data.fiesta?.fecha || '') : (data.evento?.fecha || '');
+        const _ctLugar    = data.tipo === 'BODA' ? (data.fiesta?.lugar || '') : (data.evento?.salon || '');
+        fetch(CLIENTES_WORKER + '/contratos', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            numero:   json.numero,
+            tipo:     data.tipo,
+            cliente:  _ctCliente,
+            cliente2: _ctCliente2,
+            fecha_ev: _ctFechaEv,
+            lugar:    _ctLugar,
+            precio:   data.precioTotal || 0,
+            cuotas:   data.cuotas || 1,
+            estado:   ctEditingNumero ? 'ACTUALIZADO' : 'GENERADO',
+            doc_url:  json.docUrl || '',
+            pdf_url:  json.pdfUrl || '',
+            form_data: JSON.stringify(data)
+          })
+        }).catch(() => {});
+      }
       if (!ctEditingNumero && CLIENTES_WORKER) {
         const solId = _ctSolicitudId;
         _ctSolicitudId = null;
@@ -9039,10 +9065,40 @@ function ctToggleHistorial() {
 }
 
 async function ctLoadHistorial() {
-  const url = ctGetUrl();
-  if (!url) { document.getElementById('ct-hist-list').innerHTML = '<div style="color:var(--gray);font-size:12px">Configurá la URL del Apps Script primero.</div>'; return; }
   // Mostrar cache inmediato si existe
   try { const c = JSON.parse(localStorage.getItem('crd_ct_hist_cache')); if(c) { ctHistData = c; ctRenderHistorial(c); } } catch(e) {}
+  if (CT_USE_D1) {
+    if (!CLIENTES_WORKER) { document.getElementById('ct-hist-list').innerHTML = '<div style="color:var(--gray);font-size:12px">Worker no configurado.</div>'; return; }
+    try {
+      const res  = await fetch(CLIENTES_WORKER + '/contratos', { headers: { Authorization: 'Bearer ' + getAdminJWT() } });
+      const rows = await res.json();
+      // Mapear campos D1 → formato esperado por ctRenderHistorial
+      const data = (rows || []).map(r => ({
+        numero:      r.numero,
+        tipo:        r.tipo,
+        fecha:       r.fecha_gen,
+        cliente:     r.cliente,
+        cliente2:    r.cliente2 || '',
+        fechaEvento: r.fecha_ev,
+        lugar:       r.lugar,
+        precio:      r.precio,
+        estado:      r.estado,
+        docUrl:      r.doc_url,
+        pdfUrl:      r.pdf_url,
+        formData:    (() => { try { return JSON.parse(r.form_data || '{}'); } catch(e) { return {}; } })()
+      }));
+      localStorage.setItem('crd_ct_hist_cache', JSON.stringify(data));
+      ctHistLoaded = true;
+      ctHistData   = data;
+      ctRenderHistorial(data);
+    } catch(e) {
+      if (!localStorage.getItem('crd_ct_hist_cache'))
+        document.getElementById('ct-hist-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error cargando historial.</div>';
+    }
+    return;
+  }
+  const url = ctGetUrl();
+  if (!url) { document.getElementById('ct-hist-list').innerHTML = '<div style="color:var(--gray);font-size:12px">Configurá la URL del Apps Script primero.</div>'; return; }
   try {
     const res  = await fetch(url, { method:'POST', redirect:'follow', body: JSON.stringify(Object.assign({action:'getContratos'}, ctExtra())) });
     const data = await res.json();
@@ -9108,17 +9164,21 @@ function ctRenderHistorial(data) {
 
 async function ctDeleteContrato(numero) {
   if (!confirm('¿Borrar contrato ' + numero + '? Esto eliminará el Doc y PDF de Drive.')) return;
-  const url = ctGetUrl();
   try {
+    if (CT_USE_D1) {
+      const res  = await fetch(CLIENTES_WORKER + '/contratos/' + numero, {
+        method: 'DELETE', headers: { Authorization: 'Bearer ' + getAdminJWT() }
+      });
+      const json = await res.json();
+      if (json.ok) { toast('Contrato ' + numero + ' eliminado'); ctHistLoaded = false; ctLoadHistorial(); }
+      else toast('Error: ' + json.error, 'error');
+      return;
+    }
+    const url = ctGetUrl();
     const res  = await fetch(url, { method: 'POST', body: JSON.stringify(Object.assign({ action: 'deleteContrato', numero }, ctExtra())) });
     const json = await res.json();
-    if (json.ok) {
-      toast('Contrato ' + numero + ' eliminado');
-      ctHistLoaded = false;
-      ctLoadHistorial();
-    } else {
-      toast('Error: ' + json.error, 'error');
-    }
+    if (json.ok) { toast('Contrato ' + numero + ' eliminado'); ctHistLoaded = false; ctLoadHistorial(); }
+    else toast('Error: ' + json.error, 'error');
   } catch(e) { toast('Error de conexión', 'error'); }
 }
 
@@ -9816,7 +9876,7 @@ function calSyncEvento(ev) {
     fecha: ev.fecha, hora: ev.hora || '09:00',
     tipo: ev.tipo, nombre: ev.nombre, lugar: ev.lugar || ''
   };
-  _jsonp(url + '?action=syncCalendar&events=' + encodeURIComponent(JSON.stringify([payload])))
+  _jsonp(url + '?action=syncCalendar&events=' + encodeURIComponent(JSON.stringify([payload])) + ctExtraParams())
     .catch(function(){});
 }
 
@@ -9832,7 +9892,7 @@ async function calSyncGAS() {
       fecha: ev.fecha, hora: ev.hora || '09:00',
       tipo: ev.tipo, nombre: ev.nombre, lugar: ev.lugar || ''
     }; });
-    const res = await _jsonp(url + '?action=syncCalendar&events=' + encodeURIComponent(JSON.stringify(eventos)));
+    const res = await _jsonp(url + '?action=syncCalendar&events=' + encodeURIComponent(JSON.stringify(eventos)) + ctExtraParams());
     if (res.ok) toast('Sincronizado: ' + res.synced + ' eventos en Google Calendar ✓');
     else toast(res.error || 'Error al sincronizar', 'error');
   } catch(e) { toast('Error: ' + e.message, 'error'); }
