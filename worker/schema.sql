@@ -10,8 +10,12 @@ CREATE TABLE IF NOT EXISTS eventos_foto (
   portada     TEXT,
   estado      TEXT DEFAULT 'activo',
   moderacion  INTEGER DEFAULT 0,
+  storage     TEXT DEFAULT 'drive',
   created_at  TEXT NOT NULL
 );
+
+-- Migración: storage backend por evento ('drive' | 'r2')
+-- ALTER TABLE eventos_foto ADD COLUMN storage TEXT DEFAULT 'drive';
 
 CREATE TABLE IF NOT EXISTS evento_frases (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
