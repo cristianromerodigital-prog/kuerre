@@ -494,6 +494,24 @@ export default {
       const response = await mountCoreRouter(request, coreEnv, url, CORE_OPTIONS);
       if (response) return response;
 
+      // ── Config (D1) ──
+      const configMatch = path.match(/^\/config\/(.+)$/);
+      if (configMatch) {
+        const cfgKey = configMatch[1];
+        const _hdrs = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS' };
+        if (method === 'GET') {
+          if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+          const row = await env.KUERRE_DB.prepare('SELECT value FROM config WHERE key=?').bind(cfgKey).first();
+          return new Response(row ? row.value : 'null', { headers: _hdrs });
+        }
+        if (method === 'POST') {
+          if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+          const body = await request.text();
+          await env.KUERRE_DB.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').bind(cfgKey, body).run();
+          return json({ ok: true });
+        }
+      }
+
       // ── Solicitudes (debe ir antes del KV match genérico) ────────────────
       if (path === '/solicitudes' && method === 'POST') return await handleSolicitudesCreate(request, env);
       if (path === '/solicitudes' && method === 'GET') {
