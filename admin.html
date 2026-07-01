@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.75</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.76</div>
     </div>
   </aside>
 
@@ -9318,6 +9318,8 @@ async function ctLoadHistorial() {
 
 function _parseFechaEsLarga(str) {
   if (!str) return null;
+  const iso = String(str).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return new Date(Number(iso[1]), Number(iso[2])-1, Number(iso[3]));
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const m = String(str).toLowerCase().match(/(\d{1,2}) de ([a-záéíóúñ]+) de (\d{4})/);
   if (!m) return null;
