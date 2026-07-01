@@ -163,6 +163,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .form-label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:9px;font-weight:500;}
 .form-input,.form-textarea,.form-select{width:100%;background:var(--black3);border:1px solid rgba(255,255,255,0.07);color:var(--white);padding:12px 14px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:300;outline:none;transition:border-color 0.2s;resize:vertical;appearance:none;border-radius:6px;}
 .form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--gold);}
+.form-input.finvalid{border-color:#e74c3c!important}
+.form-input.fvalid{border-color:rgba(37,211,102,0.4)!important}
 .form-input::placeholder,.form-textarea::placeholder{color:rgba(255,255,255,0.2);}
 .form-textarea{min-height:140px;}
 .form-select option{background:var(--black3);}
@@ -411,7 +413,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.89</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.69</div>
     </div>
   </aside>
 
@@ -629,10 +631,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             </div>
           </div>
           <small style="font-size:11px;color:var(--gray);margin-top:6px;display:block">Las URLs generadas usarán esta dirección. Si lo dejás vacío, se usa la URL relativa (solo funciona en el mismo dispositivo).</small>
-          <div class="form-group" style="margin-top:12px">
-            <label class="form-label">URL invite social <i class="tip" data-tip="Dirección web pública donde está el archivo invite-social.html. Se usa para invitaciones del modelo Social.">?</i></label>
-            <input class="form-input" id="inv-social-base-url" placeholder="https://usuario.github.io/repo/invite-social.html" oninput="saveInvSocialBaseUrl(this.value)">
-          </div>
         </div>
         <div id="invites-list"></div>
       </div>
@@ -646,27 +644,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
           <div class="modal-body" style="max-height:75vh;overflow-y:auto;padding:24px">
             <input type="hidden" id="inv-id">
-            <input type="hidden" id="inv-modelo" value="clasico">
 
-            <!-- SELECTOR DE MODELO -->
-            <div style="display:flex;gap:12px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.08)">
-              <button id="inv-modelo-clasico" onclick="setInvModelo('clasico')" style="flex:1;padding:14px;border:2px solid var(--gold);color:var(--gold);background:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.2s">CLÁSICO</button>
-              <button id="inv-modelo-social" onclick="setInvModelo('social')" style="flex:1;padding:14px;border:2px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);background:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.2s">SOCIAL ✦</button>
-            </div>
-
-            <!-- PANEL DE INVITADOS (compartido, no depende del modelo) -->
-            <div class="inv-modal-section">
-              <div class="inv-modal-section-title">Panel de Invitados</div>
-              <small style="color:var(--gray);font-size:10px;margin-bottom:10px;display:block">Las confirmaciones se guardan automáticamente (clásico o social). Generá un link para que el cliente vea quién confirmó.</small>
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-                <button type="button" class="btn-sm" onclick="genRsvpPanelLink()" id="btn-gen-rsvp">Generar link</button>
-                <button type="button" class="btn-sm" style="display:none;color:#25D366;border-color:#25D366" onclick="copyRsvpPanelLink()" id="btn-copy-rsvp">WhatsApp 📲</button>
-              </div>
-              <div id="inv-rsvp-panel-url" style="font-size:10px;color:var(--gold);word-break:break-all;margin-bottom:8px"></div>
-              <div id="inv-rsvp-summary" style="font-size:11px;color:var(--gray2)"></div>
-            </div>
-
-            <div id="inv-campos-clasico">
             <!-- BÁSICO -->
             <div class="inv-modal-section">
               <div class="inv-modal-section-title">Tipo y Datos Básicos</div>
@@ -753,6 +731,31 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               </div>
               <img id="inv-media-preview-img" class="inv-media-preview" alt="">
               <video id="inv-media-preview-vid" class="inv-media-preview" muted autoplay loop playsinline></video>
+            </div>
+
+            <!-- POSICIÓN TEXTO PORTADA -->
+            <div class="inv-modal-section">
+              <div class="inv-modal-section-title">Posición del Texto en Portada</div>
+              <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+                <div style="display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);gap:4px">
+                  <div></div>
+                  <button type="button" onclick="nudgeHeroText(0,-20)" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:18px;cursor:pointer;border-radius:4px">↑</button>
+                  <div></div>
+                  <button type="button" onclick="nudgeHeroText(-20,0)" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:18px;cursor:pointer;border-radius:4px">←</button>
+                  <button type="button" onclick="resetHeroTextPos()" style="background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);color:var(--gold);font-size:13px;cursor:pointer;border-radius:4px" title="Centrar">⊙</button>
+                  <button type="button" onclick="nudgeHeroText(20,0)" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:18px;cursor:pointer;border-radius:4px">→</button>
+                  <div></div>
+                  <button type="button" onclick="nudgeHeroText(0,20)" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:18px;cursor:pointer;border-radius:4px">↓</button>
+                  <div></div>
+                </div>
+                <div style="font-size:12px;color:var(--gray2);line-height:1.8">
+                  <div>X: <span id="inv-text-x-val" style="color:var(--gold);font-family:monospace;font-size:13px">0</span> px</div>
+                  <div>Y: <span id="inv-text-y-val" style="color:var(--gold);font-family:monospace;font-size:13px">0</span> px</div>
+                  <div style="font-size:10px;color:var(--gray);margin-top:6px">Cada paso = 20px · ⊙ centra</div>
+                </div>
+              </div>
+              <input type="hidden" id="inv-text-x" value="0">
+              <input type="hidden" id="inv-text-y" value="0">
             </div>
 
             <!-- HORARIOS -->
@@ -875,6 +878,16 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                   <label class="form-label">Confirmar antes del</label>
                   <input class="form-input" type="date" id="inv-rsvp-limite">
                 </div>
+              </div>
+              <div style="margin-top:8px">
+                <label class="form-label">Panel de Invitados</label>
+                <small style="color:var(--gray);font-size:10px;margin-bottom:10px;display:block">Las confirmaciones se guardan automáticamente. Generá un link para que el cliente vea quién confirmó.</small>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+                  <button type="button" class="btn-sm" onclick="genRsvpPanelLink()" id="btn-gen-rsvp">Generar link</button>
+                  <button type="button" class="btn-sm" style="display:none;color:#25D366;border-color:#25D366" onclick="copyRsvpPanelLink()" id="btn-copy-rsvp">WhatsApp 📲</button>
+                </div>
+                <div id="inv-rsvp-panel-url" style="font-size:10px;color:var(--gold);word-break:break-all;margin-bottom:8px"></div>
+                <div id="inv-rsvp-summary" style="font-size:11px;color:var(--gray2)"></div>
               </div>
               <details style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
                 <summary style="font-size:11px;color:var(--gray);cursor:pointer;letter-spacing:1px">Método anterior — Google Sheets / Email (opcional)</summary>
@@ -1005,187 +1018,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 </div>
               </div>
             </div>
-
-            </div><!-- /inv-campos-clasico -->
-
-            <div id="inv-campos-social" style="display:none">
-
-              <!-- Color tema -->
-              <div class="inv-modal-section">
-                <div class="inv-modal-section-title">Datos Básicos</div>
-                <div class="inv-form-2col">
-                  <div class="form-group">
-                    <label class="form-label">Nombre(s) del evento</label>
-                    <input class="form-input" id="inv-s-novios" placeholder="Valentina / Jazz &amp; Roberto">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Título</label>
-                    <input class="form-input" id="inv-s-titulo" placeholder="MIS 15 / ¡Nos casamos!">
-                  </div>
-                </div>
-                <div class="inv-form-2col">
-                  <div class="form-group">
-                    <label class="form-label">Fecha para mostrar</label>
-                    <input class="form-input" id="inv-s-fecha-display" placeholder="10 DE JULIO 2027">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Fecha (countdown)</label>
-                    <input class="form-input" type="date" id="inv-s-fecha-iso">
-                  </div>
-                </div>
-              </div>
-
-              <div class="inv-modal-section">
-                <div class="inv-modal-section-title">Diseño</div>
-                <div class="form-group">
-                  <label class="form-label">Color de tema</label>
-                  <input type="hidden" id="inv-color-tema" value="mauve">
-                  <div id="inv-color-tema-swatches" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px"></div>
-                  <div style="margin-top:8px;font-size:10px;color:var(--gray);letter-spacing:1px" id="inv-color-tema-label">Mauve</div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Emoji del hero</label>
-                  <input class="form-input" id="inv-hero-emoji" placeholder="🌸" maxlength="4">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Foto / Video de portada (URL)</label>
-                  <input class="form-input" id="inv-s-media-url" placeholder="https://...">
-                  <div style="display:flex;gap:8px;margin-top:6px">
-                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="inv-s-media-type" value="image" checked> Imagen</label>
-                    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="inv-s-media-type" value="video"> Video</label>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Audio YouTube (ID del video)</label>
-                  <input class="form-input" id="inv-s-youtube-audio" placeholder="https://www.youtube.com/watch?v=... o solo el ID">
-                </div>
-              </div>
-
-              <div class="inv-modal-section">
-                <div class="inv-modal-section-title">Evento</div>
-                <div class="inv-form-2col">
-                  <div class="form-group">
-                    <label class="form-label">Hora del evento</label>
-                    <input class="form-input" id="inv-s-recepcion-hora" placeholder="20:00">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Lugar</label>
-                    <input class="form-input" id="inv-s-lugar-nombre" placeholder="Nombre del salón">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Dirección</label>
-                  <input class="form-input" id="inv-s-lugar-dir" placeholder="Dirección, ciudad">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Link Google Maps</label>
-                  <input class="form-input" id="inv-s-lugar-maps" placeholder="https://maps.google.com/...">
-                </div>
-              </div>
-
-              <div class="inv-modal-section">
-                <div class="inv-modal-section-title">Contenido</div>
-                <div class="inv-form-2col">
-                  <div class="form-group">
-                    <label class="form-label">Dress Code</label>
-                    <input class="form-input" id="inv-s-dresscode" placeholder="Formal">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Nota dress code</label>
-                    <input class="form-input" id="inv-s-dresscode-nota" placeholder="El color ROSA se reserva para la quinceañera">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Frase emotiva</label>
-                  <textarea class="form-textarea" id="inv-frase-emotiva" placeholder="Hay momentos que no se pueden borrar..."></textarea>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Link álbum de fotos</label>
-                  <input class="form-input" id="inv-album-url" placeholder="https://...">
-                </div>
-              </div>
-
-              <div class="inv-modal-section">
-                <div class="inv-modal-section-title">Carruseles de imágenes</div>
-                <div class="form-group">
-                  <label class="form-label">Carrusel 1 — fotos</label>
-                  <button type="button" onclick="openDriveBrowserCarousel(1)" style="width:100%;background:none;border:1px solid rgba(255,255,255,0.3);color:var(--gray2);padding:10px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit">+ Seleccionar fotos · Carrusel 1</button>
-                  <div id="inv-carousel-preview-1" style="margin-top:8px"></div>
-                  <button type="button" onclick="_invCarousel1=[];renderCarouselPreview(1,[])" style="background:none;border:none;color:var(--gray);font-size:10px;cursor:pointer;margin-top:4px;text-decoration:underline">Limpiar carrusel 1</button>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Carrusel 2 — fotos</label>
-                  <button type="button" onclick="openDriveBrowserCarousel(2)" style="width:100%;background:none;border:1px solid rgba(255,255,255,0.3);color:var(--gray2);padding:10px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit">+ Seleccionar fotos · Carrusel 2</button>
-                  <div id="inv-carousel-preview-2" style="margin-top:8px"></div>
-                  <button type="button" onclick="_invCarousel2=[];renderCarouselPreview(2,[])" style="background:none;border:none;color:var(--gray);font-size:10px;cursor:pointer;margin-top:4px;text-decoration:underline">Limpiar carrusel 2</button>
-                </div>
-              </div>
-
-              <div class="inv-modal-section">
-                <div class="inv-modal-section-title">Regalo</div>
-                <div class="form-group">
-                  <label class="form-label">Texto personalizado (opcional)</label>
-                  <textarea class="form-textarea" id="inv-s-regalo-texto" placeholder="Nada es más importante que tu presencia..."></textarea>
-                </div>
-                <div class="inv-form-2col">
-                  <div class="form-group">
-                    <label class="form-label">Alias MP</label>
-                    <input class="form-input" id="inv-s-alias" placeholder="mi.alias">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Banco</label>
-                    <input class="form-input" id="inv-s-alias-banco" placeholder="Mercado Pago">
-                  </div>
-                </div>
-                <div class="inv-form-2col">
-                  <div class="form-group">
-                    <label class="form-label">Titular</label>
-                    <input class="form-input" id="inv-s-alias-titular" placeholder="Nombre Apellido">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">CBU (opcional)</label>
-                    <input class="form-input" id="inv-s-cbu" placeholder="0000000000000000000000">
-                  </div>
-                </div>
-              </div>
-
-              <div class="inv-modal-section">
-                <div class="inv-modal-section-title">Confirmación (RSVP)</div>
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-                  <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-                    <input type="checkbox" id="inv-s-rsvp-activo" style="accent-color:var(--gold);width:16px;height:16px" checked>
-                    Activar sección de confirmación
-                  </label>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Confirmar antes del</label>
-                  <input class="form-input" type="date" id="inv-s-rsvp-limite">
-                </div>
-                <details style="margin-top:8px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
-                  <summary style="font-size:11px;color:var(--gray);cursor:pointer;letter-spacing:1px">Método anterior — Google Sheets / Email (opcional)</summary>
-                  <div class="form-group" style="margin-top:12px">
-                    <label class="form-label">URL Google Sheets (GAS)</label>
-                    <input class="form-input" id="inv-s-gsheet-url" placeholder="https://script.google.com/...">
-                  </div>
-                  <div class="form-group" style="margin-top:12px">
-                    <label class="form-label">EmailJS Template ID</label>
-                    <input class="form-input" id="inv-s-emailjs-template" placeholder="template_xxxxxxx">
-                  </div>
-                </details>
-              </div>
-
-              <div class="inv-modal-section" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px">
-                <div class="inv-modal-section-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleTriviaEditor()">
-                  Trivia — ¿Cuánto me conocés?
-                  <span id="trivia-toggle-icon" style="font-size:10px;opacity:0.6;font-weight:400">▼ expandir</span>
-                </div>
-                <div id="trivia-editor" style="display:none;margin-top:12px">
-                  <div id="trivia-lista"></div>
-                  <button type="button" onclick="triviaAgregar()" style="width:100%;margin-top:10px;background:none;border:1px dashed rgba(255,255,255,0.25);color:var(--gray2);padding:10px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit">+ Agregar pregunta</button>
-                </div>
-              </div>
-
-            </div><!-- /inv-campos-social -->
 
           </div><!-- /modal-body -->
           <div class="modal-footer" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between">
@@ -1435,10 +1267,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <!-- SETTINGS -->
       <div class="page" id="page-settings">
         <h2 class="section-h" style="margin-bottom:24px">Configuración del Sitio</h2>
-        <div class="settings-section">
-          <div class="settings-section-title">Google Drive — Carpeta Raíz <i class="tip" data-tip="Carpeta de Drive desde la que arranca siempre el selector visual de Drive (el de 'Agregar desde Drive', carrusel, entregas, etc) y donde se crea la estructura de carpetas por cliente. Pegá la URL completa de la carpeta o solo el ID.">?</i></div>
-          <div class="form-group"><label class="form-label">URL o ID de la carpeta raíz</label><input class="form-input" id="set-drive-root" placeholder="https://drive.google.com/drive/folders/..."></div>
-        </div>
         <div class="settings-section">
           <div class="settings-section-title">Disponibilidad & Urgencia <i class="tip" data-tip="Textos que generan urgencia en el sitio. El texto de disponibilidad aparece en el hero. El countdown muestra una cuenta regresiva hacia la próxima fecha disponible.">?</i></div>
           <div class="settings-row">
@@ -2057,7 +1885,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="settings-section" style="margin-bottom:16px">
               <div class="settings-section-title">Datos del evento</div>
               <div style="margin-top:12px">
-                <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:12px;color:var(--gray2)"><input type="checkbox" id="ct-b-tiene-civil" onchange="ctToggleEvento('civil',this.checked)" style="accent-color:var(--gold)"> Incluir Ceremonia Civil</label>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:12px;color:var(--gray2)"><input type="checkbox" id="ct-b-tiene-civil" onchange="ctToggleEvento('civil',this.checked,this)" style="accent-color:var(--gold)"> Incluir Ceremonia Civil</label>
                 <div id="ct-sub-civil" style="display:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:12px;margin-bottom:12px">
                   <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:10px">Ceremonia Civil</div>
                   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
@@ -2066,7 +1894,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                     <div class="form-group"><label class="form-label">Dirección</label><input class="form-input" id="ct-b-civil-dir"></div>
                   </div>
                 </div>
-                <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:12px;color:var(--gray2)"><input type="checkbox" id="ct-b-tiene-reli" onchange="ctToggleEvento('reli',this.checked)" style="accent-color:var(--gold)"> Incluir Ceremonia Religiosa</label>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:12px;color:var(--gray2)"><input type="checkbox" id="ct-b-tiene-reli" onchange="ctToggleEvento('reli',this.checked,this)" style="accent-color:var(--gold)"> Incluir Ceremonia Religiosa</label>
                 <div id="ct-sub-reli" style="display:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:12px;margin-bottom:12px">
                   <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:10px">Ceremonia Religiosa</div>
                   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
@@ -2857,7 +2685,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <button onclick="dbClearSelection()" style="background:none;border:1px solid rgba(255,255,255,0.2);color:var(--gray);padding:6px 14px;font-size:10px;letter-spacing:1px;cursor:pointer;font-family:inherit">Limpiar</button>
         <button id="db-btn-portfolio" onclick="dbConfirmSelection()" style="background:var(--gold);color:var(--black);border:none;padding:6px 18px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;font-weight:600">Agregar al portfolio</button>
         <button id="db-btn-entrega" onclick="dbConfirmEntregaFotos()" style="display:none;background:var(--cyan);color:var(--black);border:none;padding:6px 18px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;font-weight:600">Confirmar fotos</button>
-        <button id="db-btn-carousel" onclick="dbConfirmCarousel()" style="display:none;background:#9878b8;color:#fff;border:none;padding:6px 18px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;font-weight:600">Confirmar carrusel</button>
       </div>
     </div>
     <div id="db-loading" style="text-align:center;padding:40px;color:var(--gray);font-size:11px;letter-spacing:2px">Ingresa una carpeta para comenzar</div>
@@ -4126,7 +3953,7 @@ async function cmCrearCarpetas() {
     const r = await fetch(CLIENTES_WORKER + '/solicitudes/' + _clienteActual.id + '/carpetas', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ codigoContrato: codigo, driveRoot: dbExtractId(getDriveRoot()) })
+      body: JSON.stringify({ codigoContrato: codigo })
     });
     const d = await r.json();
     if (!d.ok) { toast(d.error || 'Error al crear carpetas', 'error'); return; }
@@ -4941,7 +4768,6 @@ function renderTestimonialsAdmin() {
 // ── SETTINGS ──
 function loadSettings() {
   const s = S.get('crd_settings') || {};
-  document.getElementById('set-drive-root').value = s.driveRoot || '';
   document.getElementById('set-availability').value = s.availability || '';
   document.getElementById('set-countdown-msg').value = s.countdownMsg || '';
   if (s.countdownDate) {
@@ -5001,7 +4827,6 @@ function saveSettings() {
   const existing = S.get('crd_settings') || {};
   const s = {
     ...existing,
-    driveRoot:         document.getElementById('set-drive-root').value.trim(),
     availability:      document.getElementById('set-availability').value.trim(),
     countdownMsg:      document.getElementById('set-countdown-msg').value.trim(),
     countdownDate:     cdRaw ? new Date(cdRaw).toISOString() : existing.countdownDate || null,
@@ -6308,168 +6133,6 @@ function autoSlug(val) {
 }
 
 function saveInvBaseUrl(val) { const v = val.trim(); localStorage.setItem('crd_inv_base', v); syncToCloud('crd_inv_base', JSON.stringify(v)); }
-function saveInvSocialBaseUrl(val) { localStorage.setItem('crd_inv_social_base', val.trim()); }
-function getInvSocialBaseUrl() { return (localStorage.getItem('crd_inv_social_base') || '').trim() || getInvBaseUrl().replace('invite.html','invite-social.html'); }
-function extractYouTubeId(input) {
-  if (!input) return '';
-  const s = input.trim();
-  const m = s.match(/(?:[?&]v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
-  return m ? m[1] : (/^[A-Za-z0-9_-]{11}$/.test(s) ? s : '');
-}
-
-const TEMA_COLORS_ADMIN = [
-  {key:'mauve',       label:'Mauve',          color:'#8b5e6e'},
-  {key:'lavanda',     label:'Lavanda',         color:'#7c6fa0'},
-  {key:'durazno',     label:'Durazno',         color:'#c4896a'},
-  {key:'menta',       label:'Menta',           color:'#5a8f7b'},
-  {key:'azul-bebe',   label:'Azul bebé',       color:'#6a8fb4'},
-  {key:'champagne',   label:'Champagne',       color:'#b89a72'},
-  {key:'coral',       label:'Coral',           color:'#c4706a'},
-  {key:'lila',        label:'Lila',            color:'#9878b8'},
-  {key:'salvia',      label:'Salvia',          color:'#6e8f6a'},
-  {key:'celeste',     label:'Celeste',         color:'#5a9ab4'},
-  {key:'rosa-empolvado',label:'Rosa empolvado',color:'#b87890'},
-];
-function renderTemaSwatches(selected) {
-  const wrap = document.getElementById('inv-color-tema-swatches');
-  if (!wrap) return;
-  wrap.innerHTML = TEMA_COLORS_ADMIN.map(t =>
-    `<div onclick="selectColorTema('${t.key}')" title="${t.label}" style="width:32px;height:32px;border-radius:50%;background:${t.color};cursor:pointer;border:3px solid ${t.key===selected?'#fff':'transparent'};box-shadow:0 0 0 1px rgba(255,255,255,0.2);transition:border-color 0.15s,transform 0.15s;transform:${t.key===selected?'scale(1.18)':'scale(1)'}"></div>`
-  ).join('');
-}
-function selectColorTema(val) {
-  document.getElementById('inv-color-tema').value = val;
-  const t = TEMA_COLORS_ADMIN.find(x => x.key === val);
-  const lbl = document.getElementById('inv-color-tema-label');
-  if (lbl && t) lbl.textContent = t.label;
-  renderTemaSwatches(val);
-}
-function previewColorTema(val) { selectColorTema(val); }
-
-function setInvModelo(modelo) {
-  document.getElementById('inv-modelo').value = modelo;
-  const btnC = document.getElementById('inv-modelo-clasico');
-  const btnS = document.getElementById('inv-modelo-social');
-  if (modelo === 'social') {
-    btnC.style.borderColor = 'rgba(255,255,255,0.2)'; btnC.style.color = 'rgba(255,255,255,0.4)';
-    btnS.style.borderColor = 'var(--gold)'; btnS.style.color = 'var(--gold)';
-    document.getElementById('inv-campos-social').style.display = '';
-    document.getElementById('inv-campos-clasico').style.display = 'none';
-    const current = document.getElementById('inv-color-tema').value || 'mauve';
-    renderTemaSwatches(current);
-  } else {
-    btnS.style.borderColor = 'rgba(255,255,255,0.2)'; btnS.style.color = 'rgba(255,255,255,0.4)';
-    btnC.style.borderColor = 'var(--gold)'; btnC.style.color = 'var(--gold)';
-    document.getElementById('inv-campos-social').style.display = 'none';
-    document.getElementById('inv-campos-clasico').style.display = '';
-  }
-}
-
-let _dbCarouselTarget = null;
-let _invCarousel1 = [];
-let _invCarousel2 = [];
-let _invTrivia = [];
-const TRIVIA_DEFAULT = [
-  {id:1,activa:true,pregunta:'¿En qué año nació?',opciones:['Opción A','Opción B','Opción C'],correcta:0},
-  {id:2,activa:true,pregunta:'¿Cuál es su color favorito?',opciones:['Rosa','Violeta','Azul'],correcta:0},
-  {id:3,activa:true,pregunta:'¿Cuál es su comida favorita?',opciones:['Pizza','Sushi','Pasta'],correcta:0},
-  {id:4,activa:true,pregunta:'¿Dónde festeja su evento?',opciones:['Salón A','Salón B','Salón C'],correcta:0},
-  {id:5,activa:true,pregunta:'¿Cuál es su canción favorita?',opciones:['Canción A','Canción B','Canción C'],correcta:0}
-];
-
-function openDriveBrowserCarousel(target) {
-  _dbCarouselTarget = target;
-  _dbSelected.clear();
-  dbUpdateSelectionBar();
-  document.getElementById('drive-browser-modal').style.display = 'block';
-  document.getElementById('db-btn-portfolio').style.display = 'none';
-  document.getElementById('db-btn-carousel').style.display = 'inline-block';
-  const cliente = _invClienteId ? _clientes.find(function(c){ return c.id === _invClienteId; }) : null;
-  const root = (cliente && cliente.drive_invitacion_id) ? cliente.drive_invitacion_id : getDriveRoot();
-  if(root) {
-    _dbStack = []; _dbCurrent = '';
-    document.getElementById('db-folder-input').value = root;
-    dbLoadFolder(root);
-  } else {
-    const last = localStorage.getItem('crd_last_drive_folder');
-    if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
-  }
-}
-
-function dbConfirmCarousel() {
-  if(!_dbSelected.size) return;
-  const target = _dbCarouselTarget;
-  const urls = [];
-  _dbSelected.forEach(({url}) => urls.push(url));
-  if(target === 1) { _invCarousel1 = urls; renderCarouselPreview(1, urls); }
-  else { _invCarousel2 = urls; renderCarouselPreview(2, urls); }
-  _dbCarouselTarget = null;
-  _dbSelected.clear();
-  document.getElementById('drive-browser-modal').style.display = 'none';
-  document.getElementById('db-btn-portfolio').style.display = 'inline-block';
-  document.getElementById('db-btn-carousel').style.display = 'none';
-  toast(target === 1 ? 'Fotos carrusel 1 guardadas ✓' : 'Fotos carrusel 2 guardadas ✓');
-}
-
-function renderCarouselPreview(n, urls) {
-  const el = document.getElementById('inv-carousel-preview-' + n);
-  if(!el) return;
-  el.innerHTML = urls.length
-    ? '<span style="font-size:10px;color:var(--gray)">' + urls.length + ' foto' + (urls.length!==1?'s':'') + ' seleccionada' + (urls.length!==1?'s':'') + '</span>'
-      + '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">'
-      + urls.slice(0,4).map(u => '<img src="' + u + '" style="width:48px;height:48px;object-fit:cover;border-radius:2px">').join('')
-      + (urls.length>4 ? '<span style="font-size:9px;color:var(--gray);align-self:center">+' + (urls.length-4) + '</span>' : '')
-      + '</div>'
-    : '';
-}
-
-function toggleTriviaEditor() {
-  const ed = document.getElementById('trivia-editor');
-  const ic = document.getElementById('trivia-toggle-icon');
-  if(!ed) return;
-  const open = ed.style.display !== 'none';
-  ed.style.display = open ? 'none' : '';
-  ic.textContent = open ? '▼ expandir' : '▲ contraer';
-  if(!open) renderTriviaLista();
-}
-function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-function renderTriviaLista() {
-  const wrap = document.getElementById('trivia-lista');
-  if(!wrap) return;
-  if(!_invTrivia.length) _invTrivia = TRIVIA_DEFAULT.map(p => ({...p,opciones:[...p.opciones]}));
-  wrap.innerHTML = _invTrivia.map((p,i) => `
-    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:12px;margin-bottom:8px;border-radius:2px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;flex:1">
-          <input type="checkbox" ${p.activa?'checked':''} onchange="triviaToggle(${i},this.checked)" style="accent-color:var(--gold)">
-          <span style="color:${p.activa?'var(--white)':'var(--gray)'}">Activa</span>
-        </label>
-        <button onclick="triviaSubir(${i})" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:12px;padding:2px 6px">↑</button>
-        <button onclick="triviaBajar(${i})" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:12px;padding:2px 6px">↓</button>
-        <button onclick="triviaEliminar(${i})" style="background:none;border:none;color:#e55;cursor:pointer;font-size:11px;padding:2px 6px">✕</button>
-      </div>
-      <input class="form-input" value="${escHtml(p.pregunta)}" oninput="_invTrivia[${i}].pregunta=this.value" placeholder="Pregunta..." style="margin-bottom:6px;font-size:12px">
-      ${p.opciones.map((op,j)=>`
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-          <input type="radio" name="trivia-correcta-${i}" ${p.correcta===j?'checked':''} onchange="triviaSetCorrecta(${i},${j})" style="accent-color:var(--gold);flex-shrink:0">
-          <input class="form-input" value="${escHtml(op)}" oninput="_invTrivia[${i}].opciones[${j}]=this.value" placeholder="Opción ${j+1}" style="font-size:12px">
-        </div>`).join('')}
-      <small style="color:var(--gray);font-size:9px;letter-spacing:1px">El radio marcado es la respuesta correcta</small>
-    </div>`).join('');
-}
-function triviaToggle(i,v) { _invTrivia[i].activa=v; renderTriviaLista(); }
-function triviaSetCorrecta(i,j) { _invTrivia[i].correcta=j; }
-function triviaSubir(i) { if(i===0)return; [_invTrivia[i-1],_invTrivia[i]]=[_invTrivia[i],_invTrivia[i-1]]; renderTriviaLista(); }
-function triviaBajar(i) { if(i>=_invTrivia.length-1)return; [_invTrivia[i],_invTrivia[i+1]]=[_invTrivia[i+1],_invTrivia[i]]; renderTriviaLista(); }
-function triviaEliminar(i) { if(!confirm('¿Eliminar esta pregunta?'))return; _invTrivia.splice(i,1); renderTriviaLista(); }
-function triviaAgregar() {
-  if(!_invTrivia.length) _invTrivia = TRIVIA_DEFAULT.map(p=>({...p,opciones:[...p.opciones]}));
-  _invTrivia.push({id:Date.now(),activa:true,pregunta:'',opciones:['','',''],correcta:0});
-  const ed = document.getElementById('trivia-editor');
-  if(ed) ed.style.display='';
-  renderTriviaLista();
-}
-
 function getInvBaseUrl() {
   const saved = (localStorage.getItem('crd_inv_base') || '').trim();
   if (saved) return saved;
@@ -6482,25 +6145,22 @@ async function genInviteUrl(inv) {
   const fecha = toSlug(fechaRaw);
   const suffix = String(inv.id).slice(-4);
   const slug = nombre + (fecha ? '-' + fecha : '') + '-' + suffix;
-  const base = inv.config.modelo === 'social' ? getInvSocialBaseUrl() : getInvBaseUrl();
+  const base = getInvBaseUrl();
   try {
-    await fetch(CONFIG.CF_URL + '/invite/' + slug, {
+    const res = await fetch(CONFIG.CF_URL + '/invite/' + slug, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': CONFIG.CF_AUTH },
       body: JSON.stringify(inv.config)
     });
-    return base + '?i=' + slug;
-  } catch(e) {
-    const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inv.config)))));
-    return base + '?c=' + encoded;
-  }
+    if (res.ok) return base + '?i=' + slug;
+  } catch(e) {}
+  const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inv.config)))));
+  return base + '?c=' + encoded;
 }
 
 function renderInvitesPage() {
   const baseInput = document.getElementById('inv-base-url');
   if (baseInput) baseInput.value = localStorage.getItem('crd_inv_base') || '';
-  const socialBaseInput = document.getElementById('inv-social-base-url');
-  if (socialBaseInput) socialBaseInput.value = localStorage.getItem('crd_inv_social_base') || '';
   if (_pendingClienteId) {
     const s = _clientes.find(function(x){ return x.id === _pendingClienteId; });
     _pendingClienteId = null;
@@ -6587,6 +6247,7 @@ function renderInvitesPage() {
         <div class="inv-card-url">${url}</div>
         <div class="inv-card-actions">
           <button class="btn-sm" onclick="copyInviteUrl('${inv.id}')">Copiar URL</button>
+          <button class="btn-sm" style="color:#25D366;border-color:#25D366" onclick="copyInviteWa('${inv.id}')" title="URL optimizada para WhatsApp (con preview del nombre y foto)">WhatsApp 📲</button>
           <button class="btn-sm" onclick="previewInvite('${inv.id}')">Previsualizar</button>
           <button class="btn-sm" onclick="openInviteModal('${inv.id}')">Editar</button>
           <button class="btn-sm" onclick="duplicateInvite('${inv.id}')">Duplicar</button>
@@ -6654,38 +6315,8 @@ function openInviteModal(id) {
     slugEl.value = inv.slug || '';
     slugEl.dataset.manual = inv.slug ? '1' : '';
     invPreviewMedia(c.media_url, c.media_type);
+    setHeroTextPos(c.hero_text_x || 0, c.hero_text_y || 0);
     invSetMode(c.tipo === 'save_the_date' ? 'save_the_date' : 'invitacion');
-    setInvModelo(c.modelo || 'clasico');
-    // Campos social
-    document.getElementById('inv-s-novios').value = c.novios || '';
-    document.getElementById('inv-s-titulo').value = c.titulo || '';
-    document.getElementById('inv-s-fecha-display').value = c.fecha_display || '';
-    document.getElementById('inv-s-fecha-iso').value = c.fecha_iso || '';
-    document.getElementById('inv-s-media-url').value = c.media_url || '';
-    document.querySelectorAll('input[name="inv-s-media-type"]').forEach(r => r.checked = r.value === (c.media_type || 'image'));
-    document.getElementById('inv-s-youtube-audio').value = c.youtube_audio || '';
-    document.getElementById('inv-s-recepcion-hora').value = c.recepcion_hora || '';
-    document.getElementById('inv-s-lugar-nombre').value = c.lugar_nombre || '';
-    document.getElementById('inv-s-lugar-dir').value = c.lugar_direccion || '';
-    document.getElementById('inv-s-lugar-maps').value = c.lugar_maps || '';
-    document.getElementById('inv-s-dresscode').value = c.dresscode || '';
-    document.getElementById('inv-s-dresscode-nota').value = c.dresscode_nota || '';
-    document.getElementById('inv-frase-emotiva').value = c.frase_emotiva || '';
-    document.getElementById('inv-album-url').value = c.album_url || '';
-    document.getElementById('inv-s-regalo-texto').value = c.regalo_texto || '';
-    document.getElementById('inv-s-alias').value = c.alias_mp || '';
-    document.getElementById('inv-s-alias-banco').value = c.alias_banco || '';
-    document.getElementById('inv-s-alias-titular').value = c.alias_titular || '';
-    document.getElementById('inv-s-cbu').value = c.cbu || '';
-    document.getElementById('inv-s-rsvp-activo').checked = c.rsvp_activo !== false;
-    document.getElementById('inv-s-rsvp-limite').value = c.rsvp_limite || '';
-    document.getElementById('inv-s-gsheet-url').value = c.gsheet_url || '';
-    document.getElementById('inv-s-emailjs-template').value = c.emailjs_template || '';
-    if (c.color_tema) { document.getElementById('inv-color-tema').value = c.color_tema; previewColorTema(c.color_tema); }
-    document.getElementById('inv-hero-emoji').value = c.hero_emoji || '🌸';
-    _invCarousel1 = c.carousel_images_1 || []; renderCarouselPreview(1, _invCarousel1);
-    _invCarousel2 = c.carousel_images_2 || []; renderCarouselPreview(2, _invCarousel2);
-    _invTrivia = c.trivia_preguntas ? c.trivia_preguntas.map(p => ({...p,opciones:[...p.opciones]})) : TRIVIA_DEFAULT.map(p => ({...p,opciones:[...p.opciones]}));
     document.getElementById('inv-rsvp-summary').textContent = '';
     document.getElementById('inv-rsvp-panel-url').textContent = '';
     document.getElementById('inv-rsvp-panel-url').dataset.url = '';
@@ -6694,10 +6325,6 @@ function openInviteModal(id) {
     loadRsvpSummary(getRealInviteSlug());
   } else {
     invSetMode('invitacion');
-    setInvModelo('clasico');
-    _invCarousel1 = []; renderCarouselPreview(1, []);
-    _invCarousel2 = []; renderCarouselPreview(2, []);
-    _invTrivia = TRIVIA_DEFAULT.map(p => ({...p,opciones:[...p.opciones]}));
     document.getElementById('inv-id').value = '';
     ['inv-novios','inv-titulo','inv-subtitulo','inv-fecha-display','inv-presentacion','inv-media-url',
      'inv-ceremonia-hora','inv-ceremonia-lugar','inv-ceremonia-dir','inv-recepcion-hora','inv-fin-fiesta-hora','inv-recepcion-lugar',
@@ -6718,6 +6345,7 @@ function openInviteModal(id) {
     document.getElementById('inv-tipo').value = 'casamiento';
     document.getElementById('inv-color-esquema').value = 'negro';
     document.getElementById('inv-estilo-aero').checked = false;
+    setHeroTextPos(0, 0);
     ['inv-media-preview-img','inv-media-preview-vid'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
     invTipoChange();
   }
@@ -6731,7 +6359,7 @@ function closeInviteModal() {
 }
 
 function readInviteForm() {
-  const data = {
+  return {
     tipo: document.getElementById('inv-tipo').value,
     config: {
       tipo: document.getElementById('inv-tipo').value,
@@ -6768,7 +6396,7 @@ function readInviteForm() {
       regalo_label: document.getElementById('inv-regalo-label').value.trim(),
       regalo_titulo: document.getElementById('inv-regalo-titulo').value.trim(),
       regalo_texto: document.getElementById('inv-regalo-texto').value.trim(),
-      youtube_audio: extractYouTubeId(document.getElementById('inv-youtube-audio').value),
+      youtube_audio: document.getElementById('inv-youtube-audio').value.trim(),
       env_mostrar: document.getElementById('inv-env-mostrar').checked,
       env_slogan: document.getElementById('inv-env-slogan').value.trim(),
       env_color: document.getElementById('inv-env-color').value,
@@ -6779,48 +6407,24 @@ function readInviteForm() {
       logo_dark: S.get('crd_site_logo') || '',
       logo_light: S.get('crd_site_logo') || '',
       logo_filter: S.get('crd_site_logo_filter') || '',
-      modelo: document.getElementById('inv-modelo').value || 'clasico',
+      hero_text_x: parseInt(document.getElementById('inv-text-x').value) || 0,
+      hero_text_y: parseInt(document.getElementById('inv-text-y').value) || 0
     },
     slug: document.getElementById('inv-slug').value.trim() || toSlug(document.getElementById('inv-novios').value.trim()) || 'invitacion'
   };
-  if (data.config.modelo === 'social') {
-    const mType = document.querySelector('input[name="inv-s-media-type"]:checked');
-    Object.assign(data.config, {
-      novios: document.getElementById('inv-s-novios').value.trim(),
-      titulo: document.getElementById('inv-s-titulo').value.trim(),
-      fecha_display: document.getElementById('inv-s-fecha-display').value.trim(),
-      fecha_iso: document.getElementById('inv-s-fecha-iso').value,
-      media_url: document.getElementById('inv-s-media-url').value.trim(),
-      media_type: mType ? mType.value : 'image',
-      youtube_audio: extractYouTubeId(document.getElementById('inv-s-youtube-audio').value),
-      recepcion_hora: document.getElementById('inv-s-recepcion-hora').value.trim(),
-      lugar_nombre: document.getElementById('inv-s-lugar-nombre').value.trim(),
-      lugar_direccion: document.getElementById('inv-s-lugar-dir').value.trim(),
-      lugar_maps: document.getElementById('inv-s-lugar-maps').value.trim(),
-      dresscode: document.getElementById('inv-s-dresscode').value.trim(),
-      dresscode_nota: document.getElementById('inv-s-dresscode-nota').value.trim(),
-      frase_emotiva: document.getElementById('inv-frase-emotiva').value.trim(),
-      album_url: document.getElementById('inv-album-url').value.trim(),
-      regalo_texto: document.getElementById('inv-s-regalo-texto').value.trim(),
-      alias_mp: document.getElementById('inv-s-alias').value.trim(),
-      alias_banco: document.getElementById('inv-s-alias-banco').value.trim(),
-      alias_titular: document.getElementById('inv-s-alias-titular').value.trim(),
-      cbu: document.getElementById('inv-s-cbu').value.trim(),
-      rsvp_activo: document.getElementById('inv-s-rsvp-activo').checked,
-      rsvp_limite: document.getElementById('inv-s-rsvp-limite').value,
-      gsheet_url: document.getElementById('inv-s-gsheet-url').value.trim(),
-      emailjs_template: document.getElementById('inv-s-emailjs-template').value.trim(),
-      color_tema: document.getElementById('inv-color-tema').value || 'mauve',
-      hero_emoji: document.getElementById('inv-hero-emoji').value.trim() || '🌸',
-      carousel_images_1: _invCarousel1 || [],
-      carousel_images_2: _invCarousel2 || [],
-      trivia_preguntas: _invTrivia.filter(p => p.activa),
-      emailjs_service: 'service_35rtklk',
-      emailjs_key: 'odUJtdh1Z0U27ZkaN',
-    });
-    if (!data.slug) data.slug = toSlug(data.config.novios) || 'invitacion';
-  }
-  return data;
+}
+
+function nudgeHeroText(dx, dy) {
+  const x = (parseInt(document.getElementById('inv-text-x').value) || 0) + dx;
+  const y = (parseInt(document.getElementById('inv-text-y').value) || 0) + dy;
+  setHeroTextPos(x, y);
+}
+function resetHeroTextPos() { setHeroTextPos(0, 0); }
+function setHeroTextPos(x, y) {
+  document.getElementById('inv-text-x').value = x;
+  document.getElementById('inv-text-y').value = y;
+  document.getElementById('inv-text-x-val').textContent = x;
+  document.getElementById('inv-text-y-val').textContent = y;
 }
 
 function getRealInviteSlug() {
@@ -6844,7 +6448,7 @@ async function genRsvpPanelLink() {
     });
     const data = await res.json();
     if (!data.token) throw new Error('Sin token');
-    const url = 'https://kuerre.com.ar/rsvp-panel.html?slug=' + encodeURIComponent(slug) + '&t=' + encodeURIComponent(data.token);
+    const url = 'https://cristianromeroproducciones.com.ar/rsvp-panel.html?slug=' + encodeURIComponent(slug) + '&t=' + encodeURIComponent(data.token);
     document.getElementById('inv-rsvp-panel-url').textContent = url;
     document.getElementById('inv-rsvp-panel-url').dataset.url = url;
     document.getElementById('btn-copy-rsvp').style.display = '';
@@ -6905,7 +6509,7 @@ function saveInvite() {
   saveInvites(list);
   closeInviteModal();
   renderInvitesPage();
-  toast('Invitación guardada ✓ — usá "Guardar y previsualizar" para actualizar el link');
+  toast('Invitación guardada ✓');
 }
 
 function saveAndPreviewInvite() {
@@ -6932,6 +6536,17 @@ function saveAndPreviewInvite() {
 function previewInvite(id) {
   const inv = getInvites().find(i => i.id === id);
   if (inv) genInviteUrl(inv).then(url => window.open(url, '_blank'));
+}
+
+function copyInviteWa(id) {
+  const inv = getInvites().find(i => i.id === id);
+  if (!inv) return;
+  genInviteUrl(inv).then(url => {
+    const slug = new URLSearchParams(url.split('?')[1] || '').get('i');
+    if (!slug) { navigator.clipboard.writeText(url).then(() => toast('URL copiada ✓')); return; }
+    const waUrl = 'https://cristianromeroproducciones.com.ar/og/' + slug;
+    navigator.clipboard.writeText(waUrl).then(() => toast('URL WhatsApp copiada ✓'));
+  });
 }
 
 function copyInviteUrl(id) {
@@ -7645,36 +7260,22 @@ let _dbCurrent = '';
 let pendingPhotoCallback = null;
 const _dbSelected = new Map();
 
-function getDriveRoot() {
-  return ((S.get('crd_settings') || {}).driveRoot || '').trim();
-}
-
 function openDriveBrowser(callback) {
   if(callback) pendingPhotoCallback = callback;
   _dbSelected.clear();
   dbUpdateSelectionBar();
   document.getElementById('drive-browser-modal').style.display = 'block';
-  const root = getDriveRoot();
-  if(root) {
-    _dbStack = []; _dbCurrent = '';
-    document.getElementById('db-folder-input').value = root;
-    dbLoadFolder(root);
-  } else {
-    const last = localStorage.getItem('crd_last_drive_folder');
-    if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
-  }
+  const last = localStorage.getItem('crd_last_drive_folder');
+  if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
 }
 function closeDriveBrowser() {
   _dbSelected.clear();
   document.getElementById('drive-browser-modal').style.display = 'none';
   const btnP = document.getElementById('db-btn-portfolio');
   const btnE = document.getElementById('db-btn-entrega');
-  const btnC = document.getElementById('db-btn-carousel');
   if(btnP) btnP.style.display = 'inline-block';
   if(btnE) btnE.style.display = 'none';
-  if(btnC) btnC.style.display = 'none';
   pendingPhotoCallback = null;
-  _dbCarouselTarget = null;
 }
 
 function dbExtractId(input) {
@@ -8443,8 +8044,6 @@ async function initContratosPage() {
   const saved = S.get(CT_CFG_KEY);
   if (saved) {
     if (saved.url)           document.getElementById('ct-apps-url').value = saved.url;
-    if (saved.driveRootId)   document.getElementById('ct-drive-root-id').value = saved.driveRootId;
-    if (saved.presupuestosId) document.getElementById('ct-presupuestos-id').value = saved.presupuestosId;
   }
   document.getElementById('ct-dia-firma').valueAsDate = new Date();
   if (ctSvcData.length === 0 && ctGetUrl()) ctCargarServicios();
@@ -8457,10 +8056,9 @@ async function initContratosPage() {
     const hadUrl = !!(saved && saved.url);
     S.set(CT_CFG_KEY, cloud);
     document.getElementById('ct-apps-url').value = cloud.url;
-    if (cloud.driveRootId) document.getElementById('ct-drive-root-id').value = cloud.driveRootId;
-    if (cloud.presupuestosId) document.getElementById('ct-presupuestos-id').value = cloud.presupuestosId;
     if (!hadUrl) { ctCargarServicios(); ctLoadHistorial(); }
   }
+  ctRestoreDraft();
 }
 
 function _ctBuildPage_UNUSED() {
@@ -8547,7 +8145,7 @@ function _ctBuildPage_UNUSED() {
         <div class="settings-section" style="margin-bottom:16px">
           <div class="settings-section-title">Datos del evento</div>
           <div style="margin-top:12px">
-            <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:12px;color:var(--gray2)"><input type="checkbox" id="ct-b-tiene-civil" onchange="ctToggleEvento('civil',this.checked)" style="accent-color:var(--gold)"> Incluir Ceremonia Civil</label>
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:12px;color:var(--gray2)"><input type="checkbox" id="ct-b-tiene-civil" onchange="ctToggleEvento('civil',this.checked,this)" style="accent-color:var(--gold)"> Incluir Ceremonia Civil</label>
             <div id="ct-sub-civil" style="display:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:12px;margin-bottom:12px">
               <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:10px">Ceremonia Civil</div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
@@ -8556,7 +8154,7 @@ function _ctBuildPage_UNUSED() {
                 <div class="form-group"><label class="form-label">Dirección</label><input class="form-input" id="ct-b-civil-dir"></div>
               </div>
             </div>
-            <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:12px;color:var(--gray2)"><input type="checkbox" id="ct-b-tiene-reli" onchange="ctToggleEvento('reli',this.checked)" style="accent-color:var(--gold)"> Incluir Ceremonia Religiosa</label>
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:12px;color:var(--gray2)"><input type="checkbox" id="ct-b-tiene-reli" onchange="ctToggleEvento('reli',this.checked,this)" style="accent-color:var(--gold)"> Incluir Ceremonia Religiosa</label>
             <div id="ct-sub-reli" style="display:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:12px;margin-bottom:12px">
               <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:10px">Ceremonia Religiosa</div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
@@ -8841,6 +8439,51 @@ function ctFmt(n) {
 
 function ctV(id) { return (document.getElementById(id)?.value || '').trim(); }
 
+const CT_VRULES = {
+  email: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+  tel:   v => v.replace(/\D/g,'').length >= 8,
+  dni:   v => /^\d{7,8}$/.test(v.replace(/[\s.]/g,'')),
+  hora:  v => /^\d{1,2}:\d{2}$/.test(v),
+  dir:   v => /\d/.test(v),
+  text:  v => v.trim().length >= 2,
+};
+function ctVf(id, type, req) {
+  const el = document.getElementById(id);
+  if (!el) return true;
+  const val = el.value.trim();
+  if (!val) {
+    el.classList.toggle('finvalid', !!req);
+    el.classList.remove('fvalid');
+    return !req;
+  }
+  const ok = CT_VRULES[type] ? CT_VRULES[type](val) : val.length > 0;
+  el.classList.toggle('finvalid', !ok);
+  el.classList.toggle('fvalid', ok);
+  return ok;
+}
+function ctChk(id, type, req, label, errs) {
+  if (!ctVf(id, type, req)) errs.push(label);
+}
+(function ctWireBlur() {
+  const rules = {
+    'ct-b-novia-nombre':['text',true], 'ct-b-novia-dni':['dni',true], 'ct-b-novia-tel':['tel',true], 'ct-b-novia-email':['email',false],
+    'ct-b-novio-nombre':['text',true], 'ct-b-novio-dni':['dni',true], 'ct-b-novio-dom':['text',false], 'ct-b-novio-tel':['tel',true], 'ct-b-novio-email':['email',false],
+    'ct-b-civil-hora':['hora',false], 'ct-b-civil-dir':['dir',false],
+    'ct-b-reli-hora':['hora',false], 'ct-b-reli-dir':['dir',false],
+    'ct-b-fiesta-hora':['hora',true], 'ct-b-fiesta-salon':['text',true], 'ct-b-fiesta-dir':['dir',true],
+    'ct-b-contacto-nombre':['text',true], 'ct-b-contacto-rel':['text',true], 'ct-b-contacto-tel':['tel',true],
+    'ct-x-quince-nombre':['text',true], 'ct-x-cliente-nombre':['text',true], 'ct-x-cliente-dni':['dni',true],
+    'ct-x-cliente-tel':['tel',true], 'ct-x-cliente-email':['email',true],
+    'ct-x-hora-inicio':['hora',true], 'ct-x-hora-fin':['hora',false], 'ct-x-salon':['text',true], 'ct-x-dir':['dir',true],
+    'ct-c-nombre':['text',true], 'ct-c-dni':['dni',true], 'ct-c-tel':['tel',true], 'ct-c-email':['email',true],
+    'ct-c-hora-inicio':['hora',true], 'ct-c-hora-fin':['hora',false], 'ct-c-salon':['text',true], 'ct-c-dir':['dir',true],
+  };
+  Object.entries(rules).forEach(([id,[type,req]])=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('blur',()=>ctVf(id,type,req));
+  });
+})();
+
 // ── FORMA DE PAGO ITEMS ──
 let ctPagoItems = [];
 const CT_PAGO_DEFAULTS = {
@@ -8877,6 +8520,56 @@ function ctRemovePagoItem(i) { ctPagoItems.splice(i, 1); ctRenderPagoItems(); }
 function ctBuildData() {
   const precio = Number(document.getElementById('ct-precio').value);
   if (!precio) { toast('Ingresá el precio total', 'error'); return null; }
+  const errs = [];
+  if (ctTipo === 'BODA') {
+    ctChk('ct-b-novia-nombre','text',true,'Nombre de la novia',errs);
+    ctChk('ct-b-novia-dni','dni',true,'DNI de la novia (7 u 8 dígitos)',errs);
+    ctChk('ct-b-novia-tel','tel',true,'Teléfono de la novia (mín. 8 dígitos)',errs);
+    if (ctV('ct-b-novia-email')) ctChk('ct-b-novia-email','email',false,'Email de la novia inválido',errs);
+    ctChk('ct-b-novio-nombre','text',true,'Nombre del novio',errs);
+    ctChk('ct-b-novio-dni','dni',true,'DNI del novio (7 u 8 dígitos)',errs);
+    ctChk('ct-b-novio-tel','tel',true,'Teléfono del novio (mín. 8 dígitos)',errs);
+    if (ctV('ct-b-novio-email')) ctChk('ct-b-novio-email','email',false,'Email del novio inválido',errs);
+    if (!ctV('ct-b-fiesta-fecha')) errs.push('Fecha de la fiesta');
+    ctChk('ct-b-fiesta-hora','hora',true,'Horario de fiesta inválido (formato HH:MM)',errs);
+    ctChk('ct-b-fiesta-salon','text',true,'Nombre del salón',errs);
+    ctChk('ct-b-fiesta-dir','dir',true,'Dirección del salón (debe incluir número)',errs);
+    ctChk('ct-b-contacto-nombre','text',true,'Nombre del contacto',errs);
+    ctChk('ct-b-contacto-rel','text',true,'Relación del contacto',errs);
+    ctChk('ct-b-contacto-tel','tel',true,'Teléfono del contacto (mín. 8 dígitos)',errs);
+    if (document.getElementById('ct-b-tiene-civil')?.checked) {
+      if (!ctV('ct-b-civil-fecha')) errs.push('Fecha de ceremonia civil');
+      if (ctV('ct-b-civil-hora')) ctChk('ct-b-civil-hora','hora',false,'Horario civil inválido (formato HH:MM)',errs);
+      if (ctV('ct-b-civil-dir')) ctChk('ct-b-civil-dir','dir',false,'Dirección civil debe incluir número',errs);
+    }
+    if (document.getElementById('ct-b-tiene-reli')?.checked) {
+      if (!ctV('ct-b-reli-fecha')) errs.push('Fecha de ceremonia religiosa');
+      if (ctV('ct-b-reli-hora')) ctChk('ct-b-reli-hora','hora',false,'Horario religioso inválido (formato HH:MM)',errs);
+      if (ctV('ct-b-reli-dir')) ctChk('ct-b-reli-dir','dir',false,'Dirección religiosa debe incluir número',errs);
+    }
+  } else if (ctTipo === 'XV') {
+    ctChk('ct-x-quince-nombre','text',true,'Nombre de la quinceañera',errs);
+    ctChk('ct-x-cliente-nombre','text',true,'Nombre del cliente',errs);
+    ctChk('ct-x-cliente-dni','dni',true,'DNI del cliente (7 u 8 dígitos)',errs);
+    ctChk('ct-x-cliente-tel','tel',true,'Teléfono del cliente (mín. 8 dígitos)',errs);
+    if (ctV('ct-x-cliente-email')) ctChk('ct-x-cliente-email','email',false,'Email del cliente inválido',errs);
+    if (!ctV('ct-x-fecha')) errs.push('Fecha del evento');
+    ctChk('ct-x-hora-inicio','hora',true,'Hora inicio inválida (formato HH:MM)',errs);
+    if (ctV('ct-x-hora-fin')) ctChk('ct-x-hora-fin','hora',false,'Hora fin inválida (formato HH:MM)',errs);
+    ctChk('ct-x-salon','text',true,'Nombre del salón',errs);
+    ctChk('ct-x-dir','dir',true,'Dirección del salón (debe incluir número)',errs);
+  } else if (ctTipo === 'CUMPLE') {
+    ctChk('ct-c-nombre','text',true,'Nombre del cliente',errs);
+    ctChk('ct-c-dni','dni',true,'DNI del cliente (7 u 8 dígitos)',errs);
+    ctChk('ct-c-tel','tel',true,'Teléfono del cliente (mín. 8 dígitos)',errs);
+    if (ctV('ct-c-email')) ctChk('ct-c-email','email',false,'Email del cliente inválido',errs);
+    if (!ctV('ct-c-fecha')) errs.push('Fecha del evento');
+    ctChk('ct-c-hora-inicio','hora',true,'Hora inicio inválida (formato HH:MM)',errs);
+    if (ctV('ct-c-hora-fin')) ctChk('ct-c-hora-fin','hora',false,'Hora fin inválida (formato HH:MM)',errs);
+    ctChk('ct-c-salon','text',true,'Nombre del salón',errs);
+    ctChk('ct-c-dir','dir',true,'Dirección del salón (debe incluir número)',errs);
+  }
+  if (errs.length) { toast('Revisá los campos:\n• ' + errs.join('\n• '), 'error'); return null; }
   const svcSel = ctSvcData
     .filter(s => document.getElementById(`ct-svc-${s.id}`)?.checked)
     .map(s => ({ descripcion: s.descripcion, pesos: s.pesos }));
@@ -8938,21 +8631,6 @@ async function ctGenerar() {
             method: 'PATCH', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ codigo_contrato: String(json.numero) })
           }).then(function(){
-            fetch(CLIENTES_WORKER + '/solicitudes/' + id + '/carpetas', {
-              method: 'POST', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
-              body: JSON.stringify({ codigoContrato: String(json.numero), driveRoot: dbExtractId(getDriveRoot()) })
-            }).then(function(r){ return r.json(); }).then(function(d){
-              const carpetaId = d && d.ids && d.ids.contrato;
-              const ctUrl = ctGetUrl();
-              if (!carpetaId || !ctUrl) return;
-              const mover = function(fileUrl) {
-                const m = fileUrl && fileUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (!m) return;
-                fetch(ctUrl, { method: 'POST', body: JSON.stringify({ action: 'moverArchivo', fileId: m[1], carpetaId: carpetaId }) }).catch(function(){});
-              };
-              mover(json.docUrl);
-              mover(json.pdfUrl);
-            }).catch(function(){});
             if (fromForm) {
               fetch(CONFIG.CRCLUB_URL + '/solicitudes/' + id + '/procesada', {
                 method: 'PATCH', headers: { Authorization: 'Bearer ' + getAdminJWT() }
@@ -9049,13 +8727,22 @@ async function ctSaveDraftManual() {
           novia:{ nombre:ctV('ct-b-novia-nombre'), dni:ctV('ct-b-novia-dni'), telefono:ctV('ct-b-novia-tel'), email:ctV('ct-b-novia-email') },
           novio:{ nombre:ctV('ct-b-novio-nombre'), dni:ctV('ct-b-novio-dni'), domicilio:ctV('ct-b-novio-dom'), telefono:ctV('ct-b-novio-tel'), email:ctV('ct-b-novio-email') },
           fiesta:{ fecha:ctV('ct-b-fiesta-fecha'), horaInicio:ctV('ct-b-fiesta-hora'), horaFin:ctV('ct-b-fiesta-hora-fin'), salon:ctV('ct-b-fiesta-salon'), direccion:ctV('ct-b-fiesta-dir'), invitados:ctV('ct-b-invitados') },
-          contacto:{ nombre:ctV('ct-b-contacto-nombre'), relacion:ctV('ct-b-contacto-rel'), telefono:ctV('ct-b-contacto-tel') } };
+          contacto:{ nombre:ctV('ct-b-contacto-nombre'), relacion:ctV('ct-b-contacto-rel'), telefono:ctV('ct-b-contacto-tel') },
+          civil:     document.getElementById('ct-b-tiene-civil')?.checked ? { fecha:ctV('ct-b-civil-fecha'), horario:ctV('ct-b-civil-hora'), direccion:ctV('ct-b-civil-dir') } : null,
+          religiosa: document.getElementById('ct-b-tiene-reli')?.checked  ? { fecha:ctV('ct-b-reli-fecha'),  horario:ctV('ct-b-reli-hora'),  direccion:ctV('ct-b-reli-dir')  } : null };
       var r = await fetch(CLIENTES_WORKER + '/solicitudes', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) });
       var d = await r.json();
       if (d.ok) _ctSolicitudId = d.id;
     } catch(e) {}
   }
   ctSaveDraft();
+  if (_ctSolicitudId && CLIENTES_WORKER) {
+    fetch(CLIENTES_WORKER + '/solicitudes/' + _ctSolicitudId + '/data', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminJWT() },
+      body: JSON.stringify(ctBuildSolicitudData())
+    }).catch(function(){});
+  }
   toast('Borrador guardado ✓');
   showPage('clientes');
 }
@@ -9063,6 +8750,29 @@ async function ctSaveDraftManual() {
 function ctScheduleSaveDraft() {
   clearTimeout(ctDraftTimer);
   ctDraftTimer = setTimeout(ctSaveDraft, 800);
+}
+
+function ctBuildSolicitudData() {
+  const body = { tipo: ctTipo };
+  if (ctTipo === 'BODA') {
+    body.novia    = { nombre: ctV('ct-b-novia-nombre'), dni: ctV('ct-b-novia-dni'), telefono: ctV('ct-b-novia-tel'), email: ctV('ct-b-novia-email') };
+    body.novio    = { nombre: ctV('ct-b-novio-nombre'), dni: ctV('ct-b-novio-dni'), domicilio: ctV('ct-b-novio-dom'), telefono: ctV('ct-b-novio-tel'), email: ctV('ct-b-novio-email') };
+    body.fiesta   = { fecha: ctV('ct-b-fiesta-fecha'), horaInicio: ctV('ct-b-fiesta-hora'), horaFin: ctV('ct-b-fiesta-hora-fin'), salon: ctV('ct-b-fiesta-salon'), direccion: ctV('ct-b-fiesta-dir'), invitados: ctV('ct-b-invitados') };
+    body.contacto = { nombre: ctV('ct-b-contacto-nombre'), relacion: ctV('ct-b-contacto-rel'), telefono: ctV('ct-b-contacto-tel') };
+    body.civil     = document.getElementById('ct-b-tiene-civil')?.checked ? { fecha: ctV('ct-b-civil-fecha'), horario: ctV('ct-b-civil-hora'), direccion: ctV('ct-b-civil-dir') } : null;
+    body.religiosa = document.getElementById('ct-b-tiene-reli')?.checked  ? { fecha: ctV('ct-b-reli-fecha'),  horario: ctV('ct-b-reli-hora'),  direccion: ctV('ct-b-reli-dir')  } : null;
+  } else if (ctTipo === 'XV') {
+    body.quinceanera = { nombre: ctV('ct-x-quince-nombre'), fechaNacimiento: ctV('ct-x-quince-nac') };
+    body.cliente     = { nombre: ctV('ct-x-cliente-nombre'), dni: ctV('ct-x-cliente-dni'), telefono: ctV('ct-x-cliente-tel'), email: ctV('ct-x-cliente-email') };
+    body.evento      = { fecha: ctV('ct-x-fecha'), horaInicio: ctV('ct-x-hora-inicio'), horaFin: ctV('ct-x-hora-fin'), salon: ctV('ct-x-salon'), direccion: ctV('ct-x-dir'), invitados: ctV('ct-x-invitados') };
+  } else if (ctTipo === 'CUMPLE') {
+    body.cliente = { nombre: ctV('ct-c-nombre'), dni: ctV('ct-c-dni'), telefono: ctV('ct-c-tel'), email: ctV('ct-c-email') };
+    body.evento  = { fecha: ctV('ct-c-fecha'), horaInicio: ctV('ct-c-hora-inicio'), horaFin: ctV('ct-c-hora-fin'), salon: ctV('ct-c-salon'), direccion: ctV('ct-c-dir'), invitados: ctV('ct-c-invitados') };
+  }
+  const serviciosChecked = [];
+  document.querySelectorAll('[id^="ct-svc-"]:checked').forEach(function(cb) { serviciosChecked.push(cb.value); });
+  body._admin = { precio: ctV('ct-precio'), pagoItems: [...ctPagoItems], servicios: serviciosChecked };
+  return body;
 }
 
 function ctDraftKey() {
@@ -9080,6 +8790,10 @@ function ctSaveDraft() {
   const data = JSON.stringify({ tipo: ctTipo, fields, solicitudId: _ctSolicitudId || null, pagoItems: ctPagoItems });
   try { localStorage.setItem(key, data); } catch(e) {}
   syncToCloud(key, data);
+  if (key !== CT_DRAFT_KEY) {
+    try { localStorage.setItem(CT_DRAFT_KEY, data); } catch(e) {}
+    syncToCloud(CT_DRAFT_KEY, data);
+  }
 }
 
 let _ctSkipNextRestore = false;
@@ -9115,6 +8829,10 @@ function ctClearDraft() {
   const key = ctDraftKey();
   localStorage.removeItem(key);
   syncToCloud(key, JSON.stringify(null));
+  if (key !== CT_DRAFT_KEY) {
+    localStorage.removeItem(CT_DRAFT_KEY);
+    syncToCloud(CT_DRAFT_KEY, JSON.stringify(null));
+  }
   // Reset form
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
@@ -9176,33 +8894,23 @@ function ctRenderSolicitudes(data) {
 
 async function ctCargarSolicitud(sol) {
   _ctSolicitudId = sol.id || null;
-  const prevDraft = sol.id ? await fetchFromCloud('crd_ct_draft_' + sol.id).catch(() => null) : null;
   _ctSkipNextRestore = true;
   showPage('contratos');
-  // Limpiar form y checkboxes antes de cargar el nuevo cliente
   document.querySelectorAll('#ct-form-area input, #ct-form-area select').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
     else if (el.id !== 'ct-dia-firma') el.value = '';
   });
   document.querySelectorAll('[id^="ct-svc-"]').forEach(cb => { cb.checked = false; });
-  const d = sol.data;
-  ctSelTipo(sol.tipo);
-
-  // 1. Aplicar borrador completo primero (cubre campos que D1 no tiene en solicitudes viejas)
-  if (prevDraft) {
-    if (prevDraft.pagoItems && Array.isArray(prevDraft.pagoItems)) {
-      ctPagoItems = prevDraft.pagoItems; ctRenderPagoItems();
-    }
-    Object.entries(prevDraft.fields || {}).forEach(function([id, val]) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (el.type === 'checkbox') el.checked = val;
-      else el.value = val;
-    });
-    ctCalcTotal();
+  let d = sol.data;
+  if (sol.id && CLIENTES_WORKER) {
+    try {
+      const res = await fetch(CLIENTES_WORKER + '/solicitudes/' + sol.id, {
+        headers: { Authorization: 'Bearer ' + getAdminJWT() }
+      });
+      if (res.ok) { const fresh = await res.json(); d = fresh.data || d; }
+    } catch(e) {}
   }
-
-  // 2. Datos frescos de D1 por encima (sobreescriben el borrador)
+  ctSelTipo(sol.tipo);
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   if (sol.tipo === 'BODA') {
     set('ct-b-novia-nombre', d.novia?.nombre);
@@ -9214,18 +8922,32 @@ async function ctCargarSolicitud(sol) {
     set('ct-b-novio-dom',    d.novio?.domicilio);
     set('ct-b-novio-tel',    d.novio?.telefono);
     set('ct-b-novio-email',  d.novio?.email);
-    set('ct-b-fiesta-fecha',     d.fiesta?.fecha);
-    set('ct-b-fiesta-hora',      d.fiesta?.horaInicio);
-    set('ct-b-fiesta-hora-fin',  d.fiesta?.horaFin);
-    set('ct-b-invitados',        d.fiesta?.invitados);
-    set('ct-b-fiesta-salon',     d.fiesta?.salon);
-    set('ct-b-fiesta-dir',       d.fiesta?.direccion);
+    set('ct-b-fiesta-fecha',    d.fiesta?.fecha);
+    set('ct-b-fiesta-hora',     d.fiesta?.horaInicio);
+    set('ct-b-fiesta-hora-fin', d.fiesta?.horaFin);
+    set('ct-b-invitados',       d.fiesta?.invitados);
+    set('ct-b-fiesta-salon',    d.fiesta?.salon);
+    set('ct-b-fiesta-dir',      d.fiesta?.direccion);
     set('ct-b-contacto-nombre', d.contacto?.nombre);
     set('ct-b-contacto-rel',    d.contacto?.relacion);
     set('ct-b-contacto-tel',    d.contacto?.telefono);
+    if (d.civil) {
+      const civilCb = document.getElementById('ct-b-tiene-civil');
+      if (civilCb) { civilCb.checked = true; ctToggleEvento('civil', true); }
+      set('ct-b-civil-fecha', d.civil.fecha);
+      set('ct-b-civil-hora',  d.civil.horario);
+      set('ct-b-civil-dir',   d.civil.direccion);
+    }
+    if (d.religiosa) {
+      const reliCb = document.getElementById('ct-b-tiene-reli');
+      if (reliCb) { reliCb.checked = true; ctToggleEvento('reli', true); }
+      set('ct-b-reli-fecha', d.religiosa.fecha);
+      set('ct-b-reli-hora',  d.religiosa.horario);
+      set('ct-b-reli-dir',   d.religiosa.direccion);
+    }
   } else if (sol.tipo === 'XV') {
-    set('ct-x-quince-nombre', d.quinceanera?.nombre);
-    set('ct-x-quince-nac',    d.quinceanera?.fechaNacimiento);
+    set('ct-x-quince-nombre',  d.quinceanera?.nombre);
+    set('ct-x-quince-nac',     d.quinceanera?.fechaNacimiento);
     set('ct-x-cliente-nombre', d.cliente?.nombre);
     set('ct-x-cliente-dni',    d.cliente?.dni);
     set('ct-x-cliente-tel',    d.cliente?.telefono);
@@ -9237,19 +8959,30 @@ async function ctCargarSolicitud(sol) {
     set('ct-x-dir',            d.evento?.direccion);
     set('ct-x-invitados',      d.evento?.invitados);
   } else if (sol.tipo === 'CUMPLE') {
-    set('ct-c-nombre',     d.cliente?.nombre);
-    set('ct-c-dni',        d.cliente?.dni);
-    set('ct-c-tel',        d.cliente?.telefono);
-    set('ct-c-email',      d.cliente?.email);
-    set('ct-c-fecha',      d.evento?.fecha);
-    set('ct-c-hora-inicio',d.evento?.horaInicio);
-    set('ct-c-hora-fin',   d.evento?.horaFin);
-    set('ct-c-salon',      d.evento?.salon);
-    set('ct-c-dir',        d.evento?.direccion);
-    set('ct-c-invitados',  d.evento?.invitados);
+    set('ct-c-nombre',      d.cliente?.nombre);
+    set('ct-c-dni',         d.cliente?.dni);
+    set('ct-c-tel',         d.cliente?.telefono);
+    set('ct-c-email',       d.cliente?.email);
+    set('ct-c-fecha',       d.evento?.fecha);
+    set('ct-c-hora-inicio', d.evento?.horaInicio);
+    set('ct-c-hora-fin',    d.evento?.horaFin);
+    set('ct-c-salon',       d.evento?.salon);
+    set('ct-c-dir',         d.evento?.direccion);
+    set('ct-c-invitados',   d.evento?.invitados);
   }
-
-
+  if (d._admin) {
+    if (d._admin.precio) set('ct-precio', d._admin.precio);
+    if (d._admin.pagoItems && Array.isArray(d._admin.pagoItems)) {
+      ctPagoItems = d._admin.pagoItems; ctRenderPagoItems();
+    }
+    if (d._admin.servicios && Array.isArray(d._admin.servicios)) {
+      d._admin.servicios.forEach(function(svcId) {
+        const cb = document.getElementById('ct-svc-' + svcId);
+        if (cb) cb.checked = true;
+      });
+    }
+  }
+  ctCalcTotal();
   setTimeout(ctSaveDraft, 200);
   toast('Datos cargados del cliente — completá precio y servicios');
   document.getElementById('ct-form-area').scrollIntoView({ behavior: 'smooth' });
@@ -10145,7 +9878,7 @@ function ctCerrarModalFormulario() {
 </script>
 
 <div id="ct-modal-formulario" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center">
-  <div style="position:relative;width:92%;max-width:860px;height:92vh;background:#060d14;border:1px solid rgba(0,200,150,0.15);overflow:hidden">
+  <div style="position:relative;width:92%;max-width:860px;height:92vh;background:#060d14;border:1px solid rgba(255,255,255,0.1);overflow:hidden">
     <button onclick="ctCerrarModalFormulario()" style="position:absolute;top:10px;right:14px;z-index:10;background:none;border:none;color:rgba(255,255,255,0.5);font-size:22px;cursor:pointer;line-height:1">✕</button>
     <iframe id="ct-modal-iframe" src="" style="width:100%;height:100%;border:none"></iframe>
   </div>

@@ -3,18 +3,17 @@
     "wa_number": "541162557763",
     "ig_url": "https://instagram.com/kuerre.digital",
     "topbar_left": "Buenos Aires, Argentina",
-    "footer_copyright": "© 2026 KUERRE · Servicios digitales para eventos",
     "nav_cta_text": "Consultar",
-    "nav_cta_url": "https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE"
+    "nav_cta_url": "https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE",
+    "footer_copyright": "© 2026 KUERRE · Servicios digitales para eventos"
   },
   "hero": {
     "eyebrow": "Servicios digitales para eventos",
     "title": "Hacé que tu evento\nviva para siempre",
-    "desc": "Galería colaborativa en tiempo real, entrega cinematográfica e invitación digital. Todo lo que tu evento necesita, en un solo lugar.",
+    "desc": "Antes del evento, durante la fiesta y después del último brindis — una experiencia digital completa para que tu evento se viva, se comparta y se reviva.",
     "btn1_text": "Consultá por WhatsApp",
     "btn1_url": "https://wa.me/541162557763?text=Hola%2C%20me%20interesa%20un%20servicio%20de%20KUERRE",
     "btn2_text": "Ver servicios",
-    "btn2_anchor": "#servicios",
     "bg_image": "https://images.unsplash.com/photo-1519741497674-611481863552?w=1600&auto=format&q=80"
   },
   "trust": [
@@ -26,12 +25,12 @@
   "invitaciones": {
     "label": "Invitación Digital",
     "title": "Animada, musical\ne interactiva",
-    "desc": "Cuenta regresiva en vivo, música de fondo, mapa interactivo, confirmación de asistencia y mucho más. Sin papel, con estilo.",
+    "desc": "La primera impresión de tu evento no empieza en el salón. Empieza cuando tus invitados abren la invitación. Una invitación digital animada, con toda la información en un solo link elegante y fácil de compartir.",
     "features": [
       "Cuenta regresiva al evento en tiempo real",
       "Música de fondo elegible por el cliente",
-      "Confirmación de asistencia integrada",
-      "Link a Google Maps con la ubicación",
+      "Dress code, playlist y confirmación de asistencia",
+      "Diseño personalizado al estilo del evento",
       "Compartible por WhatsApp, Instagram y email"
     ],
     "btn_text": "Consultar precio",
@@ -41,13 +40,13 @@
   "qr": {
     "label": "QR Fiestas",
     "title": "La galería colaborativa\nde tu evento",
-    "desc": "Tus invitados escanean un QR y en segundos están subiendo fotos desde su celular. Una galería que crece sola durante la fiesta.",
+    "desc": "Durante la fiesta, tus invitados no son espectadores — son parte de la historia. Escanean un QR y suben fotos, mensajes y frases que aparecen en pantalla en tiempo real. Con likes, ranking y premio para la foto más votada.",
     "features": [
       "Sin descargar ninguna aplicación — solo el navegador",
-      "Galería en tiempo real visible para todos los invitados",
-      "Descarga masiva de todas las fotos al finalizar",
-      "QR imprimible para colocar en las mesas",
-      "Disponible 30 días después del evento"
+      "Fotos, mensajes y frases de los invitados en pantalla en vivo",
+      "Likes en las fotos y ranking entre invitados",
+      "Premio para la foto más votada",
+      "Descarga masiva disponible 30 días después del evento"
     ],
     "btn_text": "Consultar precio",
     "btn_url": "https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20QR%20Fiestas",
@@ -56,13 +55,13 @@
   "premiere": {
     "label": "Premiere",
     "title": "La entrega que se siente\ncomo un estreno",
-    "desc": "Tu primer vistazo a las fotos y el video presentado con una experiencia cinematográfica. Una página personalizada que sorprende desde el primer segundo.",
+    "desc": "El evento no termina cuando se apaga la música. Recibís tus fotos y videos en una plataforma online organizada, visual y fácil de compartir — más parecida a Netflix que a una carpeta de archivos.",
     "features": [
       "Página de entrega con diseño exclusivo para tu evento",
       "Reproducción de video con estética de streaming",
       "Galería de fotos con navegación elegante",
       "Link privado para compartir solo con quien quieras",
-      "Acceso desde cualquier dispositivo"
+      "Acceso desde cualquier dispositivo, en cualquier momento"
     ],
     "btn_text": "Consultar precio",
     "btn_url": "https://wa.me/541162557763?text=Hola%2C%20quiero%20info%20sobre%20Premiere",
@@ -70,31 +69,31 @@
   },
   "servicios": {
     "eyebrow": "Nuestros servicios",
-    "title": "Tres experiencias digitales,\nun solo proveedor",
+    "title": "Antes, durante y después\nde tu evento",
     "cards": [
-      { "name": "Invitación Digital", "desc": "Invitación animada con cuenta regresiva, música de fondo, mapa interactivo y confirmación de asistencia. Sin papel, con estilo.", "price": "Desde $12.000" },
-      { "name": "QR Fiestas",         "desc": "Tus invitados escanean un QR y suben fotos en tiempo real. Una galería colaborativa con el espíritu del evento, disponible para todos.", "price": "Desde $15.000" },
-      { "name": "Premiere",           "desc": "Tu primer vistazo a las fotos y el video presentado con experiencia cinematográfica. Una entrega que se siente como estreno de película.", "price": "Desde $20.000" }
+      { "name": "Invitación Digital", "desc": "La primera impresión del evento. Invitación online animada con cuenta regresiva, música, mapa y confirmación de asistencia. Todo en un solo link.", "price": "Desde $100.000" },
+      { "name": "QR Fiestas",         "desc": "Tus invitados participan en vivo: suben fotos, dejan mensajes y votan en pantalla. Una galería colaborativa que queda para siempre.",               "price": "Desde $150.000" },
+      { "name": "Premiere",           "desc": "Tus fotos y videos entregados como una plataforma premium. Organizados, visuales y listos para compartir y revivir cuando quieras.",             "price": "Desde $150.000" }
     ]
   },
   "como_funciona": {
     "eyebrow": "Proceso",
     "title": "Simple, rápido\ny sin complicaciones",
     "steps": [
-      { "name": "Consultás",     "desc": "Nos escribís por WhatsApp con la fecha y tipo de evento. Te respondemos el mismo día con disponibilidad y opciones." },
-      { "name": "Personalizamos","desc": "Configuramos el servicio con los datos de tu evento: nombres, fecha, colores, música y todo el contenido que necesitás." },
-      { "name": "Lo recibís",    "desc": "Te enviamos el link listo para compartir. Tus invitados solo necesitan abrirlo en su celular, sin instalar nada." }
+      { "name": "Consultás",      "desc": "Nos escribís por WhatsApp con la fecha, la cantidad de invitados y el tipo de evento. Te respondemos el mismo día con disponibilidad y opciones." },
+      { "name": "Personalizamos", "desc": "Configuramos el servicio con los datos de tu evento: nombres, fecha, colores, música y todo el contenido que necesitás." },
+      { "name": "Lo recibís",     "desc": "Te enviamos el link listo para compartir. Tus invitados solo necesitan abrirlo en su celular, sin instalar nada." }
     ]
   },
   "faq": {
     "eyebrow": "Preguntas frecuentes",
     "title": "¿Tenés dudas?\nLas respondemos todas",
     "items": [
-      { "q": "¿Cuánto tiempo antes debo contratar?",  "a": "Recomendamos contactarnos con al menos 2 semanas de anticipación para tener tiempo de personalizar todo. Para fechas muy cercanas consultanos igual — hacemos lo posible para no dejar ningún evento sin servicio." },
-      { "q": "¿Los servicios se pueden combinar?",     "a": "Sí, y es lo que recomendamos. Podés contratar uno, dos o los tres servicios para el mismo evento. Al combinarlos obtenés un precio especial." },
-      { "q": "¿Funciona en cualquier celular?",        "a": "Sí. Todas las páginas están optimizadas para mobile — tus invitados solo necesitan abrir el link en su navegador, sea iPhone o Android. No hay nada que instalar." },
+      { "q": "¿Cuánto tiempo antes debo contratar?",        "a": "Recomendamos contactarnos con al menos 2 semanas de anticipación para tener tiempo de personalizar todo. Para fechas muy cercanas consultanos igual — hacemos lo posible para no dejar ningún evento sin servicio." },
+      { "q": "¿Los servicios se pueden combinar?",           "a": "Sí, y es lo que recomendamos. Podés contratar uno, dos o los tres servicios para el mismo evento. Al combinarlos obtenés un precio especial." },
+      { "q": "¿Funciona en cualquier celular?",              "a": "Sí. Todas las páginas están optimizadas para mobile — tus invitados solo necesitan abrir el link en su navegador, sea iPhone o Android. No hay nada que instalar." },
       { "q": "¿Cuánto tiempo permanece activo el servicio?", "a": "Por defecto 30 días desde la fecha del evento. Podemos extender el período si necesitás que esté disponible más tiempo para que todos los invitados puedan verlo." },
-      { "q": "¿Puedo ver una demo antes de contratar?","a": "¡Claro! Consultanos por WhatsApp y te mandamos links de demo de cada servicio para que los explores antes de decidir. Sin compromiso." }
+      { "q": "¿Puedo ver una demo antes de contratar?",      "a": "¡Claro! Consultanos por WhatsApp y te mandamos links de demo de cada servicio para que los explores antes de decidir. Sin compromiso." }
     ]
   },
   "cta_final": {
