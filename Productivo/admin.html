@@ -2513,6 +2513,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="form-group" style="flex:1"><label class="form-label">URL del Google Apps Script <i class="tip" data-tip="Script que gestiona las fotos del evento QR: obtiene estadísticas de moderación y configuración del evento.">?</i></label><input class="form-input" id="fi-gas-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
             <button class="btn-sm" onclick="fiestasSaveGasUrl()" style="white-space:nowrap;padding:10px 16px">Guardar</button>
           </div>
+          <div class="form-group" style="margin-top:16px">
+            <label class="form-label">Almacenamiento por defecto para eventos nuevos</label>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button id="storage-btn-drive" class="btn-sm" onclick="setFiestasStorage('drive')" style="min-width:72px">Drive</button>
+              <button id="storage-btn-r2"    class="btn-sm" onclick="setFiestasStorage('r2')"    style="min-width:72px">R2</button>
+            </div>
+            <p style="font-size:11px;color:var(--gray);margin-top:6px;line-height:1.6">R2: galería rápida + copia a Drive en background. Drive: comportamiento anterior. Los eventos existentes no se ven afectados.</p>
+          </div>
         </div>
 
         <!-- Nuevo evento -->
@@ -9255,6 +9263,7 @@ async function loadFiestasPage() {
     if (r.ok) {
       const d = await r.json();
       if (d.gas_url) document.getElementById('fi-gas-url').value = d.gas_url;
+      updateStorageButtons(d.storage || 'drive');
     }
   } catch(e) {}
   try {
@@ -9293,13 +9302,16 @@ function renderFiestasList(eventos) {
     const modBadge = ev.moderacion
       ? '<span style="background:rgba(201,168,76,.12);color:var(--gold);font-size:9px;padding:2px 8px;letter-spacing:1px;text-transform:uppercase">Moderado</span>'
       : '';
+    const storageBadge = ev.storage === 'r2'
+      ? '<span style="background:rgba(80,160,255,.12);color:#50a0ff;font-size:9px;padding:2px 8px;letter-spacing:1px;text-transform:uppercase">R2</span>'
+      : '';
     return `<div id="fi-item-${ev.id}" style="border:1px solid rgba(255,255,255,.07);padding:14px 16px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
         <div>
           <div style="font-size:13px;color:var(--white);margin-bottom:4px">${ev.nombre}</div>
           <div style="font-size:10px;color:var(--gray);letter-spacing:1px">${ev.fecha || ''}</div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${estadoBadge}${modBadge}</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${estadoBadge}${modBadge}${storageBadge}</div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
         <button class="btn-sm" onclick="fiestaEdit('${ev.id}')">Editar</button>
@@ -9322,8 +9334,9 @@ async function fiestaCrear() {
   const cierre  = document.getElementById('fi-cierre').value;
   const portada = document.getElementById('fi-portada').value.trim();
   const mod     = document.getElementById('fi-moderacion').checked ? 1 : 0;
-  if (!nombre || !fecha || !folder) { showToast('Nombre, fecha y carpeta son obligatorios.'); return; }
-  const body = { nombre, fecha, folder_id: folder, portada, moderacion: mod };
+  const storageActivo = window._fiestasStorageActivo || 'drive';
+  if (!nombre || !fecha || (storageActivo === 'drive' && !folder)) { showToast('Nombre, fecha y carpeta son obligatorios.'); return; }
+  const body = { nombre, fecha, folder_id: folder, portada, moderacion: mod, storage: storageActivo };
   if (cierre) body.cierre_auto = new Date(cierre).toISOString();
   const link = _prefillFiestaLink;
   try {
@@ -9404,6 +9417,26 @@ async function fiestaEliminar(id, nombre) {
     if (d.ok) { toast('Evento eliminado'); }
     else { toast(d.error || 'Error al eliminar', 'error'); loadFiestasPage(); }
   } catch(e) { toast('Error de conexión', 'error'); loadFiestasPage(); }
+}
+
+async function setFiestasStorage(val) {
+  try {
+    await fiestasFetch('/eventos/admin/config', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ storage: val }) });
+  } catch(e) {}
+  updateStorageButtons(val);
+  showToast('Storage: ' + (val === 'r2' ? 'R2 + Drive background' : 'Drive directo'));
+}
+
+function updateStorageButtons(val) {
+  window._fiestasStorageActivo = val;
+  const gold = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#c9a96e';
+  ['drive', 'r2'].forEach(v => {
+    const btn = document.getElementById('storage-btn-' + v);
+    if (!btn) return;
+    btn.style.background = val === v ? gold : '';
+    btn.style.color      = val === v ? '#111' : '';
+    btn.style.fontWeight = val === v ? '700' : '';
+  });
 }
 
 async function fiestasSaveGasUrl() {
