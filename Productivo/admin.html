@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.74</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.75</div>
     </div>
   </aside>
 
@@ -9325,6 +9325,13 @@ function _parseFechaEsLarga(str) {
   if (mesIdx < 0) return null;
   return new Date(Number(m[3]), mesIdx, Number(m[1]));
 }
+function _formatFechaDisplay(f) {
+  if (!f) return '';
+  const iso = String(f).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!iso) return f;
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(iso[3])} de ${meses[parseInt(iso[2])-1]} de ${iso[1]}`;
+}
 
 function ctRenderHistorial(data) {
   const el = document.getElementById('ct-hist-list');
@@ -9343,7 +9350,7 @@ function ctRenderHistorial(data) {
       <td style="padding:8px 10px;font-size:12px;color:var(--gold);white-space:nowrap">${c.numero}</td>
       <td style="padding:8px 10px;font-size:11px;color:var(--gray);letter-spacing:1px">${c.tipo}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--white)">${c.cliente}${c.cliente2 ? ' / '+c.cliente2 : ''}</td>
-      <td style="padding:8px 10px;font-size:11px;color:var(--gray)">${c.fechaEvento}</td>
+      <td style="padding:8px 10px;font-size:11px;color:var(--gray)">${_formatFechaDisplay(c.fechaEvento)}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--green);white-space:nowrap">${ctFmt(c.precio)}</td>
       <td style="padding:8px 10px;white-space:nowrap">
         ${c.docUrl ? `<a href="${c.docUrl}" target="_blank" style="font-size:10px;color:var(--gold);text-decoration:none;margin-right:8px">DOC</a>` : ''}
