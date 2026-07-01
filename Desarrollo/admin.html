@@ -1846,6 +1846,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <label class="form-label">ID hoja de servicios (Google Sheet) <i class="tip" data-tip="ID de la hoja de cálculo de Google Sheets que contiene los servicios y precios disponibles para seleccionar en el contrato.">?</i></label>
               <input class="form-input" id="ct-presupuestos-id" placeholder="ID del Google Sheet con los servicios">
             </div>
+            <div class="form-group" style="margin-top:10px">
+              <label class="form-label">ID hoja del sistema (Google Sheet) <i class="tip" data-tip="ID de la hoja del sistema donde se registran contratos, numeración y cláusulas. Se obtiene del Apps Script en PropertiesService → SYSTEM_SHEET_ID.">?</i></label>
+              <input class="form-input" id="ct-system-sheet-id" placeholder="ID del Google Sheet del sistema">
+            </div>
             <button class="btn-sm btn-sec" style="margin-top:12px" onclick="ctSaveCfg()">Guardar configuración</button>
           </div>
         </div>
@@ -7228,7 +7232,7 @@ async function abrirSelectorServicios() {
   listEl.innerHTML = 'Cargando servicios...';
   try {
     if(!_cachedServicios) {
-      _cachedServicios = await _jsonp(gasUrl + '?action=getServicios');
+      _cachedServicios = await _jsonp(gasUrl + '?action=getServicios' + ctExtraParams());
     }
     const pack = getPresupuesto().packs[currentPresupuestoPack];
     const current = pack.items || [...(pack.fotoItems||[]), ...(pack.videoItems||[])];
@@ -8051,7 +8055,10 @@ const CT_CFG_KEY = 'crd_contratos_cfg';
 async function initContratosPage() {
   const saved = S.get(CT_CFG_KEY);
   if (saved) {
-    if (saved.url)           document.getElementById('ct-apps-url').value = saved.url;
+    if (saved.url)            document.getElementById('ct-apps-url').value = saved.url;
+    if (saved.driveRootId)   document.getElementById('ct-drive-root-id').value = saved.driveRootId;
+    if (saved.presupuestosId) document.getElementById('ct-presupuestos-id').value = saved.presupuestosId;
+    if (saved.systemSheetId)  document.getElementById('ct-system-sheet-id').value = saved.systemSheetId;
   }
   document.getElementById('ct-dia-firma').valueAsDate = new Date();
   if (ctSvcData.length === 0 && ctGetUrl()) ctCargarServicios();
@@ -8094,6 +8101,10 @@ function _ctBuildPage_UNUSED() {
         <div class="form-group" style="margin-top:10px">
           <label class="form-label">ID hoja de servicios (Google Sheet)</label>
           <input class="form-input" id="ct-presupuestos-id" placeholder="ID del Google Sheet con los servicios">
+        </div>
+        <div class="form-group" style="margin-top:10px">
+          <label class="form-label">ID hoja del sistema (Google Sheet)</label>
+          <input class="form-input" id="ct-system-sheet-id" placeholder="ID del Google Sheet del sistema">
         </div>
         <button class="btn-sm btn-sec" style="margin-top:12px" onclick="ctSaveCfg()">Guardar configuración</button>
       </div>
@@ -8327,8 +8338,9 @@ function ctSaveCfg() {
   const url            = document.getElementById('ct-apps-url').value.trim();
   const driveRootId    = document.getElementById('ct-drive-root-id').value.trim();
   const presupuestosId = document.getElementById('ct-presupuestos-id').value.trim();
+  const systemSheetId  = document.getElementById('ct-system-sheet-id').value.trim();
   if (!url) { toast('Ingresá la URL del Apps Script', 'error'); return; }
-  const cfg = { url, driveRootId, presupuestosId };
+  const cfg = { url, driveRootId, presupuestosId, systemSheetId };
   S.set(CT_CFG_KEY, cfg);
   syncToCloud(CT_CFG_KEY, JSON.stringify(cfg));
   if (driveRootId || presupuestosId) {
@@ -8348,13 +8360,28 @@ function ctGetUrl() {
   return saved ? saved.url : '';
 }
 
+function ctExtra() {
+  const c = S.get(CT_CFG_KEY) || {};
+  const o = {};
+  if (c.systemSheetId)  o.systemSheetId  = c.systemSheetId;
+  if (c.presupuestosId) o.presupuestosId = c.presupuestosId;
+  return o;
+}
+
+function ctExtraParams() {
+  const e = ctExtra();
+  return Object.keys(e).length
+    ? '&' + Object.entries(e).map(([k,v]) => k + '=' + encodeURIComponent(v)).join('&')
+    : '';
+}
+
 function ctCargarServicios() {
   const url = ctGetUrl();
   if (!url) return;
   const grid = document.getElementById('ct-svc-grid');
   if (!grid) return;
   grid.innerHTML = '<div style="color:var(--gray);font-size:12px;grid-column:1/-1">Cargando...</div>';
-  _jsonp(url + '?action=getServicios')
+  _jsonp(url + '?action=getServicios' + ctExtraParams())
     .then(data => ctRenderServicios(data))
     .catch(err => {
       console.error('[ctCargarServicios]', err);
@@ -8620,7 +8647,7 @@ async function ctGenerar() {
   ctSaveDraft();
   ctGenAbort = new AbortController();
   try {
-    const res  = await fetch(url, { method: 'POST', body: JSON.stringify(data), signal: ctGenAbort.signal });
+    const res  = await fetch(url, { method: 'POST', body: JSON.stringify(Object.assign({}, data, ctExtra())), signal: ctGenAbort.signal });
     const json = await res.json();
     document.getElementById('ct-spinner').style.display = 'none';
     document.getElementById('ct-btn-gen').disabled = false;
@@ -9017,7 +9044,7 @@ async function ctLoadHistorial() {
   // Mostrar cache inmediato si existe
   try { const c = JSON.parse(localStorage.getItem('crd_ct_hist_cache')); if(c) { ctHistData = c; ctRenderHistorial(c); } } catch(e) {}
   try {
-    const res  = await fetch(url, { method:'POST', redirect:'follow', body: JSON.stringify({action:'getContratos'}) });
+    const res  = await fetch(url, { method:'POST', redirect:'follow', body: JSON.stringify(Object.assign({action:'getContratos'}, ctExtra())) });
     const data = await res.json();
     localStorage.setItem('crd_ct_hist_cache', JSON.stringify(data));
     ctHistLoaded = true;
@@ -9083,7 +9110,7 @@ async function ctDeleteContrato(numero) {
   if (!confirm('¿Borrar contrato ' + numero + '? Esto eliminará el Doc y PDF de Drive.')) return;
   const url = ctGetUrl();
   try {
-    const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'deleteContrato', numero }) });
+    const res  = await fetch(url, { method: 'POST', body: JSON.stringify(Object.assign({ action: 'deleteContrato', numero }, ctExtra())) });
     const json = await res.json();
     if (json.ok) {
       toast('Contrato ' + numero + ' eliminado');
