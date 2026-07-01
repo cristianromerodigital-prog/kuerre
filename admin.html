@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.82</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.83</div>
     </div>
   </aside>
 
@@ -3483,14 +3483,22 @@ const CF_SYNC_KEYS = ["crd_portfolio","crd_testimonials","crd_posts","crd_settin
 
 async function syncToCloud(key, value) {
   if (!CF_SYNC_KEYS.includes(key) && !key.startsWith('crd_ct_draft')) return;
-  try {
-    await fetch(CONFIG.CF_URL + '/' + key, {
+  const jwt = getAdminJWT();
+  // D1 — fuente de verdad para el admin
+  if (CLIENTES_WORKER && jwt) {
+    fetch(CLIENTES_WORKER + '/config/' + key, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: value
+    }).catch(e => console.log('D1 config sync failed for', key, e.message));
+  }
+  // KV — cache para el portfolio público
+  if (CONFIG.CF_URL && CONFIG.CF_AUTH) {
+    fetch(CONFIG.CF_URL + '/' + key, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': CONFIG.CF_AUTH },
       body: value
-    });
-  } catch(e) {
-    console.log('Cloud sync failed for', key, e.message);
+    }).catch(e => console.log('KV config sync failed for', key, e.message));
   }
 }
 
@@ -4129,6 +4137,20 @@ document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', 
 
 // ── INIT ──
 async function fetchFromCloud(key) {
+  const jwt = getAdminJWT();
+  // Intentar D1 primero (fuente de verdad del admin)
+  if (CLIENTES_WORKER && jwt) {
+    try {
+      const res = await fetch(CLIENTES_WORKER + '/config/' + key, { headers: { 'Authorization': 'Bearer ' + jwt } });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text !== 'null') {
+          try { const data = JSON.parse(text); if (data !== null && data !== undefined) return data; } catch(e) {}
+        }
+      }
+    } catch(e) {}
+  }
+  // Fallback: KV del web worker
   try {
     const res = await fetch(CONFIG.CF_URL + '/' + key, { headers: { 'Authorization': CONFIG.CF_AUTH } });
     if (!res.ok) return null;
