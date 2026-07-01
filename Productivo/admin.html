@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.72</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.73</div>
     </div>
   </aside>
 
@@ -8872,18 +8872,19 @@ async function ctGenerar() {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            numero:   json.numero,
-            tipo:     data.tipo,
-            cliente:  _ctCliente,
-            cliente2: _ctCliente2,
-            fecha_ev: _ctFechaEv,
-            lugar:    _ctLugar,
-            precio:   data.precioTotal || 0,
-            cuotas:   data.cuotas || 1,
-            estado:   ctEditingNumero ? 'ACTUALIZADO' : 'GENERADO',
-            doc_url:  json.docUrl || '',
-            pdf_url:  json.pdfUrl || '',
-            form_data: JSON.stringify(data)
+            numero:       json.numero,
+            tipo:         data.tipo,
+            cliente:      _ctCliente,
+            cliente2:     _ctCliente2,
+            fecha_ev:     _ctFechaEv,
+            lugar:        _ctLugar,
+            precio:       data.precioTotal || 0,
+            cuotas:       data.cuotas || 1,
+            estado:       ctEditingNumero ? 'ACTUALIZADO' : 'GENERADO',
+            doc_url:      json.docUrl || '',
+            pdf_url:      json.pdfUrl || '',
+            form_data:    JSON.stringify(data),
+            solicitud_id: _ctSolicitudId || null
           })
         }).catch(() => {});
       }
