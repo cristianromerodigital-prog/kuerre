@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.78</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.79</div>
     </div>
   </aside>
 
@@ -9443,7 +9443,7 @@ function ctCargarContrato(idx) {
       set('ct-b-novio-dom',       d.novio?.domicilio);
       set('ct-b-novio-tel',       d.novio?.telefono);
       set('ct-b-novio-email',     d.novio?.email);
-      set('ct-b-fiesta-fecha',    c.fecha_ev || d.fiesta?.fecha);
+      set('ct-b-fiesta-fecha',    c.fechaEvento || d.fiesta?.fecha);
       set('ct-b-fiesta-hora',     d.fiesta?.horaInicio || d.fiesta?.horarioInicio);
       set('ct-b-fiesta-hora-fin', d.fiesta?.horaFin);
       set('ct-b-invitados',       d.fiesta?.invitados);
@@ -9474,7 +9474,7 @@ function ctCargarContrato(idx) {
       set('ct-x-cliente-dni',    d.cliente?.dni);
       set('ct-x-cliente-tel',    d.cliente?.telefono);
       set('ct-x-cliente-email',  d.cliente?.email);
-      set('ct-x-fecha',          c.fecha_ev || d.evento?.fecha);
+      set('ct-x-fecha',          c.fechaEvento || d.evento?.fecha);
       set('ct-x-hora-inicio',    d.evento?.horaInicio);
       set('ct-x-hora-fin',       d.evento?.horaFin);
       set('ct-x-salon',          d.evento?.salon);
@@ -9486,7 +9486,7 @@ function ctCargarContrato(idx) {
       set('ct-c-dni',         d.cliente?.dni);
       set('ct-c-tel',         d.cliente?.telefono);
       set('ct-c-email',       d.cliente?.email);
-      set('ct-c-fecha',       c.fecha_ev || d.evento?.fecha);
+      set('ct-c-fecha',       c.fechaEvento || d.evento?.fecha);
       set('ct-c-hora-inicio', d.evento?.horaInicio);
       set('ct-c-hora-fin',    d.evento?.horaFin);
       set('ct-c-salon',       d.evento?.salon);
