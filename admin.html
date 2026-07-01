@@ -9389,9 +9389,26 @@ async function ctDeleteContrato(numero) {
 function ctCargarContrato(idx) {
   const c = ctHistData[idx];
   if (!c) return;
-  const d = c.formData || {};
+  let d = c.formData || {};
   const tipo = d.tipo || c.tipo;
   if (!tipo) return;
+
+  // Fallback para contratos sin form_data completo (migrados o generados externamente)
+  if (Object.keys(d).length === 0) {
+    d = { precioTotal: c.precio, cuotas: c.cuotas };
+    if (tipo === 'XV') {
+      d.quinceanera = { nombre: c.cliente2 };
+      d.cliente     = { nombre: c.cliente };
+      d.evento      = { salon: c.lugar };
+    } else if (tipo === 'BODA') {
+      d.novia  = { nombre: c.cliente };
+      d.novio  = { nombre: c.cliente2 };
+      d.fiesta = { lugar: c.lugar };
+    } else if (tipo === 'CUMPLE') {
+      d.cliente = { nombre: c.cliente };
+      d.evento  = { salon: c.lugar };
+    }
+  }
 
   ctSelTipo(tipo);
 
