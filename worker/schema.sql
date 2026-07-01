@@ -64,3 +64,16 @@ CREATE TABLE IF NOT EXISTS entrega_configs (
   allow_dl   INTEGER DEFAULT 1,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS rsvp_responses (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug        TEXT NOT NULL,
+  nombre      TEXT NOT NULL,
+  apellido    TEXT NOT NULL,
+  asistencia  TEXT NOT NULL,
+  restricciones TEXT DEFAULT '',
+  mensaje     TEXT DEFAULT '',
+  mesa        INTEGER,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_rsvp_slug ON rsvp_responses(slug);

@@ -673,6 +673,72 @@ export default {
         return json({ ok: true });
       }
 
+      // ── RSVP ─────────────────────────────────────────────────────────────────
+      const rsvpSlugMatch = path.match(/^\/rsvp\/([a-z0-9-]+)$/);
+      if (rsvpSlugMatch) {
+        const slug = rsvpSlugMatch[1];
+        if (method === 'POST') {
+          let body;
+          try { body = await request.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
+          const { nombre, apellido, asistencia, restricciones, mensaje } = body;
+          if (!nombre || !apellido || !asistencia) return json({ error: 'Faltan campos requeridos' }, 400);
+          await env.KUERRE_DB.prepare(
+            'INSERT INTO rsvp_responses (slug, nombre, apellido, asistencia, restricciones, mensaje) VALUES (?, ?, ?, ?, ?, ?)'
+          ).bind(slug, nombre.trim(), apellido.trim(), asistencia, restricciones || '', mensaje || '').run();
+          return json({ ok: true });
+        }
+        if (method === 'GET') {
+          const tokenParam = new URL(request.url).searchParams.get('t') || '';
+          const storedToken = await env.KUERRE_KV.get('rsvp_token:' + slug);
+          const validToken = storedToken && tokenParam === storedToken;
+          const admin = await isAdmin(request, coreEnv);
+          if (!validToken && !admin) return json({ error: 'Unauthorized' }, 401);
+          const rows = await env.KUERRE_DB.prepare(
+            'SELECT id, nombre, apellido, asistencia, restricciones, mensaje, mesa, created_at FROM rsvp_responses WHERE slug = ? ORDER BY created_at ASC'
+          ).bind(slug).all();
+          const responses = rows.results || [];
+          return json({ responses, total_si: responses.filter(r => r.asistencia === 'si').length, total_no: responses.filter(r => r.asistencia === 'no').length, total: responses.length });
+        }
+      }
+
+      const rsvpTokenMatch = path.match(/^\/rsvp-token\/([a-z0-9-]+)$/);
+      if (rsvpTokenMatch && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const slug = rsvpTokenMatch[1];
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let token = '';
+        const bytes = crypto.getRandomValues(new Uint8Array(8));
+        for (const b of bytes) token += chars[b % chars.length];
+        await env.KUERRE_KV.put('rsvp_token:' + slug, token, { expirationTtl: 365 * 24 * 3600 });
+        return json({ token });
+      }
+
+      const rsvpDelMatch = path.match(/^\/rsvp\/([a-z0-9-]+)\/(\d+)$/);
+      if (rsvpDelMatch && method === 'DELETE') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const [, slug, id] = rsvpDelMatch;
+        await env.KUERRE_DB.prepare('DELETE FROM rsvp_responses WHERE id = ? AND slug = ?').bind(Number(id), slug).run();
+        return json({ ok: true });
+      }
+      if (rsvpDelMatch && method === 'PATCH') {
+        const [, slug, id] = rsvpDelMatch;
+        const tokenParam = new URL(request.url).searchParams.get('t') || '';
+        const storedToken = await env.KUERRE_KV.get('rsvp_token:' + slug);
+        const validToken = storedToken && tokenParam === storedToken;
+        const admin = await isAdmin(request, coreEnv);
+        if (!validToken && !admin) return json({ error: 'Unauthorized' }, 401);
+        let body;
+        try { body = await request.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
+        let mesa = body.mesa;
+        if (mesa === '' || mesa === undefined) mesa = null;
+        if (mesa !== null) {
+          mesa = Number(mesa);
+          if (!Number.isInteger(mesa) || mesa < 1 || mesa > 20) return json({ error: 'Mesa inválida' }, 400);
+        }
+        await env.KUERRE_DB.prepare('UPDATE rsvp_responses SET mesa = ? WHERE id = ? AND slug = ?').bind(mesa, Number(id), slug).run();
+        return json({ ok: true });
+      }
+
       return json({ error: 'Not found' }, 404);
     } catch (e) {
       const status = e.message?.includes('Unauthorized') ? 401 : 500;
