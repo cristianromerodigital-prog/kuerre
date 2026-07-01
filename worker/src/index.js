@@ -1,4 +1,4 @@
-import { corsHeaders, json, mountCoreRouter, isAdmin, arrayBufferToBase64, resolveEventId } from '@crd/kuerre-core';
+﻿import { corsHeaders, json, mountCoreRouter, isAdmin, arrayBufferToBase64, resolveEventId } from '@crd/kuerre-core';
 
 async function checkOpenAI(base64, mimeType, apiKey) {
   try {
@@ -50,8 +50,8 @@ async function handleFotoUploadConModeracion(identifier, request, env, ctx) {
 
   if (env.OPENAI_KEY) {
     const monthKey = `vision_count_${new Date().toISOString().slice(0,7)}`;
-    const current = parseInt(await env.KV.get(monthKey) || '0');
-    await env.KV.put(monthKey, String(current + 1));
+    const current = parseInt(await env.KUERRE_KV.get(monthKey) || '0');
+    await env.KUERRE_KV.put(monthKey, String(current + 1));
     const { ok } = await checkOpenAI(base64, file.type, env.OPENAI_KEY);
     if (!ok) return json({ error: 'Foto no permitida en esta galería.' }, 400);
   }
@@ -63,14 +63,14 @@ async function handleFotoUploadConModeracion(identifier, request, env, ctx) {
     await env.MEDIA.put(key, buffer, { httpMetadata: { contentType: file.type || 'image/jpeg' } });
     const workerOrigin = new URL(request.url).origin;
     if (evento.folder_id) {
-      const gasUrl = await env.KV.get('fiestas_gas_url');
+      const gasUrl = await env.KUERRE_KV.get('fiestas_gas_url');
       if (gasUrl && ctx) ctx.waitUntil(gasUploadBackground(gasUrl, evento.folder_id, buffer, file.name || `foto_${Date.now()}.jpg`, file.type || 'image/jpeg', realId, env));
     }
     return json({ ok: true, file: { url: `${workerOrigin}/api/fotos/${encodeURIComponent(key)}`, name: file.name } });
   }
 
   // ── Drive directo (storage='drive' — comportamiento original) ────────────
-  const gasUrl = await env.KV.get('fiestas_gas_url');
+  const gasUrl = await env.KUERRE_KV.get('fiestas_gas_url');
   if (!gasUrl) return json({ error: 'GAS URL no configurada' }, 500);
   const res = await fetch(gasUrl, {
     method: 'POST',
@@ -136,7 +136,7 @@ async function gasUploadBackground(gasUrl, folderId, buffer, filename, mimeType,
     if (!res.ok) throw new Error(`GAS status ${res.status}`);
   } catch (e) {
     const errKey = `drive_sync_err_${eventoId}_${Date.now()}`;
-    await env.KV.put(errKey, JSON.stringify({ folderId, filename, error: e.message, ts: Date.now() }), { expirationTtl: 86400 * 7 });
+    await env.KUERRE_KV.put(errKey, JSON.stringify({ folderId, filename, error: e.message, ts: Date.now() }), { expirationTtl: 86400 * 7 });
   }
 }
 
@@ -257,7 +257,7 @@ async function handleCrearCarpetas(id, request, env) {
     });
   }
 
-  const gasUrl = await env.KV.get('fiestas_gas_url');
+  const gasUrl = await env.KUERRE_KV.get('fiestas_gas_url');
   if (!gasUrl) return json({ error: 'GAS URL no configurada. Configurá el GAS en el panel QR - Fiestas.' }, 500);
 
   const gasRes = await fetch(gasUrl, {
@@ -299,7 +299,7 @@ async function proxyGdrive(fileId, request, env) {
   const baseHeaders = { 'User-Agent': ua, 'Accept': '*/*' };
 
   const kvKey = `gdrive_confirm_${fileId}`;
-  let confirmUrl = await env.KV.get(kvKey);
+  let confirmUrl = await env.KUERRE_KV.get(kvKey);
 
   if (!confirmUrl) {
     const resp0 = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`, {
@@ -311,7 +311,7 @@ async function proxyGdrive(fileId, request, env) {
       const m = html.match(/confirm=([^&"'\s]+)/);
       if (!m) return new Response('No se pudo obtener token de Drive', { status: 502 });
       confirmUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${m[1]}`;
-      await env.KV.put(kvKey, confirmUrl, { expirationTtl: 480 });
+      await env.KUERRE_KV.put(kvKey, confirmUrl, { expirationTtl: 480 });
     } else {
       const vh = new Headers({ 'Access-Control-Allow-Origin':'*', 'Accept-Ranges':'bytes', 'Cache-Control':'public, max-age=3600' });
       const fct = resp0.headers.get('content-type'); if(fct) vh.set('Content-Type', fct);
@@ -340,13 +340,13 @@ async function proxyGdrive(fileId, request, env) {
   const result = await tryFetch(confirmUrl);
 
   if (result.status === 403 || result.status === 502) {
-    await env.KV.delete(kvKey);
+    await env.KUERRE_KV.delete(kvKey);
     const r2 = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`, { headers: baseHeaders, redirect: 'follow' });
     const h2 = await r2.text();
     const m2 = h2.match(/confirm=([^&"'\s]+)/);
     if (m2) {
       const newUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${m2[1]}`;
-      await env.KV.put(kvKey, newUrl, { expirationTtl: 480 });
+      await env.KUERRE_KV.put(kvKey, newUrl, { expirationTtl: 480 });
       return await tryFetch(newUrl);
     }
   }
@@ -385,7 +385,7 @@ export default {
       if (path === '/eventos/admin/vision-stats' && method === 'GET') {
         if (!await isAdmin(request, env)) return json({ error: 'Unauthorized' }, 401);
         const month = new Date().toISOString().slice(0,7);
-        const count = parseInt(await env.KV.get(`vision_count_${month}`) || '0');
+        const count = parseInt(await env.KUERRE_KV.get(`vision_count_${month}`) || '0');
         const costEstimado = (count * 0.00015).toFixed(4);
         let creditBalance = null;
         try {
@@ -438,7 +438,7 @@ export default {
 
       // ── crd_content: lectura pública para index.html ──────────────────────
       if (path === '/crd_content' && method === 'GET') {
-        const val = await env.KV.get('crd_content');
+        const val = await env.KUERRE_KV.get('crd_content');
         if (val === null) return json({}, 200);
         try { return json(JSON.parse(val)); } catch { return json({}, 200); }
       }
@@ -451,7 +451,7 @@ export default {
         if (method === 'GET') {
           const cfAuth = env.CF_AUTH_TOKEN || '';
           if (!cfAuth || auth !== cfAuth) return json({ error: 'Unauthorized' }, 401);
-          const val = await env.KV.get(key);
+          const val = await env.KUERRE_KV.get(key);
           if (val === null) return json({ error: 'Not found' }, 404);
           try { return json(JSON.parse(val)); } catch { return new Response(val, { headers: { 'Content-Type': 'text/plain' } }); }
         }
@@ -459,7 +459,7 @@ export default {
           const cfAuth = env.CF_AUTH_TOKEN || '';
           if (!cfAuth || auth !== cfAuth) return json({ error: 'Unauthorized' }, 401);
           const body = await request.text();
-          await env.KV.put(key, body);
+          await env.KUERRE_KV.put(key, body);
           return json({ ok: true });
         }
       }
@@ -468,9 +468,9 @@ export default {
       if (path === '/site/config' && method === 'GET') {
         const safeJson = (v) => { try { return v ? JSON.parse(v) : null; } catch { return v || null; } };
         const [raw, logoRaw, videoRaw] = await Promise.all([
-          env.KV.get('kuerre_settings'),
-          env.KV.get('crd_site_logo'),
-          env.KV.get('crd_hero_video_url')
+          env.KUERRE_KV.get('kuerre_settings'),
+          env.KUERRE_KV.get('crd_site_logo'),
+          env.KUERRE_KV.get('crd_hero_video_url')
         ]);
         const s = safeJson(raw) || {};
         const logoFromKv = safeJson(logoRaw) || '';
@@ -543,7 +543,7 @@ export default {
 
         // Fallback: Drive proxy
         const safeStr = (v) => { if (!v) return ''; try { return JSON.parse(v); } catch { return v || ''; } };
-        const videoUrl = safeStr(await env.KV.get('crd_hero_video_url'));
+        const videoUrl = safeStr(await env.KUERRE_KV.get('crd_hero_video_url'));
         const mv = videoUrl.match(/id=([a-zA-Z0-9_-]+)/) || videoUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
         const heroFileId = mv ? mv[1] : null;
         if (!heroFileId) return new Response('', { status: 204, headers: { 'Access-Control-Allow-Origin': '*' } });
