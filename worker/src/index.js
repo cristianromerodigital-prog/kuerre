@@ -215,18 +215,24 @@ async function handleSolicitudesCreate(request, env) {
 
   if (!fecha) return json({ error: 'Fecha del evento requerida' }, 400);
   const now = nowISO();
+  const eventoSlug = nombre_display.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    + '-' + fecha;
 
   for (let attempt = 0; attempt < 2; attempt++) {
     const id = generateEventId();
     const fiesta_id = generateEventId();
     try {
       await env.KUERRE_DB.batch([
-        env.KUERRE_DB.prepare(`INSERT INTO solicitudes (id,tipo,nombre_display,fecha,salon,direccion,cliente_nombre,cliente_tel,cliente_email,data_json,fiesta_id,invite_slug,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-          .bind(id, tipo, nombre_display, fecha, salon, direccion, cliente_nombre, cliente_tel, cliente_email, JSON.stringify(body), fiesta_id, id, now),
-        env.KUERRE_DB.prepare(`INSERT INTO eventos_foto (id,nombre,fecha,cierre_auto,folder_id,portada,estado,moderacion,created_at) VALUES (?,?,?,NULL,'',NULL,'pendiente',0,?)`)
-          .bind(fiesta_id, nombre_display, fecha, now),
-        env.KUERRE_DB.prepare(`INSERT INTO entrega_configs (id,nombres,fecha,tipo,folder_id,portada,overlay,allow_dl,created_at) VALUES (?,?,?,?,'','','violeta',1,?)`)
-          .bind(id, nombre_display, fecha, tipo, now),
+        env.KUERRE_DB.prepare(`INSERT OR IGNORE INTO eventos (slug,nombre,fecha,tipo,qr,pm,inv) VALUES (?,?,?,?,1,1,1)`)
+          .bind(eventoSlug, nombre_display, fecha, tipo),
+        env.KUERRE_DB.prepare(`INSERT INTO solicitudes (id,tipo,nombre_display,fecha,salon,direccion,cliente_nombre,cliente_tel,cliente_email,data_json,fiesta_id,invite_slug,evento_slug,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+          .bind(id, tipo, nombre_display, fecha, salon, direccion, cliente_nombre, cliente_tel, cliente_email, JSON.stringify(body), fiesta_id, id, eventoSlug, now),
+        env.KUERRE_DB.prepare(`INSERT INTO eventos_foto (id,nombre,fecha,cierre_auto,folder_id,portada,estado,moderacion,storage,evento_slug,created_at) VALUES (?,?,?,NULL,'',NULL,'pendiente',0,'r2',?,?)`)
+          .bind(fiesta_id, nombre_display, fecha, eventoSlug, now),
+        env.KUERRE_DB.prepare(`INSERT INTO entrega_configs (id,nombres,fecha,tipo,folder_id,portada,overlay,allow_dl,evento_slug,created_at) VALUES (?,?,?,?,'','','violeta',1,?,?)`)
+          .bind(id, nombre_display, fecha, tipo, eventoSlug, now),
       ]);
       return json({ ok: true, id });
     } catch (e) {

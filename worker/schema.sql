@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS eventos_foto (
   portada     TEXT,
   estado      TEXT DEFAULT 'activo',
   moderacion  INTEGER DEFAULT 0,
-  storage     TEXT DEFAULT 'drive',
+  storage     TEXT DEFAULT 'r2',
   evento_slug TEXT DEFAULT NULL,
   created_at  TEXT NOT NULL
 );
@@ -48,9 +48,11 @@ CREATE TABLE IF NOT EXISTS solicitudes (
   fiesta_id       TEXT,
   invite_slug     TEXT,
   codigo_contrato TEXT,
-  drive_cliente_id TEXT,
-  drive_fiesta_id  TEXT,
-  drive_entrega_id TEXT,
+  drive_cliente_id    TEXT,
+  drive_fiesta_id     TEXT,
+  drive_entrega_id    TEXT,
+  drive_contrato_id   TEXT,
+  drive_invitacion_id TEXT,
   evento_slug      TEXT DEFAULT NULL,
   created_at       TEXT NOT NULL
 );
@@ -66,6 +68,37 @@ CREATE TABLE IF NOT EXISTS entrega_configs (
   allow_dl    INTEGER DEFAULT 1,
   evento_slug TEXT DEFAULT NULL,
   created_at  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS contratos (
+  numero      INTEGER PRIMARY KEY,
+  tipo        TEXT NOT NULL,
+  fecha_gen   TEXT DEFAULT '',
+  cliente     TEXT DEFAULT '',
+  cliente2    TEXT DEFAULT '',
+  fecha_ev    TEXT DEFAULT '',
+  lugar       TEXT DEFAULT '',
+  precio      INTEGER DEFAULT 0,
+  cuotas      INTEGER DEFAULT 1,
+  estado      TEXT DEFAULT 'GENERADO',
+  doc_url     TEXT DEFAULT '',
+  pdf_url     TEXT DEFAULT '',
+  notas       TEXT DEFAULT '',
+  evento_slug TEXT DEFAULT NULL,
+  form_data   TEXT DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS eventos (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug       TEXT    NOT NULL UNIQUE,
+  nombre     TEXT    NOT NULL,
+  fecha      TEXT    NOT NULL,
+  tipo       TEXT    NOT NULL DEFAULT 'casamiento',
+  qr         INTEGER NOT NULL DEFAULT 0,
+  pm         INTEGER NOT NULL DEFAULT 0,
+  inv        INTEGER NOT NULL DEFAULT 0,
+  notas      TEXT    DEFAULT '',
+  created_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS rsvp_responses (
