@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.81</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.82</div>
     </div>
   </aside>
 
@@ -9141,7 +9141,16 @@ async function ctRefreshSolicitudes() {
     const res  = await fetch(CONFIG.CRCLUB_URL + '/solicitudes?nuevas=1', { headers: { Authorization: 'Bearer ' + jwt } });
     const data = await res.json();
     const soles = (data.solicitudes || [])
-      .map(function(s){ return { tipo:s.tipo, cliente:s.nombre_display, fecha:s.fecha, id:s.id, data:JSON.parse(s.data_json||'{}') }; });
+      .map(function(s){ return {
+        tipo:s.tipo, cliente:s.nombre_display, fecha:s.fecha, id:s.id,
+        salon:s.salon||'', direccion:s.direccion||'',
+        cliente_nombre:s.cliente_nombre||'', cliente_tel:s.cliente_tel||'', cliente_email:s.cliente_email||'',
+        cliente2_nombre:s.cliente2_nombre||'',
+        hora_inicio:s.hora_inicio||'', hora_fin:s.hora_fin||'',
+        invitados:s.invitados||'', quinceanera_nombre:s.quinceanera_nombre||'',
+        civil_fecha:s.civil_fecha||'', civil_hora:s.civil_hora||'', civil_dir:s.civil_dir||'',
+        reli_fecha:s.reli_fecha||'', reli_hora:s.reli_hora||'', reli_dir:s.reli_dir||'',
+      }; });
     localStorage.setItem('crd_ct_sol_cache', JSON.stringify(soles));
     ctRenderSolicitudes(soles);
   } catch(e) {
@@ -9178,86 +9187,63 @@ async function ctCargarSolicitud(sol) {
     else if (el.id !== 'ct-dia-firma') el.value = '';
   });
   document.querySelectorAll('[id^="ct-svc-"]').forEach(cb => { cb.checked = false; });
-  let d = sol.data;
+  // Traer datos frescos desde DB (el endpoint devuelve columnas reales, sin data_json)
   if (sol.id && CLIENTES_WORKER) {
     try {
       const res = await fetch(CLIENTES_WORKER + '/solicitudes/' + sol.id, {
         headers: { Authorization: 'Bearer ' + getAdminJWT() }
       });
-      if (res.ok) { const fresh = await res.json(); d = fresh.data || d; }
+      if (res.ok) { const fresh = await res.json(); sol = Object.assign({}, sol, fresh); }
     } catch(e) {}
   }
   ctSelTipo(sol.tipo);
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   if (sol.tipo === 'BODA') {
-    set('ct-b-novia-nombre', d.novia?.nombre);
-    set('ct-b-novia-dni',    d.novia?.dni);
-    set('ct-b-novia-tel',    d.novia?.telefono);
-    set('ct-b-novia-email',  d.novia?.email);
-    set('ct-b-novio-nombre', d.novio?.nombre);
-    set('ct-b-novio-dni',    d.novio?.dni);
-    set('ct-b-novio-dom',    d.novio?.domicilio);
-    set('ct-b-novio-tel',    d.novio?.telefono);
-    set('ct-b-novio-email',  d.novio?.email);
-    set('ct-b-fiesta-fecha',    d.fiesta?.fecha);
-    set('ct-b-fiesta-hora',     d.fiesta?.horaInicio);
-    set('ct-b-fiesta-hora-fin', d.fiesta?.horaFin);
-    set('ct-b-invitados',       d.fiesta?.invitados);
-    set('ct-b-fiesta-salon',    d.fiesta?.salon);
-    set('ct-b-fiesta-dir',      d.fiesta?.direccion);
-    set('ct-b-contacto-nombre', d.contacto?.nombre);
-    set('ct-b-contacto-rel',    d.contacto?.relacion);
-    set('ct-b-contacto-tel',    d.contacto?.telefono);
-    if (d.civil) {
+    set('ct-b-novia-nombre', sol.cliente_nombre);
+    set('ct-b-novia-tel',    sol.cliente_tel);
+    set('ct-b-novia-email',  sol.cliente_email);
+    set('ct-b-novio-nombre', sol.cliente2_nombre);
+    set('ct-b-fiesta-fecha',    sol.fecha);
+    set('ct-b-fiesta-hora',     sol.hora_inicio);
+    set('ct-b-fiesta-hora-fin', sol.hora_fin);
+    set('ct-b-invitados',       sol.invitados);
+    set('ct-b-fiesta-salon',    sol.salon);
+    set('ct-b-fiesta-dir',      sol.direccion);
+    if (sol.civil_fecha) {
       const civilCb = document.getElementById('ct-b-tiene-civil');
       if (civilCb) { civilCb.checked = true; ctToggleEvento('civil', true); }
-      set('ct-b-civil-fecha', d.civil.fecha);
-      set('ct-b-civil-hora',  d.civil.horario);
-      set('ct-b-civil-dir',   d.civil.direccion);
+      set('ct-b-civil-fecha', sol.civil_fecha);
+      set('ct-b-civil-hora',  sol.civil_hora);
+      set('ct-b-civil-dir',   sol.civil_dir);
     }
-    if (d.religiosa) {
+    if (sol.reli_fecha) {
       const reliCb = document.getElementById('ct-b-tiene-reli');
       if (reliCb) { reliCb.checked = true; ctToggleEvento('reli', true); }
-      set('ct-b-reli-fecha', d.religiosa.fecha);
-      set('ct-b-reli-hora',  d.religiosa.horario);
-      set('ct-b-reli-dir',   d.religiosa.direccion);
+      set('ct-b-reli-fecha', sol.reli_fecha);
+      set('ct-b-reli-hora',  sol.reli_hora);
+      set('ct-b-reli-dir',   sol.reli_dir);
     }
   } else if (sol.tipo === 'XV') {
-    set('ct-x-quince-nombre',  d.quinceanera?.nombre);
-    set('ct-x-quince-nac',     d.quinceanera?.fechaNacimiento);
-    set('ct-x-cliente-nombre', d.cliente?.nombre);
-    set('ct-x-cliente-dni',    d.cliente?.dni);
-    set('ct-x-cliente-tel',    d.cliente?.telefono);
-    set('ct-x-cliente-email',  d.cliente?.email);
-    set('ct-x-fecha',          d.evento?.fecha);
-    set('ct-x-hora-inicio',    d.evento?.horaInicio);
-    set('ct-x-hora-fin',       d.evento?.horaFin);
-    set('ct-x-salon',          d.evento?.salon);
-    set('ct-x-dir',            d.evento?.direccion);
-    set('ct-x-invitados',      d.evento?.invitados);
+    set('ct-x-quince-nombre',  sol.quinceanera_nombre);
+    set('ct-x-cliente-nombre', sol.cliente_nombre);
+    set('ct-x-cliente-tel',    sol.cliente_tel);
+    set('ct-x-cliente-email',  sol.cliente_email);
+    set('ct-x-fecha',          sol.fecha);
+    set('ct-x-hora-inicio',    sol.hora_inicio);
+    set('ct-x-hora-fin',       sol.hora_fin);
+    set('ct-x-salon',          sol.salon);
+    set('ct-x-dir',            sol.direccion);
+    set('ct-x-invitados',      sol.invitados);
   } else if (sol.tipo === 'CUMPLE') {
-    set('ct-c-nombre',      d.cliente?.nombre);
-    set('ct-c-dni',         d.cliente?.dni);
-    set('ct-c-tel',         d.cliente?.telefono);
-    set('ct-c-email',       d.cliente?.email);
-    set('ct-c-fecha',       d.evento?.fecha);
-    set('ct-c-hora-inicio', d.evento?.horaInicio);
-    set('ct-c-hora-fin',    d.evento?.horaFin);
-    set('ct-c-salon',       d.evento?.salon);
-    set('ct-c-dir',         d.evento?.direccion);
-    set('ct-c-invitados',   d.evento?.invitados);
-  }
-  if (d._admin) {
-    if (d._admin.precio) set('ct-precio', d._admin.precio);
-    if (d._admin.pagoItems && Array.isArray(d._admin.pagoItems)) {
-      ctPagoItems = d._admin.pagoItems; ctRenderPagoItems();
-    }
-    if (d._admin.servicios && Array.isArray(d._admin.servicios)) {
-      d._admin.servicios.forEach(function(svcId) {
-        const cb = document.getElementById('ct-svc-' + svcId);
-        if (cb) cb.checked = true;
-      });
-    }
+    set('ct-c-nombre',      sol.cliente_nombre);
+    set('ct-c-tel',         sol.cliente_tel);
+    set('ct-c-email',       sol.cliente_email);
+    set('ct-c-fecha',       sol.fecha);
+    set('ct-c-hora-inicio', sol.hora_inicio);
+    set('ct-c-hora-fin',    sol.hora_fin);
+    set('ct-c-salon',       sol.salon);
+    set('ct-c-dir',         sol.direccion);
+    set('ct-c-invitados',   sol.invitados);
   }
   ctCalcTotal();
   setTimeout(ctSaveDraft, 200);
@@ -10004,20 +9990,10 @@ async function loadCalendarioPage() {
     _calEventos = [];
     for (const c of (d.solicitudes || [])) {
       if (c.fecha) {
-        var evHora = '', evLugar = c.salon || '';
-        try {
-          const dj2 = typeof c.data_json === 'string' ? JSON.parse(c.data_json) : (c.data_json || {});
-          if (c.tipo === 'BODA') { evHora = dj2.fiesta?.horarioInicio || ''; evLugar = dj2.fiesta?.lugar || dj2.fiesta?.salon || c.salon || ''; }
-          else { evHora = dj2.evento?.horaInicio || ''; evLugar = dj2.evento?.salon || c.salon || ''; }
-        } catch(e) {}
-        _calEventos.push({ fecha: c.fecha, hora: evHora, tipo: 'evento', nombre: c.nombre_display, lugar: evLugar, id: c.id });
+        _calEventos.push({ fecha: c.fecha, hora: c.hora_inicio || '', tipo: 'evento', nombre: c.nombre_display, lugar: c.salon || '', id: c.id });
       }
-      if (c.book_fecha) _calEventos.push({ fecha: c.book_fecha, hora: c.book_hora || '', tipo: 'book', nombre: c.nombre_display, lugar: c.book_zona || '', id: c.id });
-      try {
-        const dj = typeof c.data_json === 'string' ? JSON.parse(c.data_json) : (c.data_json || {});
-        if (dj.civil?.fecha) _calEventos.push({ fecha: dj.civil.fecha, hora: dj.civil.horario || '', tipo: 'civil', nombre: c.nombre_display, lugar: dj.civil.lugar || dj.civil.direccion || '', id: c.id });
-        if (dj.religiosa?.fecha) _calEventos.push({ fecha: dj.religiosa.fecha, hora: dj.religiosa.horario || '', tipo: 'religiosa', nombre: c.nombre_display, lugar: dj.religiosa.lugar || dj.religiosa.direccion || '', id: c.id });
-      } catch(e) {}
+      if (c.civil_fecha) _calEventos.push({ fecha: c.civil_fecha, hora: c.civil_hora || '', tipo: 'civil', nombre: c.nombre_display, lugar: c.civil_dir || '', id: c.id });
+      if (c.reli_fecha)  _calEventos.push({ fecha: c.reli_fecha,  hora: c.reli_hora  || '', tipo: 'religiosa', nombre: c.nombre_display, lugar: c.reli_dir  || '', id: c.id });
     }
     renderCalendar();
   } catch(e) {
