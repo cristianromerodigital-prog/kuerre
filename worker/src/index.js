@@ -29,11 +29,11 @@ async function checkOpenAI(base64, mimeType, apiKey) {
   }
 }
 
-async function handleFotoUploadConModeracion(identifier, request, env) {
+async function handleFotoUploadConModeracion(identifier, request, env, ctx) {
   const realId = await resolveEventId(identifier, env);
   if (!realId) return json({ error: 'Evento no encontrado' }, 404);
   const evento = await env.DB.prepare(
-    'SELECT folder_id, estado, moderacion, cierre_auto FROM eventos_foto WHERE id = ?'
+    'SELECT folder_id, estado, moderacion, cierre_auto, storage FROM eventos_foto WHERE id = ?'
   ).bind(realId).first();
   if (!evento) return json({ error: 'Evento no encontrado' }, 404);
   if (evento.estado !== 'activo') return json({ error: 'Evento cerrado' }, 403);
@@ -56,11 +56,25 @@ async function handleFotoUploadConModeracion(identifier, request, env) {
     if (!ok) return json({ error: 'Foto no permitida en esta galería.' }, 400);
   }
 
+  // ── Upload: R2 inmediato + Drive en background ───────────────────────────
+  if (evento.storage === 'r2') {
+    const ext = ((file.name || 'foto.jpg').split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase();
+    const key = `eventos/${realId}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    await env.MEDIA.put(key, buffer, { httpMetadata: { contentType: file.type || 'image/jpeg' } });
+    const workerOrigin = new URL(request.url).origin;
+    if (evento.folder_id) {
+      const gasUrl = await env.KV.get('fiestas_gas_url');
+      if (gasUrl && ctx) ctx.waitUntil(gasUploadBackground(gasUrl, evento.folder_id, buffer, file.name || `foto_${Date.now()}.jpg`, file.type || 'image/jpeg', realId, env));
+    }
+    return json({ ok: true, file: { url: `${workerOrigin}/api/fotos/${encodeURIComponent(key)}`, name: file.name } });
+  }
+
+  // ── Drive directo (storage='drive' — comportamiento original) ────────────
   const gasUrl = await env.KV.get('fiestas_gas_url');
   if (!gasUrl) return json({ error: 'GAS URL no configurada' }, 500);
-
   const res = await fetch(gasUrl, {
     method: 'POST',
+    redirect: 'follow',
     body: JSON.stringify({
       action: 'uploadFoto',
       folderId: evento.folder_id,
@@ -72,6 +86,58 @@ async function handleFotoUploadConModeracion(identifier, request, env) {
     headers: { 'Content-Type': 'application/json' }
   });
   return json(await res.json());
+}
+
+async function handleFotoListR2(eventoId, request, env) {
+  const sessionId = new URL(request.url).searchParams.get('session') || '';
+  const listed = await env.MEDIA.list({ prefix: `eventos/${eventoId}/` });
+  const objects = (listed.objects || []).sort((a, b) => Number(b.uploaded) - Number(a.uploaded));
+  if (!objects.length) return json({ files: [] });
+
+  const workerOrigin = new URL(request.url).origin;
+  const fotoIds = objects.map(o => o.key);
+  const ph = fotoIds.map(() => '?').join(',');
+
+  const { results: likeCounts } = await env.DB.prepare(
+    `SELECT foto_id, COUNT(*) as total FROM foto_likes WHERE evento_id=? AND foto_id IN (${ph}) GROUP BY foto_id`
+  ).bind(eventoId, ...fotoIds).all();
+
+  const countMap = {};
+  likeCounts.forEach(r => { countMap[r.foto_id] = r.total; });
+
+  let likedSet = new Set();
+  if (sessionId) {
+    const { results: myLikes } = await env.DB.prepare(
+      `SELECT foto_id FROM foto_likes WHERE evento_id=? AND session_id=? AND foto_id IN (${ph})`
+    ).bind(eventoId, sessionId, ...fotoIds).all();
+    myLikes.forEach(r => likedSet.add(r.foto_id));
+  }
+
+  const files = objects.map(o => ({
+    url: `${workerOrigin}/api/fotos/${encodeURIComponent(o.key)}`,
+    foto_id: o.key,
+    likes: countMap[o.key] || 0,
+    liked: likedSet.has(o.key),
+    name: o.key.split('/').pop()
+  }));
+
+  return json({ files });
+}
+
+async function gasUploadBackground(gasUrl, folderId, buffer, filename, mimeType, eventoId, env) {
+  try {
+    const base64 = arrayBufferToBase64(buffer);
+    const res = await fetch(gasUrl, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'uploadFoto', folderId, moderacion: false, base64, filename, mimeType })
+    });
+    if (!res.ok) throw new Error(`GAS status ${res.status}`);
+  } catch (e) {
+    const errKey = `drive_sync_err_${eventoId}_${Date.now()}`;
+    await env.KV.put(errKey, JSON.stringify({ folderId, filename, error: e.message, ts: Date.now() }), { expirationTtl: 86400 * 7 });
+  }
 }
 
 function generateEventId() {
@@ -288,7 +354,7 @@ async function proxyGdrive(fileId, request, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === 'OPTIONS') return corsHeaders();
 
     const url = new URL(request.url);
@@ -312,7 +378,7 @@ export default {
       // ── Moderación fotos con OpenAI (intercepta antes del core) ─────────────
       const fotoUploadMatch = path.match(/^\/eventos\/([a-zA-Z0-9][a-zA-Z0-9-]{2,49})\/fotos$/);
       if (fotoUploadMatch && method === 'POST') {
-        return await handleFotoUploadConModeracion(fotoUploadMatch[1], request, env);
+        return await handleFotoUploadConModeracion(fotoUploadMatch[1], request, env, ctx);
       }
 
       // ── Vision stats ─────────────────────────────────────────────────────────
@@ -332,6 +398,31 @@ export default {
           }
         } catch(e) {}
         return json({ month, count, costEstimado, creditBalance });
+      }
+
+      // ── R2: listado de fotos ───────────────────────────────────────────────
+      const fotoListMatch = path.match(/^\/eventos\/([a-zA-Z0-9][a-zA-Z0-9-]{2,49})\/fotos$/);
+      if (fotoListMatch && method === 'GET') {
+        const eid = await resolveEventId(fotoListMatch[1], env);
+        if (eid) {
+          const ev = await env.DB.prepare('SELECT storage FROM eventos_foto WHERE id=?').bind(eid).first();
+          if (ev?.storage === 'r2') return await handleFotoListR2(eid, request, env);
+        }
+      }
+
+      // ── R2: delete foto desde admin ────────────────────────────────────────
+      const fotoDelMatch = path.match(/^\/eventos\/admin\/([A-Z2-9]{6})\/fotos\/(.+)$/);
+      if (fotoDelMatch && method === 'DELETE') {
+        const [, eventoId, rawKey] = fotoDelMatch;
+        const ev = await env.DB.prepare('SELECT storage FROM eventos_foto WHERE id=?').bind(eventoId).first();
+        if (ev?.storage === 'r2') {
+          const key = decodeURIComponent(rawKey);
+          await Promise.all([
+            env.DB.prepare('DELETE FROM foto_likes WHERE evento_id=? AND foto_id=?').bind(eventoId, key).run(),
+            env.MEDIA.delete(key)
+          ]);
+          return json({ ok: true });
+        }
       }
 
       // ── kuerre-core: eventos, fotos, frases, likes, admin auth + UI ──────────
@@ -391,6 +482,21 @@ export default {
           website: s.entregaWebUrl || '',
           instagram: s.instagram || '',
           entregaIgUrl: s.entregaIgUrl || ''
+        });
+      }
+
+      // ── R2 foto serve ─────────────────────────────────────────────────────
+      if (path.startsWith('/api/fotos/') && method === 'GET') {
+        const key = decodeURIComponent(path.slice('/api/fotos/'.length));
+        if (!key || key.includes('..')) return new Response('Not found', { status: 404 });
+        const obj = await env.MEDIA.get(key);
+        if (!obj) return new Response('Not found', { status: 404 });
+        return new Response(obj.body, {
+          headers: {
+            'Content-Type': obj.httpMetadata?.contentType || 'image/jpeg',
+            'Cache-Control': 'public, max-age=31536000, immutable',
+            'Access-Control-Allow-Origin': '*'
+          }
         });
       }
 
