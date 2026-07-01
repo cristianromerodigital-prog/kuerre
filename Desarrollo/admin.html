@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.72</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.77</div>
     </div>
   </aside>
 
@@ -8872,18 +8872,19 @@ async function ctGenerar() {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            numero:   json.numero,
-            tipo:     data.tipo,
-            cliente:  _ctCliente,
-            cliente2: _ctCliente2,
-            fecha_ev: _ctFechaEv,
-            lugar:    _ctLugar,
-            precio:   data.precioTotal || 0,
-            cuotas:   data.cuotas || 1,
-            estado:   ctEditingNumero ? 'ACTUALIZADO' : 'GENERADO',
-            doc_url:  json.docUrl || '',
-            pdf_url:  json.pdfUrl || '',
-            form_data: JSON.stringify(data)
+            numero:       json.numero,
+            tipo:         data.tipo,
+            cliente:      _ctCliente,
+            cliente2:     _ctCliente2,
+            fecha_ev:     _ctFechaEv,
+            lugar:        _ctLugar,
+            precio:       data.precioTotal || 0,
+            cuotas:       data.cuotas || 1,
+            estado:       ctEditingNumero ? 'ACTUALIZADO' : 'GENERADO',
+            doc_url:      json.docUrl || '',
+            pdf_url:      json.pdfUrl || '',
+            form_data:    JSON.stringify(data),
+            solicitud_id: _ctSolicitudId || null
           })
         }).catch(() => {});
       }
@@ -9317,12 +9318,21 @@ async function ctLoadHistorial() {
 
 function _parseFechaEsLarga(str) {
   if (!str) return null;
+  const iso = String(str).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return new Date(Number(iso[1]), Number(iso[2])-1, Number(iso[3]));
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const m = String(str).toLowerCase().match(/(\d{1,2}) de ([a-záéíóúñ]+) de (\d{4})/);
   if (!m) return null;
   const mesIdx = meses.indexOf(m[2]);
   if (mesIdx < 0) return null;
   return new Date(Number(m[3]), mesIdx, Number(m[1]));
+}
+function _formatFechaDisplay(f) {
+  if (!f) return '';
+  const iso = String(f).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!iso) return f;
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(iso[3])} de ${meses[parseInt(iso[2])-1]} de ${iso[1]}`;
 }
 
 function ctRenderHistorial(data) {
@@ -9342,7 +9352,7 @@ function ctRenderHistorial(data) {
       <td style="padding:8px 10px;font-size:12px;color:var(--gold);white-space:nowrap">${c.numero}</td>
       <td style="padding:8px 10px;font-size:11px;color:var(--gray);letter-spacing:1px">${c.tipo}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--white)">${c.cliente}${c.cliente2 ? ' / '+c.cliente2 : ''}</td>
-      <td style="padding:8px 10px;font-size:11px;color:var(--gray)">${c.fechaEvento}</td>
+      <td style="padding:8px 10px;font-size:11px;color:var(--gray)">${_formatFechaDisplay(c.fechaEvento)}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--green);white-space:nowrap">${ctFmt(c.precio)}</td>
       <td style="padding:8px 10px;white-space:nowrap">
         ${c.docUrl ? `<a href="${c.docUrl}" target="_blank" style="font-size:10px;color:var(--gold);text-decoration:none;margin-right:8px">DOC</a>` : ''}
@@ -9388,9 +9398,26 @@ async function ctDeleteContrato(numero) {
 function ctCargarContrato(idx) {
   const c = ctHistData[idx];
   if (!c) return;
-  const d = c.formData || {};
+  let d = c.formData || {};
   const tipo = d.tipo || c.tipo;
   if (!tipo) return;
+
+  // Fallback para contratos sin form_data completo (migrados o generados externamente)
+  if (Object.keys(d).length === 0) {
+    d = { precioTotal: c.precio, cuotas: c.cuotas };
+    if (tipo === 'XV') {
+      d.quinceanera = { nombre: c.cliente2 };
+      d.cliente     = { nombre: c.cliente };
+      d.evento      = { salon: c.lugar };
+    } else if (tipo === 'BODA') {
+      d.novia  = { nombre: c.cliente };
+      d.novio  = { nombre: c.cliente2 };
+      d.fiesta = { lugar: c.lugar };
+    } else if (tipo === 'CUMPLE') {
+      d.cliente = { nombre: c.cliente };
+      d.evento  = { salon: c.lugar };
+    }
+  }
 
   ctSelTipo(tipo);
 

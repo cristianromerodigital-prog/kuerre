@@ -3,20 +3,15 @@
 
 CREATE TABLE IF NOT EXISTS eventos_foto (
   id          TEXT PRIMARY KEY,
-  nombre      TEXT NOT NULL,
-  fecha       TEXT NOT NULL,
   cierre_auto TEXT,
   folder_id   TEXT NOT NULL,
   portada     TEXT,
   estado      TEXT DEFAULT 'activo',
   moderacion  INTEGER DEFAULT 0,
   storage     TEXT DEFAULT 'r2',
-  evento_slug TEXT DEFAULT NULL,
+  evento_id   INTEGER DEFAULT NULL,
   created_at  TEXT NOT NULL
 );
-
--- Migración: storage backend por evento ('drive' | 'r2')
--- ALTER TABLE eventos_foto ADD COLUMN storage TEXT DEFAULT 'drive';
 
 CREATE TABLE IF NOT EXISTS evento_frases (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,9 +31,6 @@ CREATE TABLE IF NOT EXISTS foto_likes (
 
 CREATE TABLE IF NOT EXISTS solicitudes (
   id              TEXT PRIMARY KEY,
-  tipo            TEXT NOT NULL,
-  nombre_display  TEXT NOT NULL,
-  fecha           TEXT NOT NULL,
   salon           TEXT,
   direccion       TEXT,
   cliente_nombre  TEXT,
@@ -53,39 +45,28 @@ CREATE TABLE IF NOT EXISTS solicitudes (
   drive_entrega_id    TEXT,
   drive_contrato_id   TEXT,
   drive_invitacion_id TEXT,
-  evento_slug      TEXT DEFAULT NULL,
+  evento_id        INTEGER DEFAULT NULL,
   created_at       TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS entrega_configs (
-  id         TEXT PRIMARY KEY,
-  nombres    TEXT,
-  fecha      TEXT,
-  tipo       TEXT,
-  folder_id  TEXT DEFAULT '',
-  portada    TEXT DEFAULT '',
-  overlay    TEXT DEFAULT 'violeta',
-  allow_dl    INTEGER DEFAULT 1,
-  evento_slug TEXT DEFAULT NULL,
-  created_at  TEXT NOT NULL
+  id        TEXT PRIMARY KEY,
+  folder_id TEXT DEFAULT '',
+  portada   TEXT DEFAULT '',
+  overlay   TEXT DEFAULT 'violeta',
+  allow_dl  INTEGER DEFAULT 1,
+  evento_id INTEGER DEFAULT NULL,
+  created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS contratos (
-  numero      INTEGER PRIMARY KEY,
-  tipo        TEXT NOT NULL,
-  fecha_gen   TEXT DEFAULT '',
-  cliente     TEXT DEFAULT '',
-  cliente2    TEXT DEFAULT '',
-  fecha_ev    TEXT DEFAULT '',
-  lugar       TEXT DEFAULT '',
-  precio      INTEGER DEFAULT 0,
-  cuotas      INTEGER DEFAULT 1,
-  estado      TEXT DEFAULT 'GENERADO',
-  doc_url     TEXT DEFAULT '',
-  pdf_url     TEXT DEFAULT '',
-  notas       TEXT DEFAULT '',
-  evento_slug TEXT DEFAULT NULL,
-  form_data   TEXT DEFAULT '{}'
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  tipo       TEXT NOT NULL DEFAULT 'digital',
+  datos      TEXT NOT NULL DEFAULT '{}',
+  firmado    INTEGER NOT NULL DEFAULT 0,
+  firmado_at TEXT DEFAULT NULL,
+  evento_id  INTEGER DEFAULT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS eventos (

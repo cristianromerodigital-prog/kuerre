@@ -24,19 +24,21 @@ async function handleHubView(slug, db) {
   const evento = await db.prepare('SELECT * FROM eventos WHERE slug=?').bind(slug).first();
   if (!evento) return json({ error: 'not found' }, 404);
   const [sols, cts, ents, qrs] = await Promise.all([
-    db.prepare('SELECT id, nombre_display, fecha, tipo FROM solicitudes WHERE evento_slug=?').bind(slug).all(),
-    db.prepare('SELECT numero, tipo, cliente, fecha_ev, precio FROM contratos WHERE evento_slug=?').bind(slug).all(),
-    db.prepare('SELECT id, nombres, fecha FROM entrega_configs WHERE evento_slug=?').bind(slug).all(),
-    db.prepare('SELECT id, nombre, fecha FROM eventos_foto WHERE evento_slug=?').bind(slug).all(),
+    db.prepare('SELECT id, cliente_nombre, cliente_tel FROM solicitudes WHERE evento_id=?').bind(evento.id).all(),
+    db.prepare('SELECT id, tipo, datos FROM contratos WHERE evento_id=?').bind(evento.id).all(),
+    db.prepare('SELECT id FROM entrega_configs WHERE evento_id=?').bind(evento.id).all(),
+    db.prepare('SELECT id FROM eventos_foto WHERE evento_id=?').bind(evento.id).all(),
   ]);
   return json({ ...evento, solicitudes: sols.results || [], contratos: cts.results || [], entregas: ents.results || [], qr_eventos: qrs.results || [] });
 }
 
 async function handleHubLink(slug, request, db) {
   const { table, id } = await request.json();
-  const pkCol = { solicitudes: 'id', contratos: 'numero', entrega_configs: 'id', eventos_foto: 'id' };
+  const pkCol = { solicitudes: 'id', contratos: 'id', entrega_configs: 'id', eventos_foto: 'id' };
   if (!pkCol[table]) return json({ error: 'tabla inválida: usar solicitudes|contratos|entrega_configs|eventos_foto' }, 400);
-  await db.prepare(`UPDATE ${table} SET evento_slug=? WHERE ${pkCol[table]}=?`).bind(slug, id).run();
+  const evento = await db.prepare('SELECT id FROM eventos WHERE slug=?').bind(slug).first();
+  if (!evento) return json({ error: 'evento no encontrado' }, 404);
+  await db.prepare(`UPDATE ${table} SET evento_id=? WHERE ${pkCol[table]}=?`).bind(evento.id, id).run();
   return json({ ok: true });
 }
 
@@ -220,19 +222,23 @@ async function handleSolicitudesCreate(request, env) {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
     + '-' + fecha;
 
+  // Upsert evento y obtener su id
+  await env.KUERRE_DB.prepare(`INSERT OR IGNORE INTO eventos (slug,nombre,fecha,tipo,qr,pm,inv) VALUES (?,?,?,?,1,1,1)`)
+    .bind(eventoSlug, nombre_display, fecha, tipo).run();
+  const eventoRow = await env.KUERRE_DB.prepare('SELECT id FROM eventos WHERE slug=?').bind(eventoSlug).first();
+  const eventoId = eventoRow.id;
+
   for (let attempt = 0; attempt < 2; attempt++) {
     const id = generateEventId();
     const fiesta_id = generateEventId();
     try {
       await env.KUERRE_DB.batch([
-        env.KUERRE_DB.prepare(`INSERT OR IGNORE INTO eventos (slug,nombre,fecha,tipo,qr,pm,inv) VALUES (?,?,?,?,1,1,1)`)
-          .bind(eventoSlug, nombre_display, fecha, tipo),
-        env.KUERRE_DB.prepare(`INSERT INTO solicitudes (id,tipo,nombre_display,fecha,salon,direccion,cliente_nombre,cliente_tel,cliente_email,data_json,fiesta_id,invite_slug,evento_slug,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-          .bind(id, tipo, nombre_display, fecha, salon, direccion, cliente_nombre, cliente_tel, cliente_email, JSON.stringify(body), fiesta_id, id, eventoSlug, now),
-        env.KUERRE_DB.prepare(`INSERT INTO eventos_foto (id,nombre,fecha,cierre_auto,folder_id,portada,estado,moderacion,storage,evento_slug,created_at) VALUES (?,?,?,NULL,'',NULL,'pendiente',0,'r2',?,?)`)
-          .bind(fiesta_id, nombre_display, fecha, eventoSlug, now),
-        env.KUERRE_DB.prepare(`INSERT INTO entrega_configs (id,nombres,fecha,tipo,folder_id,portada,overlay,allow_dl,evento_slug,created_at) VALUES (?,?,?,?,'','','violeta',1,?,?)`)
-          .bind(id, nombre_display, fecha, tipo, eventoSlug, now),
+        env.KUERRE_DB.prepare(`INSERT INTO solicitudes (id,salon,direccion,cliente_nombre,cliente_tel,cliente_email,data_json,fiesta_id,invite_slug,evento_id,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
+          .bind(id, salon, direccion, cliente_nombre, cliente_tel, cliente_email, JSON.stringify(body), fiesta_id, id, eventoId, now),
+        env.KUERRE_DB.prepare(`INSERT INTO eventos_foto (id,cierre_auto,folder_id,portada,estado,moderacion,storage,evento_id,created_at) VALUES (?,NULL,'',NULL,'pendiente',0,'r2',?,?)`)
+          .bind(fiesta_id, eventoId, now),
+        env.KUERRE_DB.prepare(`INSERT INTO entrega_configs (id,folder_id,portada,overlay,allow_dl,evento_id,created_at) VALUES (?,'',' ','violeta',1,?,?)`)
+          .bind(id, eventoId, now),
       ]);
       return json({ ok: true, id });
     } catch (e) {
@@ -249,18 +255,20 @@ async function handleSolicitudesList(env, request) {
 
   const likeTerm   = search ? '%' + search + '%' : null;
   const where      = search
-    ? 'WHERE (s.nombre_display LIKE ? OR s.cliente_nombre LIKE ? OR s.cliente_tel LIKE ?)'
+    ? 'WHERE (e.nombre LIKE ? OR s.cliente_nombre LIKE ? OR s.cliente_tel LIKE ?)'
     : '';
   const baseParams = search ? [likeTerm, likeTerm, likeTerm] : [];
 
   const countRow = await env.KUERRE_DB.prepare(
-    `SELECT COUNT(*) AS n FROM solicitudes s ${where}`
+    `SELECT COUNT(*) AS n FROM solicitudes s LEFT JOIN eventos e ON e.id = s.evento_id ${where}`
   ).bind(...baseParams).first();
   const total = countRow ? countRow.n : 0;
 
   const { results } = await env.KUERRE_DB.prepare(`
-    SELECT s.*, ef.estado AS fiesta_estado, ec.folder_id AS entrega_folder
+    SELECT s.*, e.fecha, e.tipo, e.nombre AS nombre_display,
+           ef.estado AS fiesta_estado, ec.folder_id AS entrega_folder
     FROM solicitudes s
+    LEFT JOIN eventos e ON e.id = s.evento_id
     LEFT JOIN eventos_foto ef ON ef.id = s.fiesta_id
     LEFT JOIN entrega_configs ec ON ec.id = s.id
     ${where}
