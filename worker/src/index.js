@@ -1,5 +1,45 @@
 ﻿import { corsHeaders, json, mountCoreRouter, isAdmin, arrayBufferToBase64, resolveEventId } from '@crd/kuerre-core';
 
+// ── Eventos Hub ──
+
+async function handleHubList(db) {
+  const { results } = await db.prepare('SELECT * FROM eventos ORDER BY fecha DESC').all();
+  return json(results || []);
+}
+
+async function handleHubUpsert(request, db) {
+  const d = await request.json();
+  if (!d.slug || !d.nombre || !d.fecha) return json({ error: 'slug, nombre y fecha son requeridos' }, 400);
+  await db.prepare(`
+    INSERT INTO eventos (slug, nombre, fecha, tipo, qr, pm, inv, notas)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(slug) DO UPDATE SET
+      nombre=excluded.nombre, fecha=excluded.fecha, tipo=excluded.tipo,
+      qr=excluded.qr, pm=excluded.pm, inv=excluded.inv, notas=excluded.notas
+  `).bind(d.slug, d.nombre, d.fecha, d.tipo || 'casamiento', d.qr ? 1 : 0, d.pm ? 1 : 0, d.inv ? 1 : 0, d.notas || '').run();
+  return json({ ok: true });
+}
+
+async function handleHubView(slug, db) {
+  const evento = await db.prepare('SELECT * FROM eventos WHERE slug=?').bind(slug).first();
+  if (!evento) return json({ error: 'not found' }, 404);
+  const [sols, cts, ents, qrs] = await Promise.all([
+    db.prepare('SELECT id, nombre_display, fecha, tipo FROM solicitudes WHERE evento_slug=?').bind(slug).all(),
+    db.prepare('SELECT numero, tipo, cliente, fecha_ev, precio FROM contratos WHERE evento_slug=?').bind(slug).all(),
+    db.prepare('SELECT id, nombres, fecha FROM entrega_configs WHERE evento_slug=?').bind(slug).all(),
+    db.prepare('SELECT id, nombre, fecha FROM eventos_foto WHERE evento_slug=?').bind(slug).all(),
+  ]);
+  return json({ ...evento, solicitudes: sols.results || [], contratos: cts.results || [], entregas: ents.results || [], qr_eventos: qrs.results || [] });
+}
+
+async function handleHubLink(slug, request, db) {
+  const { table, id } = await request.json();
+  const pkCol = { solicitudes: 'id', contratos: 'numero', entrega_configs: 'id', eventos_foto: 'id' };
+  if (!pkCol[table]) return json({ error: 'tabla inválida: usar solicitudes|contratos|entrega_configs|eventos_foto' }, 400);
+  await db.prepare(`UPDATE ${table} SET evento_slug=? WHERE ${pkCol[table]}=?`).bind(slug, id).run();
+  return json({ ok: true });
+}
+
 async function checkOpenAI(base64, mimeType, apiKey) {
   try {
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -737,6 +777,26 @@ export default {
         }
         await env.KUERRE_DB.prepare('UPDATE rsvp_responses SET mesa = ? WHERE id = ? AND slug = ?').bind(mesa, Number(id), slug).run();
         return json({ ok: true });
+      }
+
+      // ── Eventos Hub ──
+      if (path === '/hub' && method === 'GET') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleHubList(env.KUERRE_DB);
+      }
+      if (path === '/hub' && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleHubUpsert(request, env.KUERRE_DB);
+      }
+      const hubViewMatch = path.match(/^\/hub\/([a-z0-9-]+)$/);
+      if (hubViewMatch && method === 'GET') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleHubView(hubViewMatch[1], env.KUERRE_DB);
+      }
+      const hubLinkMatch = path.match(/^\/hub\/([a-z0-9-]+)\/link$/);
+      if (hubLinkMatch && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleHubLink(hubLinkMatch[1], request, env.KUERRE_DB);
       }
 
       return json({ error: 'Not found' }, 404);
