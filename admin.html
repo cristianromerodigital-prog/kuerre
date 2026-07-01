@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.79</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.80</div>
     </div>
   </aside>
 
@@ -8864,27 +8864,46 @@ async function ctGenerar() {
       document.getElementById('ct-result').style.display = 'block';
       toast((ctEditingNumero ? 'Contrato ' + json.numero + ' actualizado ✓' : 'Contrato ' + json.numero + ' generado ✓'));
       if (CT_USE_D1 && CLIENTES_WORKER) {
-        const _ctCliente  = data.tipo === 'BODA' ? (data.novia?.nombre || '') : (data.cliente?.nombre || '');
-        const _ctCliente2 = data.tipo === 'BODA' ? (data.novio?.nombre || '') : data.tipo === 'XV' ? (data.quinceanera?.nombre || '') : '';
-        const _ctFechaEv  = data.tipo === 'BODA' ? (data.fiesta?.fecha || '') : (data.evento?.fecha || '');
-        const _ctLugar    = data.tipo === 'BODA' ? (data.fiesta?.lugar || '') : (data.evento?.salon || '');
+        const _isBoda = data.tipo === 'BODA';
         fetch(CLIENTES_WORKER + '/contratos', {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            numero:       json.numero,
-            tipo:         data.tipo,
-            cliente:      _ctCliente,
-            cliente2:     _ctCliente2,
-            fecha_ev:     _ctFechaEv,
-            lugar:        _ctLugar,
-            precio:       data.precioTotal || 0,
-            cuotas:       data.cuotas || 1,
-            estado:       ctEditingNumero ? 'ACTUALIZADO' : 'GENERADO',
-            doc_url:      json.docUrl || '',
-            pdf_url:      json.pdfUrl || '',
-            form_data:    JSON.stringify(data),
-            solicitud_id: _ctSolicitudId || null
+            numero:          json.numero,
+            cliente:         _isBoda ? (data.novia?.nombre || '') : (data.cliente?.nombre || ''),
+            cliente2:        _isBoda ? (data.novio?.nombre || '') : data.tipo === 'XV' ? (data.quinceanera?.nombre || '') : '',
+            lugar:           _isBoda ? (data.fiesta?.lugar || '') : (data.evento?.salon || ''),
+            precio:          data.precioTotal || 0,
+            cuotas:          data.cuotas || 1,
+            estado:          ctEditingNumero ? 'ACTUALIZADO' : 'GENERADO',
+            doc_url:         json.docUrl || '',
+            pdf_url:         json.pdfUrl || '',
+            solicitud_id:    _ctSolicitudId || null,
+            cliente_dni:     _isBoda ? (data.novia?.dni || '') : (data.cliente?.dni || ''),
+            cliente_tel:     _isBoda ? (data.novia?.telefono || '') : (data.cliente?.telefono || ''),
+            cliente_email:   _isBoda ? (data.novia?.email || '') : (data.cliente?.email || ''),
+            cliente2_nac:    data.quinceanera?.fechaNacimiento || '',
+            cliente2_dni:    data.novio?.dni || '',
+            cliente2_dom:    data.novio?.domicilio || '',
+            cliente2_tel:    data.novio?.telefono || '',
+            cliente2_email:  data.novio?.email || '',
+            hora_inicio:     _isBoda ? (data.fiesta?.horaInicio || '') : (data.evento?.horaInicio || ''),
+            hora_fin:        _isBoda ? (data.fiesta?.horaFin || '') : (data.evento?.horaFin || ''),
+            direccion:       _isBoda ? (data.fiesta?.direccion || '') : (data.evento?.direccion || ''),
+            invitados:       _isBoda ? (data.fiesta?.invitados || '') : (data.evento?.invitados || ''),
+            ciudad:          data.ciudad || '',
+            dia_firma:       data.diaFirma || '',
+            nombre_paquete:  data.nombrePaquete || '',
+            servicios:       JSON.stringify(data.servicios || []),
+            contacto_nombre: data.contacto?.nombre || '',
+            contacto_rel:    data.contacto?.relacion || '',
+            contacto_tel:    data.contacto?.telefono || '',
+            civil_fecha:     data.civil?.fecha || '',
+            civil_hora:      data.civil?.horario || '',
+            civil_dir:       data.civil?.direccion || '',
+            reli_fecha:      data.religiosa?.fecha || '',
+            reli_hora:       data.religiosa?.horario || '',
+            reli_dir:        data.religiosa?.direccion || '',
           })
         }).catch(() => {});
       }
@@ -9278,18 +9297,43 @@ async function ctLoadHistorial() {
       const rows = await res.json();
       // Mapear campos D1 → formato esperado por ctRenderHistorial
       const data = (rows || []).map(r => ({
-        numero:      r.numero,
-        tipo:        r.tipo,
-        fecha:       r.fecha_gen,
-        cliente:     r.cliente,
-        cliente2:    r.cliente2 || '',
-        fechaEvento: r.fecha_ev,
-        lugar:       r.lugar,
-        precio:      r.precio,
-        estado:      r.estado,
-        docUrl:      r.doc_url,
-        pdfUrl:      r.pdf_url,
-        formData:    (() => { try { return JSON.parse(r.form_data || '{}'); } catch(e) { return {}; } })()
+        numero:         r.numero,
+        tipo:           r.tipo,
+        fecha:          r.fecha_gen,
+        cliente:        r.cliente,
+        cliente2:       r.cliente2 || '',
+        fechaEvento:    r.fecha_ev,
+        lugar:          r.lugar,
+        precio:         r.precio,
+        cuotas:         r.cuotas,
+        estado:         r.estado,
+        docUrl:         r.doc_url,
+        pdfUrl:         r.pdf_url,
+        clienteDni:     r.cliente_dni || '',
+        clienteTel:     r.cliente_tel || '',
+        clienteEmail:   r.cliente_email || '',
+        cliente2Nac:    r.cliente2_nac || '',
+        cliente2Dni:    r.cliente2_dni || '',
+        cliente2Dom:    r.cliente2_dom || '',
+        cliente2Tel:    r.cliente2_tel || '',
+        cliente2Email:  r.cliente2_email || '',
+        horaInicio:     r.hora_inicio || '',
+        horaFin:        r.hora_fin || '',
+        direccion:      r.direccion || '',
+        invitados:      r.invitados || '',
+        ciudad:         r.ciudad || '',
+        diaFirma:       r.dia_firma || '',
+        nombrePaquete:  r.nombre_paquete || '',
+        servicios:      (() => { try { return JSON.parse(r.servicios || '[]'); } catch(e) { return []; } })(),
+        contactoNombre: r.contacto_nombre || '',
+        contactoRel:    r.contacto_rel || '',
+        contactoTel:    r.contacto_tel || '',
+        civilFecha:     r.civil_fecha || '',
+        civilHora:      r.civil_hora || '',
+        civilDir:       r.civil_dir || '',
+        reliFecha:      r.reli_fecha || '',
+        reliHora:       r.reli_hora || '',
+        reliDir:        r.reli_dir || '',
       }));
       localStorage.setItem('crd_ct_hist_cache', JSON.stringify(data));
       ctHistLoaded = true;
@@ -9398,26 +9442,8 @@ async function ctDeleteContrato(numero) {
 function ctCargarContrato(idx) {
   const c = ctHistData[idx];
   if (!c) return;
-  let d = c.formData || {};
-  const tipo = d.tipo || c.tipo;
+  const tipo = c.tipo;
   if (!tipo) return;
-
-  // Fallback para contratos sin form_data completo (migrados o generados externamente)
-  if (Object.keys(d).length === 0) {
-    d = { precioTotal: c.precio, cuotas: c.cuotas };
-    if (tipo === 'XV') {
-      d.quinceanera = { nombre: c.cliente2 };
-      d.cliente     = { nombre: c.cliente };
-      d.evento      = { salon: c.lugar };
-    } else if (tipo === 'BODA') {
-      d.novia  = { nombre: c.cliente };
-      d.novio  = { nombre: c.cliente2 };
-      d.fiesta = { lugar: c.lugar };
-    } else if (tipo === 'CUMPLE') {
-      d.cliente = { nombre: c.cliente };
-      d.evento  = { salon: c.lugar };
-    }
-  }
 
   ctSelTipo(tipo);
 
@@ -9430,74 +9456,74 @@ function ctCargarContrato(idx) {
       else el.value = val;
     }
 
-    set('ct-ciudad',    d.ciudad);
-    set('ct-dia-firma', d.diaFirma);
+    set('ct-ciudad',    c.ciudad);
+    set('ct-dia-firma', c.diaFirma);
 
     if (tipo === 'BODA') {
-      set('ct-b-novia-nombre',    d.novia?.nombre);
-      set('ct-b-novia-dni',       d.novia?.dni);
-      set('ct-b-novia-tel',       d.novia?.telefono);
-      set('ct-b-novia-email',     d.novia?.email);
-      set('ct-b-novio-nombre',    d.novio?.nombre);
-      set('ct-b-novio-dni',       d.novio?.dni);
-      set('ct-b-novio-dom',       d.novio?.domicilio);
-      set('ct-b-novio-tel',       d.novio?.telefono);
-      set('ct-b-novio-email',     d.novio?.email);
-      set('ct-b-fiesta-fecha',    c.fechaEvento || d.fiesta?.fecha);
-      set('ct-b-fiesta-hora',     d.fiesta?.horaInicio || d.fiesta?.horarioInicio);
-      set('ct-b-fiesta-hora-fin', d.fiesta?.horaFin);
-      set('ct-b-invitados',       d.fiesta?.invitados);
-      set('ct-b-fiesta-salon',    d.fiesta?.lugar);
-      set('ct-b-fiesta-dir',      d.fiesta?.direccion);
-      set('ct-b-contacto-nombre', d.contacto?.nombre);
-      set('ct-b-contacto-rel',    d.contacto?.relacion);
-      set('ct-b-contacto-tel',    d.contacto?.telefono);
-      set('ct-b-paquete',         d.nombrePaquete);
-      if (d.civil) {
+      set('ct-b-novia-nombre',    c.cliente);
+      set('ct-b-novia-dni',       c.clienteDni);
+      set('ct-b-novia-tel',       c.clienteTel);
+      set('ct-b-novia-email',     c.clienteEmail);
+      set('ct-b-novio-nombre',    c.cliente2);
+      set('ct-b-novio-dni',       c.cliente2Dni);
+      set('ct-b-novio-dom',       c.cliente2Dom);
+      set('ct-b-novio-tel',       c.cliente2Tel);
+      set('ct-b-novio-email',     c.cliente2Email);
+      set('ct-b-fiesta-fecha',    c.fechaEvento);
+      set('ct-b-fiesta-hora',     c.horaInicio);
+      set('ct-b-fiesta-hora-fin', c.horaFin);
+      set('ct-b-invitados',       c.invitados);
+      set('ct-b-fiesta-salon',    c.lugar);
+      set('ct-b-fiesta-dir',      c.direccion);
+      set('ct-b-contacto-nombre', c.contactoNombre);
+      set('ct-b-contacto-rel',    c.contactoRel);
+      set('ct-b-contacto-tel',    c.contactoTel);
+      set('ct-b-paquete',         c.nombrePaquete);
+      if (c.civilFecha) {
         set('ct-b-tiene-civil', true);
         document.getElementById('ct-sub-civil').style.display = 'block';
-        set('ct-b-civil-fecha', d.civil.fecha);
-        set('ct-b-civil-hora',  d.civil.horario);
-        set('ct-b-civil-dir',   d.civil.direccion);
+        set('ct-b-civil-fecha', c.civilFecha);
+        set('ct-b-civil-hora',  c.civilHora);
+        set('ct-b-civil-dir',   c.civilDir);
       }
-      if (d.religiosa) {
+      if (c.reliFecha) {
         set('ct-b-tiene-reli', true);
         document.getElementById('ct-sub-reli').style.display = 'block';
-        set('ct-b-reli-fecha', d.religiosa.fecha);
-        set('ct-b-reli-hora',  d.religiosa.horario);
-        set('ct-b-reli-dir',   d.religiosa.direccion);
+        set('ct-b-reli-fecha', c.reliFecha);
+        set('ct-b-reli-hora',  c.reliHora);
+        set('ct-b-reli-dir',   c.reliDir);
       }
     } else if (tipo === 'XV') {
-      set('ct-x-quince-nombre',  d.quinceanera?.nombre);
-      set('ct-x-quince-nac',     d.quinceanera?.fechaNacimiento);
-      set('ct-x-cliente-nombre', d.cliente?.nombre);
-      set('ct-x-cliente-dni',    d.cliente?.dni);
-      set('ct-x-cliente-tel',    d.cliente?.telefono);
-      set('ct-x-cliente-email',  d.cliente?.email);
-      set('ct-x-fecha',          c.fechaEvento || d.evento?.fecha);
-      set('ct-x-hora-inicio',    d.evento?.horaInicio);
-      set('ct-x-hora-fin',       d.evento?.horaFin);
-      set('ct-x-salon',          d.evento?.salon);
-      set('ct-x-dir',            d.evento?.direccion);
-      set('ct-x-invitados',      d.evento?.invitados);
-      set('ct-x-cuotas',         d.cuotas);
+      set('ct-x-quince-nombre',  c.cliente2);
+      set('ct-x-quince-nac',     c.cliente2Nac);
+      set('ct-x-cliente-nombre', c.cliente);
+      set('ct-x-cliente-dni',    c.clienteDni);
+      set('ct-x-cliente-tel',    c.clienteTel);
+      set('ct-x-cliente-email',  c.clienteEmail);
+      set('ct-x-fecha',          c.fechaEvento);
+      set('ct-x-hora-inicio',    c.horaInicio);
+      set('ct-x-hora-fin',       c.horaFin);
+      set('ct-x-salon',          c.lugar);
+      set('ct-x-dir',            c.direccion);
+      set('ct-x-invitados',      c.invitados);
+      set('ct-x-cuotas',         c.cuotas);
     } else if (tipo === 'CUMPLE') {
-      set('ct-c-nombre',      d.cliente?.nombre);
-      set('ct-c-dni',         d.cliente?.dni);
-      set('ct-c-tel',         d.cliente?.telefono);
-      set('ct-c-email',       d.cliente?.email);
-      set('ct-c-fecha',       c.fechaEvento || d.evento?.fecha);
-      set('ct-c-hora-inicio', d.evento?.horaInicio);
-      set('ct-c-hora-fin',    d.evento?.horaFin);
-      set('ct-c-salon',       d.evento?.salon);
-      set('ct-c-dir',         d.evento?.direccion);
-      set('ct-c-invitados',   d.evento?.invitados);
-      set('ct-c-cuotas',      d.cuotas);
+      set('ct-c-nombre',      c.cliente);
+      set('ct-c-dni',         c.clienteDni);
+      set('ct-c-tel',         c.clienteTel);
+      set('ct-c-email',       c.clienteEmail);
+      set('ct-c-fecha',       c.fechaEvento);
+      set('ct-c-hora-inicio', c.horaInicio);
+      set('ct-c-hora-fin',    c.horaFin);
+      set('ct-c-salon',       c.lugar);
+      set('ct-c-dir',         c.direccion);
+      set('ct-c-invitados',   c.invitados);
+      set('ct-c-cuotas',      c.cuotas);
     }
 
     // Marcar servicios y luego fijar precio
-    if (d.servicios?.length) {
-      const nombres = d.servicios.map(s => s.descripcion.toLowerCase());
+    if (c.servicios?.length) {
+      const nombres = c.servicios.map(s => s.descripcion.toLowerCase());
       ctSvcData.forEach(s => {
         const cb = document.getElementById(`ct-svc-${s.id}`);
         if (cb) cb.checked = nombres.includes(s.descripcion.toLowerCase());
@@ -9505,7 +9531,7 @@ function ctCargarContrato(idx) {
     }
 
     // Fijar precio DESPUÉS de marcar servicios para que no sea pisado
-    const precioFinal = d.precioTotal || c.precio;
+    const precioFinal = c.precio;
     if (precioFinal) {
       document.getElementById('ct-precio').value = precioFinal;
       const disp = document.getElementById('ct-total-display');
@@ -9521,11 +9547,7 @@ function ctCargarContrato(idx) {
     const btn = document.getElementById('ct-btn-gen');
     if (btn) btn.textContent = 'GUARDAR CAMBIOS';
 
-    const hasData = Object.keys(d).length > 2;
-    toast(hasData
-      ? 'Contrato ' + c.numero + ' cargado — modificá y guardá los cambios'
-      : 'Contrato ' + c.numero + ' cargado (solo tipo y precio — datos completos disponibles en contratos nuevos)'
-    );
+    toast('Contrato ' + c.numero + ' cargado — modificá y guardá los cambios');
     document.getElementById('ct-form-area').scrollIntoView({ behavior: 'smooth' });
   }, 50);
 }
