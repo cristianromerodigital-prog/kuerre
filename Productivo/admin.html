@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.52</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.53</div>
     </div>
   </aside>
 
@@ -1375,6 +1375,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div style="display:flex;gap:8px;align-items:center">
               <input class="form-input" id="logo-url-input" placeholder="URL de imagen o ID de Drive..." style="font-size:11px;flex:1" oninput="previewLogoFromUrl(this.value)">
               <button class="btn-sm" onclick="pickLogoDrive()">Drive</button>
+              <button class="btn-sm" onclick="driveCopyLink('logo-url-input','file')" title="Copiar link completo de Drive">Link</button>
             </div>
           </div>
           <div style="border:2px dashed rgba(255,255,255,0.08);padding:12px 16px;cursor:pointer;position:relative;background:var(--black3);margin-bottom:16px;text-align:center" ondragover="event.preventDefault();this.style.borderColor='var(--gold)'" ondragleave="this.style.borderColor='rgba(255,255,255,0.08)'" ondrop="handleLogoDrop(event)">
@@ -1398,6 +1399,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div style="display:flex;gap:6px">
                 <input id="crclub-bg-login-url" class="form-input" placeholder="URL o ID de Drive..." style="flex:1;font-size:11px;" oninput="crclubPreviewBg(this.value,'login')">
                 <button class="btn-sm" onclick="pickCrclubBgDrive('login')">Drive</button>
+                <button class="btn-sm" onclick="driveCopyLink('crclub-bg-login-url','file')" title="Copiar link completo de Drive">Link</button>
                 <button class="btn-add" onclick="crclubSaveBg('login')">Guardar</button>
                 <button class="btn-sm btn-danger" onclick="crclubClearBg('login')">✕</button>
               </div>
@@ -1410,6 +1412,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div style="display:flex;gap:6px">
                 <input id="crclub-bg-app-url" class="form-input" placeholder="URL o ID de Drive..." style="flex:1;font-size:11px;" oninput="crclubPreviewBg(this.value,'app')">
                 <button class="btn-sm" onclick="pickCrclubBgDrive('app')">Drive</button>
+                <button class="btn-sm" onclick="driveCopyLink('crclub-bg-app-url','file')" title="Copiar link completo de Drive">Link</button>
                 <button class="btn-add" onclick="crclubSaveBg('app')">Guardar</button>
                 <button class="btn-sm btn-danger" onclick="crclubClearBg('app')">✕</button>
               </div>
@@ -1422,6 +1425,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div style="display:flex;gap:6px">
                 <input id="crclub-bg-main-url" class="form-input" placeholder="URL o ID de Drive..." style="flex:1;font-size:11px;" oninput="crclubPreviewBg(this.value,'main')">
                 <button class="btn-sm" onclick="pickCrclubBgDrive('main')">Drive</button>
+                <button class="btn-sm" onclick="driveCopyLink('crclub-bg-main-url','file')" title="Copiar link completo de Drive">Link</button>
                 <button class="btn-add" onclick="crclubSaveBg('main')">Guardar</button>
                 <button class="btn-sm btn-danger" onclick="crclubClearBg('main')">✕</button>
               </div>
@@ -1843,16 +1847,16 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <input class="form-input" id="ct-apps-url" placeholder="https://script.google.com/macros/s/.../exec">
             </div>
             <div class="form-group" style="margin-top:10px">
-              <label class="form-label">ID carpeta raíz de Drive <i class="tip" data-tip="ID de la carpeta principal en Google Drive donde se crean las subcarpetas de cada cliente. El ID está en la URL de la carpeta: drive.google.com/drive/folders/ESTE_ID">?</i></label>
-              <input class="form-input" id="ct-drive-root-id" placeholder="ID de la carpeta padre en Google Drive">
+              <label class="form-label">ID carpeta raíz de Drive <i class="tip" data-tip="ID o URL de la carpeta principal en Google Drive donde se crean las subcarpetas de cada cliente. Si pegás la URL completa, se extrae el ID solo.">?</i></label>
+              <div style="display:flex;gap:8px"><input class="form-input" id="ct-drive-root-id" placeholder="ID o URL de la carpeta padre en Google Drive" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('ct-drive-root-id','folder')" title="Copiar link completo de Drive" style="white-space:nowrap">Copiar link</button></div>
             </div>
             <div class="form-group" style="margin-top:10px">
-              <label class="form-label">ID hoja de servicios (Google Sheet) <i class="tip" data-tip="ID de la hoja de cálculo de Google Sheets que contiene los servicios y precios disponibles para seleccionar en el contrato.">?</i></label>
-              <input class="form-input" id="ct-presupuestos-id" placeholder="ID del Google Sheet con los servicios">
+              <label class="form-label">ID hoja de servicios (Google Sheet) <i class="tip" data-tip="ID o URL de la hoja de cálculo de Google Sheets que contiene los servicios y precios disponibles para seleccionar en el contrato.">?</i></label>
+              <div style="display:flex;gap:8px"><input class="form-input" id="ct-presupuestos-id" placeholder="ID o URL del Google Sheet con los servicios" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('ct-presupuestos-id','sheet')" title="Copiar link completo del Sheet" style="white-space:nowrap">Copiar link</button></div>
             </div>
             <div class="form-group" style="margin-top:10px">
-              <label class="form-label">ID hoja del sistema (Google Sheet) <i class="tip" data-tip="ID de la hoja del sistema donde se registran contratos, numeración y cláusulas. Se obtiene del Apps Script en PropertiesService → SYSTEM_SHEET_ID.">?</i></label>
-              <input class="form-input" id="ct-system-sheet-id" placeholder="ID del Google Sheet del sistema">
+              <label class="form-label">ID hoja del sistema (Google Sheet) <i class="tip" data-tip="ID o URL de la hoja del sistema donde se registran contratos, numeración y cláusulas. Se obtiene del Apps Script en PropertiesService → SYSTEM_SHEET_ID.">?</i></label>
+              <div style="display:flex;gap:8px"><input class="form-input" id="ct-system-sheet-id" placeholder="ID o URL del Google Sheet del sistema" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('ct-system-sheet-id','sheet')" title="Copiar link completo del Sheet" style="white-space:nowrap">Copiar link</button></div>
             </div>
             <button class="btn-sm btn-sec" style="margin-top:12px" onclick="ctSaveCfg()">Guardar configuración</button>
           </div>
@@ -2248,14 +2252,15 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
           <div class="form-group">
             <label class="form-label">Carpeta de Drive (URL o ID) <i class="tip" data-tip="Carpeta de Google Drive con las fotos finales del cliente. Podés pegar la URL completa o solo el ID (la parte después de /folders/).">?</i></label>
-            <input class="form-input" id="ent-folder" placeholder="https://drive.google.com/drive/folders/..." oninput="updateEntregaPreview()">
+            <div style="display:flex;gap:8px"><input class="form-input" id="ent-folder" placeholder="https://drive.google.com/drive/folders/..." oninput="updateEntregaPreview()" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('ent-folder','folder')" title="Copiar link completo de Drive" style="white-space:nowrap">Copiar link</button></div>
             <p style="font-size:10px;color:var(--gray);margin-top:6px;letter-spacing:1px">La carpeta debe estar compartida como "Cualquiera con el enlace puede ver"</p>
           </div>
           <div class="form-group">
             <label class="form-label">Foto de portada — ID del archivo en Drive (opcional) <i class="tip" data-tip="ID de la imagen que aparece como portada del visualizador. El ID está en la URL al abrir el archivo en Drive: drive.google.com/file/d/ESTE_ID">?</i></label>
             <div style="display:flex;gap:8px;align-items:center">
-              <input class="form-input" id="ent-portada" placeholder="ID del archivo en Drive" oninput="updateEntregaPreview()">
+              <input class="form-input" id="ent-portada" placeholder="ID o URL del archivo en Drive" oninput="updateEntregaPreview()" onblur="driveNormalizeInput(this)">
               <button class="btn-sm" onclick="pickPortadaDrive()" style="white-space:nowrap">Elegir desde Drive</button>
+              <button class="btn-sm" onclick="driveCopyLink('ent-portada','file')" title="Copiar link completo de Drive" style="white-space:nowrap">Copiar link</button>
             </div>
           </div>
           <div class="form-group" style="margin-top:4px">
@@ -2596,7 +2601,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="fi-fecha"></div>
           </div>
           <div class="form-row">
-            <div class="form-group" style="flex:2"><label class="form-label">Carpeta Drive (ID) <i class="tip" data-tip="ID de la carpeta de Google Drive donde se guardan las fotos subidas por los invitados. El ID está en la URL de Drive.">?</i></label><input class="form-input" id="fi-folder" placeholder="ID de la carpeta en Drive"></div>
+            <div class="form-group" style="flex:2"><label class="form-label">Carpeta Drive (ID o URL) <i class="tip" data-tip="ID o URL de la carpeta de Google Drive donde se guardan las fotos subidas por los invitados. Si pegás la URL completa, se extrae el ID solo.">?</i></label><div style="display:flex;gap:8px"><input class="form-input" id="fi-folder" placeholder="ID o URL de la carpeta en Drive" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('fi-folder','folder')" title="Copiar link completo de Drive" style="white-space:nowrap">Copiar link</button></div></div>
             <div class="form-group"><label class="form-label">Cierre automático <i class="tip" data-tip="Fecha y hora en que se cierra automáticamente la carga de fotos. Útil para detenerla al terminar el evento.">?</i></label><input class="form-input" type="datetime-local" id="fi-cierre"></div>
           </div>
           <div class="form-group">
@@ -2644,7 +2649,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="fm-fecha"></div>
     </div>
     <div class="form-row">
-      <div class="form-group" style="flex:2"><label class="form-label">Carpeta Drive (ID)</label><input class="form-input" id="fm-folder"></div>
+      <div class="form-group" style="flex:2"><label class="form-label">Carpeta Drive (ID o URL)</label><div style="display:flex;gap:8px"><input class="form-input" id="fm-folder" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('fm-folder','folder')" title="Copiar link completo de Drive" style="white-space:nowrap">Copiar link</button></div></div>
       <div class="form-group"><label class="form-label">Cierre automático</label><input class="form-input" type="datetime-local" id="fm-cierre"></div>
     </div>
     <div class="form-group">
@@ -5179,6 +5184,29 @@ function driveIdToUrl(input) {
   const m = input.match(/\/d\/([a-zA-Z0-9_-]+)/) || input.match(/id=([a-zA-Z0-9_-]+)/);
   const id = m ? m[1] : input.trim();
   return 'https://lh3.googleusercontent.com/d/' + id;
+}
+
+// [COMPARTIDA] Extrae el ID de Drive de una URL (/folders/, /d/, id=) o devuelve el valor si ya es un ID
+function driveExtractId(valor) {
+  const v = (valor || '').trim();
+  const m = v.match(/\/folders\/([a-zA-Z0-9_-]+)/) || v.match(/\/d\/([a-zA-Z0-9_-]+)/) || v.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  return v.includes('://') ? '' : v;
+}
+const DRIVE_LINK_BASE = { folder: 'https://drive.google.com/drive/folders/', sheet: 'https://docs.google.com/spreadsheets/d/', file: 'https://drive.google.com/file/d/' };
+// [COMPARTIDA] Copia al portapapeles la URL completa de Drive armada desde el ID del input
+function driveCopyLink(inputId, tipo) {
+  const raw = document.getElementById(inputId)?.value.trim();
+  if (!raw) { toast('El campo está vacío', 'error'); return; }
+  const id = driveExtractId(raw);
+  if (!id) { toast('No es un link de Drive', 'error'); return; }
+  const url = (DRIVE_LINK_BASE[tipo] || DRIVE_LINK_BASE.file) + id;
+  navigator.clipboard.writeText(url).then(() => toast('Link copiado: ' + url)).catch(() => toast('No se pudo copiar', 'error'));
+}
+// [COMPARTIDA] Si pegaron una URL de Drive, deja solo el ID (el GAS y la API esperan IDs)
+function driveNormalizeInput(el) {
+  const id = driveExtractId(el.value);
+  if (id && id !== el.value.trim()) { el.value = id; el.dispatchEvent(new Event('input')); }
 }
 function saveLogoUrl(variant) {
   const inputId = variant === 'light' ? 'logo-light-url' : 'logo-dark-url';
