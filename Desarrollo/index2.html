@@ -259,6 +259,18 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 .pm-fade { transition:opacity .8s; }
 @keyframes cta-pulse { 0%,100% { box-shadow:0 0 0 0 rgba(192,144,224,.35); } 50% { box-shadow:0 0 0 6px rgba(192,144,224,0); } }
 .inv-cta-pulse { animation:cta-pulse 2.4s ease-in-out infinite; }
+/* ── MODAL DEMO ── */
+#demo-modal { display:none; position:fixed; inset:0; z-index:400; background:rgba(10,6,20,.75);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+#demo-modal.open { display:flex; }
+.demo-modal-frame { width:min(420px,92vw); height:min(86vh,780px); background:#111; border-radius:34px;
+  border:8px solid #1c1c1e; overflow:hidden; display:flex; flex-direction:column;
+  box-shadow:0 40px 120px rgba(0,0,0,.6); }
+.demo-modal-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:#000; }
+.demo-modal-bar a { color:#c090e0; font-size:11px; letter-spacing:.08em; text-decoration:none; }
+.demo-modal-bar button { background:none; border:none; color:#fff; font-size:16px; cursor:pointer; padding:4px 8px; }
+#demo-modal-iframe { flex:1; width:100%; border:none; background:#0a0a12; }
+[data-demo] { cursor:pointer; }
 @media (prefers-reduced-motion: reduce) {
   .qr-live-pop { animation:none; }
   .inv-cta-pulse { animation:none; }
@@ -422,7 +434,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
     </div>
     <!-- Phone mockup hero -->
     <div class="hero-phone">
-      <div class="phone-lg" style="width:220px;height:440px">
+      <div class="phone-lg" style="width:220px;height:440px" data-demo="fiestas.html?e=demo">
         <div class="phone-lg-notch"></div>
         <div class="phone-lg-screen" style="display:flex;flex-direction:column">
           <!-- Status bar -->
@@ -493,7 +505,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   <div class="feat-visual">
     <div class="feat-visual-bg" id="inv-bg" style="background-image:url('https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(5,5,20,.55)"></div>
-    <div class="phone-lg">
+    <div class="phone-lg" data-demo="invite.html?i=demo">
       <div class="phone-lg-notch"></div>
       <div class="phone-lg-screen" style="background:#080810">
         <div style="position:relative">
@@ -525,7 +537,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   <div class="feat-visual">
     <div class="feat-visual-bg" id="qr-bg" style="background-image:url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(10,6,20,.45)"></div>
-    <div class="phone-lg">
+    <div class="phone-lg" data-demo="fiestas.html?e=demo">
       <div class="phone-lg-notch"></div>
       <div class="phone-lg-screen" style="background:#0a0a14">
         <div class="qr-live-badge" id="qr-badge">+1 foto</div>
@@ -587,7 +599,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   <div class="feat-visual">
     <div class="feat-visual-bg" id="pm-bg" style="background-image:url('https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(5,5,20,.55)"></div>
-    <div class="phone-lg">
+    <div class="phone-lg" data-demo="premiere.html?id=demo">
       <div class="phone-lg-notch"></div>
       <div class="phone-lg-screen" style="background:#080810">
         <div style="position:relative">
@@ -626,7 +638,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 
     <!-- Invitación Digital -->
     <div class="card">
-      <div class="phone">
+      <div class="phone" data-demo="invite.html?i=demo">
         <div class="phone-notch"></div>
         <div class="phone-screen scr-inv">
           <div class="scr-inv-sobre">
@@ -649,7 +661,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 
     <!-- QR Fiestas -->
     <div class="card">
-      <div class="phone">
+      <div class="phone" data-demo="fiestas.html?e=demo">
         <div class="phone-notch"></div>
         <div class="phone-screen scr-qr">
           <div class="scr-qr-hero">QR Fiestas<br>📸 subí tu foto</div>
@@ -670,7 +682,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 
     <!-- Premiere -->
     <div class="card">
-      <div class="phone">
+      <div class="phone" data-demo="premiere.html?id=demo">
         <div class="phone-notch"></div>
         <div class="phone-screen scr-pm">
           <div class="scr-pm-hero"><div class="scr-pm-title">Sofía &amp; Mateo<br><em>La Entrega · Premiere</em></div></div>
@@ -761,6 +773,17 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
     </a>
   </div>
 </section>
+
+<!-- MODAL DEMO -->
+<div id="demo-modal">
+  <div class="demo-modal-frame">
+    <div class="demo-modal-bar">
+      <a id="demo-modal-open" href="#" target="_blank">Abrir en pestaña nueva ↗</a>
+      <button onclick="closeDemoModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <iframe id="demo-modal-iframe" title="Demo KUERRE"></iframe>
+  </div>
+</div>
 
 <!-- FOOTER -->
 <footer>
@@ -988,6 +1011,26 @@ function pmCrossfade(container) {
     i++;
   }, 3200);
 }
+
+// ── MODAL DEMO ──────────────────────────────────────────────────
+// [COMPARTIDA] abre demo en modal (desktop) o pestaña nueva (mobile)
+function openDemoModal(url) {
+  if (window.innerWidth <= 900) { window.open(url, '_blank'); return; }
+  var m = document.getElementById('demo-modal');
+  document.getElementById('demo-modal-iframe').src = url;
+  document.getElementById('demo-modal-open').href = url;
+  m.classList.add('open');
+}
+function closeDemoModal() {
+  var m = document.getElementById('demo-modal');
+  m.classList.remove('open');
+  document.getElementById('demo-modal-iframe').src = 'about:blank';
+}
+document.getElementById('demo-modal').addEventListener('click', function(e) { if (e.target === this) closeDemoModal(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDemoModal(); });
+document.querySelectorAll('[data-demo]').forEach(function(el) {
+  el.addEventListener('click', function() { openDemoModal(el.getAttribute('data-demo')); });
+});
 
 // Orquestación: animar solo lo visible, respetar prefers-reduced-motion
 (function() {
