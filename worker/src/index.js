@@ -167,6 +167,31 @@ async function handleFotoListR2(eventoId, request, env) {
   return json({ files });
 }
 
+// Reset del evento demo: borra fotos/likes/frases no incluidos en el seed (KV demo_seed)
+async function resetDemoEvent(env) {
+  const demoId = await env.KUERRE_KV.get('fiesta_slug_demo');
+  if (!demoId) return { ok: false, error: 'fiesta_slug_demo no configurado' };
+  let seed = { keys: [], fraseIds: [] };
+  try { seed = JSON.parse(await env.KUERRE_KV.get('demo_seed')) || seed; } catch {}
+  const seedKeys = new Set(seed.keys || []);
+  const listed = await env.MEDIA.list({ prefix: `eventos/${demoId}/` });
+  let deleted = 0;
+  for (const obj of (listed.objects || [])) {
+    if (seedKeys.has(obj.key)) continue;
+    await env.MEDIA.delete(obj.key);
+    await env.KUERRE_DB.prepare('DELETE FROM foto_likes WHERE evento_id=? AND foto_id=?').bind(demoId, obj.key).run();
+    deleted++;
+  }
+  const fraseIds = (seed.fraseIds || []).map(Number).filter(n => !isNaN(n));
+  if (fraseIds.length) {
+    const ph = fraseIds.map(() => '?').join(',');
+    await env.KUERRE_DB.prepare(`DELETE FROM evento_frases WHERE evento_id=? AND id NOT IN (${ph})`).bind(demoId, ...fraseIds).run();
+  } else {
+    await env.KUERRE_DB.prepare('DELETE FROM evento_frases WHERE evento_id=?').bind(demoId).run();
+  }
+  return { ok: true, deleted };
+}
+
 async function gasUploadBackground(gasUrl, folderId, buffer, filename, mimeType, eventoId, env) {
   try {
     const base64 = arrayBufferToBase64(buffer);
@@ -674,6 +699,23 @@ export default {
         try { return json(JSON.parse(val)); } catch { return json({}, 200); }
       }
 
+      // ── Demo: snapshot de seed y reset manual ──────────────────────────────
+      if (path === '/api/demo/seed-snapshot' && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const demoId = await env.KUERRE_KV.get('fiesta_slug_demo');
+        if (!demoId) return json({ error: 'fiesta_slug_demo no configurado' }, 400);
+        const listedDemo = await env.MEDIA.list({ prefix: `eventos/${demoId}/` });
+        const seedKeys = (listedDemo.objects || []).map(o => o.key);
+        const { results: demoFrases } = await env.KUERRE_DB.prepare('SELECT id FROM evento_frases WHERE evento_id=?').bind(demoId).all();
+        const fraseIds = (demoFrases || []).map(r => r.id);
+        await env.KUERRE_KV.put('demo_seed', JSON.stringify({ keys: seedKeys, fraseIds, at: new Date().toISOString() }));
+        return json({ ok: true, fotos: seedKeys.length, frases: fraseIds.length });
+      }
+      if (path === '/api/demo/reset' && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return json(await resetDemoEvent(env));
+      }
+
       // ── Invitaciones: config por slug ──────────────────────────────────────
       const invCfgMatch = path.match(/^\/invite\/([a-z0-9][a-z0-9-]{1,79})$/);
       if (invCfgMatch && method === 'GET') {
@@ -1043,5 +1085,9 @@ export default {
       const status = e.message?.includes('Unauthorized') ? 401 : 500;
       return json({ error: e.message || 'Internal error' }, status);
     }
+  },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(resetDemoEvent(env).catch(e => console.error('[DEMO RESET]', e.message)));
   },
 };

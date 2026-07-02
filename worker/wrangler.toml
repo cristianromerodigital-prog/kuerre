@@ -20,6 +20,9 @@ bucket_name = "kuerre-media"
 type = "Text"
 globs = ["**/*.html"]
 
+[triggers]
+crons = ["0 8 * * *"]
+
 # Secrets (set via: wrangler secret put <NAME>)
 # ADMIN_JWT_SECRET  — clave para firmar tokens de admin
 # ADMIN_USER        — usuario admin por defecto
