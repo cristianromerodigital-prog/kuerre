@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.51</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.52</div>
     </div>
   </aside>
 
@@ -8267,6 +8267,7 @@ async function evHub_link(slug) {
 // ══════════════════════════════════════════════════════════════
 let ctTipo = null;
 let ctSvcData = [];
+let ctSvcReady = null;
 const CT_CFG_KEY = 'crd_contratos_cfg';
 const CT_USE_D1  = true;
 
@@ -8596,16 +8597,17 @@ function ctExtraParams() {
 
 function ctCargarServicios() {
   const url = ctGetUrl();
-  if (!url) return;
+  if (!url) return null;
   const grid = document.getElementById('ct-svc-grid');
-  if (!grid) return;
+  if (!grid) return null;
   grid.innerHTML = '<div style="color:var(--gray);font-size:12px;grid-column:1/-1">Cargando...</div>';
-  _jsonp(url + '?action=getServicios' + ctExtraParams())
+  ctSvcReady = _jsonp(url + '?action=getServicios' + ctExtraParams())
     .then(data => ctRenderServicios(data))
     .catch(err => {
       console.error('[ctCargarServicios]', err);
       grid.innerHTML = `<div style="color:var(--red);font-size:12px;grid-column:1/-1">Error cargando servicios: ${err.message || err}. Verificá la URL y que el Apps Script esté desplegado.</div>`;
     });
+  return ctSvcReady;
 }
 
 function ctRenderServicios(data) {
@@ -9524,24 +9526,27 @@ function ctCargarContrato(idx) {
       set('ct-c-cuotas',      c.cuotas);
     }
 
-    // Marcar servicios y luego fijar precio
-    if (c.servicios?.length) {
-      const nombres = c.servicios.map(s => s.descripcion.toLowerCase());
-      ctSvcData.forEach(s => {
-        const cb = document.getElementById(`ct-svc-${s.id}`);
-        if (cb) cb.checked = nombres.includes(s.descripcion.toLowerCase());
-      });
-    }
-
-    // Fijar precio DESPUÉS de marcar servicios para que no sea pisado
-    const precioFinal = c.precio;
-    if (precioFinal) {
-      document.getElementById('ct-precio').value = precioFinal;
-      const disp = document.getElementById('ct-total-display');
-      if (disp) disp.textContent = ctFmt(Number(precioFinal));
-    } else {
-      ctCalcTotal();
-    }
+    // Marcar servicios y fijar precio — espera a que la lista de servicios (JSONP async) esté renderizada
+    const marcarYPrecio = () => {
+      if (c.servicios?.length) {
+        const nombres = c.servicios.map(s => s.descripcion.toLowerCase());
+        ctSvcData.forEach(s => {
+          const cb = document.getElementById(`ct-svc-${s.id}`);
+          if (cb) cb.checked = nombres.includes(s.descripcion.toLowerCase());
+        });
+      }
+      // Fijar precio DESPUÉS de marcar servicios para que no sea pisado
+      const precioFinal = c.precio;
+      if (precioFinal) {
+        document.getElementById('ct-precio').value = precioFinal;
+        const disp = document.getElementById('ct-total-display');
+        if (disp) disp.textContent = ctFmt(Number(precioFinal));
+      } else {
+        ctCalcTotal();
+      }
+    };
+    if (ctSvcData.length) marcarYPrecio();
+    else (ctSvcReady || ctCargarServicios() || Promise.resolve()).then(marcarYPrecio);
 
     // Activar modo edición
     ctEditingNumero = c.numero;
