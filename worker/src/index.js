@@ -189,6 +189,7 @@ async function resetDemoEvent(env) {
   } else {
     await env.KUERRE_DB.prepare('DELETE FROM evento_frases WHERE evento_id=?').bind(demoId).run();
   }
+  await env.KUERRE_DB.prepare("DELETE FROM rsvp_responses WHERE slug='demo'").run();
   return { ok: true, deleted };
 }
 
