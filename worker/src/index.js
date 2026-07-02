@@ -1,4 +1,5 @@
 ﻿import { corsHeaders, json, mountCoreRouter, isAdmin, arrayBufferToBase64, resolveEventId } from '@crd/kuerre-core';
+import brandedAdminHtml from '../../Productivo/admin.html';
 
 // ── Eventos Hub ──
 
@@ -599,6 +600,11 @@ export default {
         }
       }
 
+      // ── Admin UI con marca KUERRE — pisa el /admin genérico del core ─────────
+      if (path === '/admin' && method === 'GET') {
+        return new Response(brandedAdminHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      }
+
       // ── kuerre-core: eventos, fotos, frases, likes, admin auth + UI ──────────
       const response = await mountCoreRouter(request, coreEnv, url, CORE_OPTIONS);
       if (response) return response;
@@ -635,6 +641,30 @@ export default {
         try { return json(JSON.parse(val)); } catch { return json({}, 200); }
       }
 
+      // ── Invitaciones: config por slug ──────────────────────────────────────
+      const invCfgMatch = path.match(/^\/invite\/([a-z0-9][a-z0-9-]{1,79})$/);
+      if (invCfgMatch && method === 'GET') {
+        const invSlug = invCfgMatch[1];
+        const rawInv = await env.KUERRE_KV.get('invite_cfg_' + invSlug);
+        if (!rawInv) return json({ error: 'Not found' }, 404);
+        let invCfg;
+        try { invCfg = JSON.parse(rawInv); } catch { return json({ error: 'Config inválida' }, 500); }
+        if (invSlug === 'demo') {
+          const d = new Date(Date.now() + 21 * 86400000);
+          invCfg.fecha_iso = d.toISOString().slice(0, 10) + 'T21:00:00';
+          invCfg.fecha_display = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+        }
+        return json(invCfg);
+      }
+      if (invCfgMatch && method === 'POST') {
+        const auth = request.headers.get('Authorization') || '';
+        if (!env.CF_AUTH_TOKEN || auth !== env.CF_AUTH_TOKEN) return json({ error: 'Unauthorized' }, 401);
+        const body = await request.text();
+        try { JSON.parse(body); } catch { return json({ error: 'JSON inválido' }, 400); }
+        await env.KUERRE_KV.put('invite_cfg_' + invCfgMatch[1], body);
+        return json({ ok: true });
+      }
+
       // ── KV directo (branding settings read/write) ─────────────────────────
       const kvMatch = path.match(/^\/([a-z][a-z0-9_]+)$/);
       if (kvMatch) {
@@ -660,20 +690,40 @@ export default {
       if (path === '/site/config' && method === 'GET') {
         const safeJson = (v) => { try { return v ? JSON.parse(v) : null; } catch { return v || null; } };
         const [raw, logoRaw, videoRaw] = await Promise.all([
-          env.KUERRE_KV.get('kuerre_settings'),
+          env.KUERRE_KV.get('crd_settings'),
           env.KUERRE_KV.get('crd_site_logo'),
           env.KUERRE_KV.get('crd_hero_video_url')
         ]);
         const s = safeJson(raw) || {};
-        const logoFromKv = safeJson(logoRaw) || '';
         const videoUrl = safeJson(videoRaw) || '';
+        const workerOrigin = new URL(request.url).origin;
         return json({
-          logo_url: s.logoUrl || (typeof logoFromKv === 'string' ? logoFromKv : '') || '',
+          logo_url: s.logoUrl || (logoRaw ? `${workerOrigin}/api/logo` : ''),
           hero_video_url: typeof videoUrl === 'string' ? videoUrl : '',
           whatsapp: s.waSuffix || '',
           website: s.entregaWebUrl || '',
           instagram: s.instagram || '',
-          entregaIgUrl: s.entregaIgUrl || ''
+          entregaIgUrl: s.entregaIgUrl || '',
+          formulario_fondo: s.formularioFondo || ''
+        });
+      }
+
+      // ── Logo del sitio — sirve el data-URI de KV como binario cacheable ────
+      if (path === '/api/logo' && method === 'GET') {
+        const rawLogo = await env.KUERRE_KV.get('crd_site_logo');
+        if (!rawLogo) return new Response('Not found', { status: 404 });
+        let dataUri = rawLogo;
+        try { dataUri = JSON.parse(rawLogo); } catch {}
+        if (typeof dataUri !== 'string' || !dataUri) return new Response('Not found', { status: 404 });
+        const m = /^data:([^;,]+);base64,(.+)$/s.exec(dataUri);
+        if (!m) return Response.redirect(dataUri, 302);
+        const bin = Uint8Array.from(atob(m[2]), c => c.charCodeAt(0));
+        return new Response(bin, {
+          headers: {
+            'Content-Type': m[1],
+            'Cache-Control': 'public, max-age=86400',
+            'Access-Control-Allow-Origin': '*'
+          }
         });
       }
 

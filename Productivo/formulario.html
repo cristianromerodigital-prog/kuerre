@@ -49,6 +49,13 @@
 </head>
 <body>
 <div class="wrap">
+  <div class="logo">
+    <img id="form-logo-img" src="" alt="Kuerre" style="display:none;max-height:60px;max-width:180px;object-fit:contain;margin-bottom:8px">
+    <div id="form-logo-text">
+      <div class="logo-name"><span>Kuerre</span></div>
+      <div class="logo-sub">Experiencia Digital para tu Evento</div>
+    </div>
+  </div>
 
   <div id="form-area">
     <h2>Solicitud de Servicio</h2>
@@ -208,7 +215,8 @@
 <script>
 const CONFIG = {
   CF_URL:   'https://kuerre-worker.cristian-romero-digital.workers.dev',
-  APPS_URL: 'https://script.google.com/macros/s/AKfycbwOWIq6k0XNQTIPfZ0H22zqNljad1gM1KRjV4uWClvZvTB_A2MhDJIPNvoBiBMV-oD9/exec'
+  APPS_URL: 'https://script.google.com/macros/s/AKfycbzaEpe1VKm_utQBHLg7U_7FCuMSGv0X1158zUZxlGFFIW3GsPVI0ej7sdBr9PQciedt/exec',
+  SYSTEM_SHEET_ID: '1n5pHVgqVuyfx587KsbLrLy-MGoqkRlvchVqffvpbbQ0'
 };
 
 let tipo = null;
@@ -334,7 +342,7 @@ function enviar() {
   document.getElementById('spinner').style.display = 'block';
 
   var gasFetch = CONFIG.APPS_URL
-    ? fetch(CONFIG.APPS_URL, { method:'POST', redirect:'follow', body:JSON.stringify({action:'guardarSolicitud',formData:data}) }).then(function(r){return r.json();}).catch(function(){return null;})
+    ? fetch(CONFIG.APPS_URL, { method:'POST', redirect:'follow', body:JSON.stringify({action:'guardarSolicitud',formData:data,systemSheetId:CONFIG.SYSTEM_SHEET_ID}) }).then(function(r){return r.json();}).catch(function(){return null;})
     : Promise.resolve(null);
 
   var workerFetch = fetch(CONFIG.CF_URL + '/solicitudes', {
@@ -371,17 +379,23 @@ function driveToImg(url) {
   return m ? 'https://lh3.googleusercontent.com/d/' + m[1] : url;
 }
 
-// Settings: fondo
-fetch(CONFIG.CF_URL + '/crd_settings')
+// Settings: logo + fondo (endpoint público /site/config — /crd_settings requiere auth)
+fetch(CONFIG.CF_URL + '/site/config')
   .then(function(r){ return r.json(); })
   .then(function(s){
-    if (s.formularioFondo) {
-      var fondo = driveToImg(s.formularioFondo);
-      document.body.style.backgroundImage = 'url(' + fondo + ')';
+    if (s.formulario_fondo) {
+      document.body.style.backgroundImage = 'url(' + driveToImg(s.formulario_fondo) + ')';
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundPosition = 'center center';
       document.body.style.backgroundRepeat = 'no-repeat';
       document.body.style.backgroundAttachment = 'fixed';
+    }
+    var logoUrl = s.logo_url || localStorage.getItem('crd_site_logo');
+    if (logoUrl) {
+      var img = document.getElementById('form-logo-img');
+      var txt = document.getElementById('form-logo-text');
+      if (img) { img.src = logoUrl; img.style.display = 'block'; }
+      if (txt) txt.style.display = 'none';
     }
   })
   .catch(function(){});
