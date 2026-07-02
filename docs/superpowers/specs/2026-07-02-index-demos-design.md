@@ -39,6 +39,9 @@ El index (landing) vende los 3 servicios con mockups CSS estáticos y la FAQ rem
 - Botones: cerrar y "Abrir en pestaña nueva".
 - Mobile (≤900px): el clic abre la demo directa en pestaña nueva, sin modal.
 
+## Estrategia de trabajo
+Todos los cambios del index se hacen en `Desarrollo/index2.html` (copia de `index.html`), sin tocar el index actual. Cuando Cristian apruebe el resultado, `index2.html` reemplaza a `index.html` y se elimina la copia.
+
 ## Orden de implementación
 C → A → B → D → E. Bump `KVER`/`v1.40` → V1.41. Deploy (copiar a Productivo + push + gh-pages) solo cuando el usuario diga "subilo".
 
