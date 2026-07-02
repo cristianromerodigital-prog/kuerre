@@ -741,6 +741,14 @@ export default {
         return json({ ok: true });
       }
 
+      // ── KV públicas de solo lectura (consumidas por premiere/invite/fiestas) ─
+      const pubKvMatch = path.match(/^\/(crd_settings|crd_contratos_cfg|crd_entregas|crd_pm_[A-Za-z0-9_-]{1,70})$/);
+      if (pubKvMatch && method === 'GET') {
+        const pubVal = await env.KUERRE_KV.get(pubKvMatch[1]);
+        if (pubVal === null) return json({ error: 'Not found' }, 404);
+        try { return json(JSON.parse(pubVal)); } catch { return new Response(pubVal, { headers: { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' } }); }
+      }
+
       // ── KV directo (branding settings read/write) ─────────────────────────
       const kvMatch = path.match(/^\/([a-z][a-z0-9_]+)$/);
       if (kvMatch) {

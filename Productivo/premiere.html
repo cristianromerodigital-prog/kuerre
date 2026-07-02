@@ -718,7 +718,7 @@ function showError(msg) {
 // ═══════════════════════════════════════════
 // DRIVE INDEX (CF KV — indexado por el admin al guardar)
 // ═══════════════════════════════════════════
-function _cfIndexKey() { return 'KUERRE_pm_' + (CFG.eventId || CFG.folderId); }
+function _cfIndexKey() { return 'crd_pm_' + (CFG.eventId || CFG.folderId); }
 
 function saveIndexToCF(photoRows, videoRows) {
   fetch(CONFIG.CF_URL + '/' + _cfIndexKey(), {
@@ -754,11 +754,11 @@ async function init() {
   startFrases();
   navbar.classList.remove('solid');
 
-  const fetchGas  = fetch(CONFIG.CF_URL + '/KUERRE_contratos_cfg').then(r=>r.text()).catch(()=>null);
-  const fetchSett = fetch(CONFIG.CF_URL + '/KUERRE_settings').then(r=>r.text()).catch(()=>null);
+  const fetchGas  = fetch(CONFIG.CF_URL + '/crd_contratos_cfg').then(r=>r.ok?r.text():null).catch(()=>null);
+  const fetchSett = fetch(CONFIG.CF_URL + '/crd_settings').then(r=>r.ok?r.text():null).catch(()=>null);
   let fetchEvent  = Promise.resolve(null);
   if(CFG.eventId && !CFG.folderId) {
-    fetchEvent = fetch(CONFIG.CF_URL + '/KUERRE_entregas?t=' + Date.now()).then(r=>r.json()).catch(()=>[]);
+    fetchEvent = fetch(CONFIG.CF_URL + '/crd_entregas?t=' + Date.now()).then(r=>r.ok?r.json():[]).catch(()=>[]);
   }
 
   const [gasRaw, eventData] = await Promise.all([fetchGas, fetchEvent]);
@@ -766,7 +766,7 @@ async function init() {
   if(gasRaw) { try { const c = JSON.parse(gasRaw); if(c && c.url) GAS_URL = c.url; } catch(e) {} }
 
   if(CFG.eventId && !CFG.folderId && eventData) {
-    const ev = (eventData||[]).find(e => String(e.id)===String(CFG.eventId) || e.slug===CFG.eventId);
+    const ev = (Array.isArray(eventData)?eventData:[]).find(e => String(e.id)===String(CFG.eventId) || e.slug===CFG.eventId);
     if(ev) Object.assign(CFG, ev);
   }
 
@@ -804,7 +804,7 @@ async function init() {
 
   const [indexRes, msgRes] = await Promise.all([
     fetch(CONFIG.CF_URL + '/' + _cfIndexKey() + '?t=' + Date.now()).catch(e=>{ _dbgLog.push('indexFetch ERR: '+e.message); return null; }),
-    fetch(CONFIG.CF_URL + '/KUERRE_pm_msg_' + slug + '?t=' + Date.now()).catch(e=>{ _dbgLog.push('msgFetch ERR: '+e.message); return null; })
+    fetch(CONFIG.CF_URL + '/crd_pm_msg_' + slug + '?t=' + Date.now()).catch(e=>{ _dbgLog.push('msgFetch ERR: '+e.message); return null; })
   ]);
 
   // Mensaje en key separada tiene máxima prioridad
