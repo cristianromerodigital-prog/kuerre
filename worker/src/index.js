@@ -25,7 +25,7 @@ async function handleHubView(slug, db) {
   if (!evento) return json({ error: 'not found' }, 404);
   const [sols, cts, ents, qrs] = await Promise.all([
     db.prepare('SELECT id, cliente_nombre, cliente_tel FROM solicitudes WHERE evento_id=?').bind(evento.id).all(),
-    db.prepare('SELECT id, tipo, datos FROM contratos WHERE evento_id=?').bind(evento.id).all(),
+    db.prepare('SELECT numero AS id, cliente, estado, fecha_evento FROM contratos WHERE evento_id=?').bind(evento.id).all(),
     db.prepare('SELECT id FROM entrega_configs WHERE evento_id=?').bind(evento.id).all(),
     db.prepare('SELECT id FROM eventos_foto WHERE evento_id=?').bind(evento.id).all(),
   ]);
@@ -197,22 +197,32 @@ async function handleSolicitudesCreate(request, env) {
   if (!tipo || !['BODA','XV','CUMPLE'].includes(tipo)) return json({ error: 'tipo inválido' }, 400);
 
   let nombre_display, fecha, salon, direccion, cliente_nombre, cliente_tel, cliente_email;
+  let cliente2_nombre = '', quinceanera_nombre = '', hora_inicio = '', hora_fin = '', invitados = '';
+  let civil_fecha = '', civil_hora = '', civil_dir = '';
+  let reli_fecha = '', reli_hora = '', reli_dir = '';
 
   if (tipo === 'BODA') {
-    const { novia, novio, fiesta } = body;
+    const { novia, novio, fiesta, civil, religiosa } = body;
     nombre_display = `${novia?.nombre || ''} & ${novio?.nombre || ''}`;
     fecha = fiesta?.fecha || ''; salon = fiesta?.salon || ''; direccion = fiesta?.direccion || '';
     cliente_nombre = novia?.nombre || ''; cliente_tel = novia?.telefono || ''; cliente_email = novia?.email || '';
+    cliente2_nombre = novio?.nombre || '';
+    hora_inicio = fiesta?.horaInicio || ''; hora_fin = fiesta?.horaFin || ''; invitados = fiesta?.invitados || '';
+    if (civil) { civil_fecha = civil.fecha||''; civil_hora = civil.horario||''; civil_dir = civil.direccion||''; }
+    if (religiosa) { reli_fecha = religiosa.fecha||''; reli_hora = religiosa.horario||''; reli_dir = religiosa.direccion||''; }
   } else if (tipo === 'XV') {
     const { quinceanera, cliente, evento } = body;
     nombre_display = `XV ${quinceanera?.nombre || ''}`;
     fecha = evento?.fecha || ''; salon = evento?.salon || ''; direccion = evento?.direccion || '';
     cliente_nombre = cliente?.nombre || ''; cliente_tel = cliente?.telefono || ''; cliente_email = cliente?.email || '';
+    cliente2_nombre = quinceanera?.nombre || ''; quinceanera_nombre = quinceanera?.nombre || '';
+    hora_inicio = evento?.horaInicio || ''; hora_fin = evento?.horaFin || ''; invitados = evento?.invitados || '';
   } else {
     const { cliente, evento } = body;
     nombre_display = `Cumple ${cliente?.nombre || ''}`;
     fecha = evento?.fecha || ''; salon = evento?.salon || ''; direccion = evento?.direccion || '';
     cliente_nombre = cliente?.nombre || ''; cliente_tel = cliente?.telefono || ''; cliente_email = cliente?.email || '';
+    hora_inicio = evento?.horaInicio || ''; hora_fin = evento?.horaFin || ''; invitados = evento?.invitados || '';
   }
 
   if (!fecha) return json({ error: 'Fecha del evento requerida' }, 400);
@@ -233,8 +243,16 @@ async function handleSolicitudesCreate(request, env) {
     const fiesta_id = generateEventId();
     try {
       await env.KUERRE_DB.batch([
-        env.KUERRE_DB.prepare(`INSERT INTO solicitudes (id,salon,direccion,cliente_nombre,cliente_tel,cliente_email,data_json,fiesta_id,invite_slug,evento_id,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
-          .bind(id, salon, direccion, cliente_nombre, cliente_tel, cliente_email, JSON.stringify(body), fiesta_id, id, eventoId, now),
+        env.KUERRE_DB.prepare(`INSERT INTO solicitudes
+          (id, salon, direccion, cliente_nombre, cliente_tel, cliente_email,
+           cliente2_nombre, quinceanera_nombre, hora_inicio, hora_fin, invitados,
+           civil_fecha, civil_hora, civil_dir, reli_fecha, reli_hora, reli_dir,
+           data_json, fiesta_id, invite_slug, evento_id, created_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+          .bind(id, salon, direccion, cliente_nombre, cliente_tel, cliente_email,
+            cliente2_nombre, quinceanera_nombre, hora_inicio, hora_fin, invitados,
+            civil_fecha, civil_hora, civil_dir, reli_fecha, reli_hora, reli_dir,
+            JSON.stringify(body), fiesta_id, id, eventoId, now),
         env.KUERRE_DB.prepare(`INSERT INTO eventos_foto (id,cierre_auto,folder_id,portada,estado,moderacion,storage,evento_id,created_at) VALUES (?,NULL,'',NULL,'pendiente',0,'r2',?,?)`)
           .bind(fiesta_id, eventoId, now),
         env.KUERRE_DB.prepare(`INSERT INTO entrega_configs (id,folder_id,portada,overlay,allow_dl,evento_id,created_at) VALUES (?,'',' ','violeta',1,?,?)`)
@@ -405,6 +423,97 @@ async function proxyGdrive(fileId, request, env) {
     }
   }
   return result;
+}
+
+// ── Contratos (mismo schema que CRP) ──
+
+async function handleContratosList(env) {
+  const { results } = await env.KUERRE_DB.prepare(`
+    SELECT c.*, COALESCE(e.fecha, c.fecha_evento) AS fecha_ev, e.tipo, e.nombre AS nombre_evento
+    FROM contratos c
+    LEFT JOIN eventos e ON e.id = c.evento_id
+    ORDER BY c.numero DESC
+  `).all();
+  return json(results || []);
+}
+
+async function handleContratosUpsert(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const {
+    numero, fecha_gen, fecha_evento, cliente, cliente2, lugar, precio, cuotas, estado, doc_url, pdf_url, notas, solicitud_id,
+    cliente_dni, cliente_tel, cliente_email,
+    cliente2_nac, cliente2_dni, cliente2_dom, cliente2_tel, cliente2_email,
+    hora_inicio, hora_fin, direccion, invitados, ciudad, dia_firma, nombre_paquete, servicios,
+    contacto_nombre, contacto_rel, contacto_tel,
+    civil_fecha, civil_hora, civil_dir,
+    reli_fecha, reli_hora, reli_dir,
+    formas_pago
+  } = body;
+  if (!numero) return json({ error: 'numero requerido' }, 400);
+  let evento_id = null;
+  if (solicitud_id) {
+    const sol = await env.KUERRE_DB.prepare('SELECT evento_id FROM solicitudes WHERE id=?').bind(solicitud_id).first();
+    evento_id = sol?.evento_id || null;
+  }
+  await env.KUERRE_DB.prepare(`
+    INSERT INTO contratos
+      (numero, fecha_gen, fecha_evento, cliente, cliente2, lugar, precio, cuotas, estado, doc_url, pdf_url, notas, solicitud_id, evento_id,
+       cliente_dni, cliente_tel, cliente_email, cliente2_nac, cliente2_dni, cliente2_dom, cliente2_tel, cliente2_email,
+       hora_inicio, hora_fin, direccion, invitados, ciudad, dia_firma, nombre_paquete, servicios,
+       contacto_nombre, contacto_rel, contacto_tel, civil_fecha, civil_hora, civil_dir, reli_fecha, reli_hora, reli_dir, formas_pago)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?, ?)
+    ON CONFLICT(numero) DO UPDATE SET
+      fecha_gen=excluded.fecha_gen, fecha_evento=excluded.fecha_evento,
+      cliente=excluded.cliente, cliente2=excluded.cliente2,
+      lugar=excluded.lugar, precio=excluded.precio, cuotas=excluded.cuotas, estado=excluded.estado,
+      doc_url=excluded.doc_url, pdf_url=excluded.pdf_url, notas=excluded.notas,
+      solicitud_id=COALESCE(excluded.solicitud_id, contratos.solicitud_id),
+      evento_id=COALESCE(excluded.evento_id, contratos.evento_id),
+      cliente_dni=excluded.cliente_dni, cliente_tel=excluded.cliente_tel, cliente_email=excluded.cliente_email,
+      cliente2_nac=excluded.cliente2_nac, cliente2_dni=excluded.cliente2_dni, cliente2_dom=excluded.cliente2_dom,
+      cliente2_tel=excluded.cliente2_tel, cliente2_email=excluded.cliente2_email,
+      hora_inicio=excluded.hora_inicio, hora_fin=excluded.hora_fin, direccion=excluded.direccion,
+      invitados=excluded.invitados, ciudad=excluded.ciudad, dia_firma=excluded.dia_firma,
+      nombre_paquete=excluded.nombre_paquete, servicios=excluded.servicios,
+      contacto_nombre=excluded.contacto_nombre, contacto_rel=excluded.contacto_rel, contacto_tel=excluded.contacto_tel,
+      civil_fecha=excluded.civil_fecha, civil_hora=excluded.civil_hora, civil_dir=excluded.civil_dir,
+      reli_fecha=excluded.reli_fecha, reli_hora=excluded.reli_hora, reli_dir=excluded.reli_dir,
+      formas_pago=excluded.formas_pago
+  `).bind(
+    numero, fecha_gen || '', fecha_evento || '', cliente || '', cliente2 || '', lugar || '',
+    precio || 0, cuotas || 1, estado || 'GENERADO',
+    doc_url || '', pdf_url || '', notas || '', solicitud_id || null, evento_id,
+    cliente_dni || '', cliente_tel || '', cliente_email || '',
+    cliente2_nac || '', cliente2_dni || '', cliente2_dom || '', cliente2_tel || '', cliente2_email || '',
+    hora_inicio || '', hora_fin || '', direccion || '', invitados || '', ciudad || '',
+    dia_firma || '', nombre_paquete || '', servicios || '[]',
+    contacto_nombre || '', contacto_rel || '', contacto_tel || '',
+    civil_fecha || '', civil_hora || '', civil_dir || '',
+    reli_fecha || '', reli_hora || '', reli_dir || '',
+    formas_pago || '[]'
+  ).run();
+  if (fecha_evento) {
+    const eid = evento_id || (await env.KUERRE_DB.prepare('SELECT evento_id FROM contratos WHERE numero=?').bind(numero).first())?.evento_id;
+    if (eid) {
+      await env.KUERRE_DB.prepare('UPDATE eventos SET fecha=? WHERE id=?').bind(fecha_evento, eid).run();
+    }
+  }
+  return json({ ok: true });
+}
+
+async function handleContratosDelete(numero, env) {
+  const row = await env.KUERRE_DB.prepare('SELECT doc_url, pdf_url FROM contratos WHERE numero=?').bind(numero).first();
+  if (!row) return json({ error: 'Contrato no encontrado' }, 404);
+  const gasUrl = await env.KUERRE_KV.get('crd_contratos_cfg').then(v => { try { return JSON.parse(v)?.url; } catch(e) { return null; } }).catch(() => null);
+  if (gasUrl && (row.doc_url || row.pdf_url)) {
+    const docId = row.doc_url ? (row.doc_url.match(/\/d\/([^/?]+)/)?.[1] || null) : null;
+    const pdfId = row.pdf_url ? (row.pdf_url.match(/\/d\/([^/?]+)/)?.[1] || null) : null;
+    if (docId || pdfId) {
+      fetch(gasUrl, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'trashFiles', docId, pdfId }) }).catch(() => {});
+    }
+  }
+  await env.KUERRE_DB.prepare('DELETE FROM contratos WHERE numero=?').bind(numero).run();
+  return json({ ok: true });
 }
 
 export default {
@@ -829,6 +938,21 @@ export default {
       if (hubLinkMatch && method === 'POST') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         return await handleHubLink(hubLinkMatch[1], request, env.KUERRE_DB);
+      }
+
+      // ── Contratos ──
+      if (path === '/contratos' && method === 'GET') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleContratosList(env);
+      }
+      if (path === '/contratos' && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleContratosUpsert(request, env);
+      }
+      const contratosDelMatch = path.match(/^\/contratos\/(\d+)$/);
+      if (contratosDelMatch && method === 'DELETE') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleContratosDelete(Number(contratosDelMatch[1]), env);
       }
 
       return json({ error: 'Not found' }, 404);

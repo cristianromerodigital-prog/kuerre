@@ -1,0 +1,47 @@
+-- KUERRE: reemplaza tabla contratos (blob datos) por schema CRP (columnas individuales)
+-- Verificado: 0 filas en producción al 2026-07-01
+
+DROP TABLE IF EXISTS contratos;
+
+CREATE TABLE contratos (
+  numero          INTEGER PRIMARY KEY,
+  fecha_gen       TEXT DEFAULT '',
+  fecha_evento    TEXT DEFAULT '',
+  cliente         TEXT DEFAULT '',
+  cliente2        TEXT DEFAULT '',
+  lugar           TEXT DEFAULT '',
+  precio          INTEGER DEFAULT 0,
+  cuotas          INTEGER DEFAULT 1,
+  estado          TEXT DEFAULT 'GENERADO',
+  doc_url         TEXT DEFAULT '',
+  pdf_url         TEXT DEFAULT '',
+  notas           TEXT DEFAULT '',
+  solicitud_id    TEXT DEFAULT NULL,
+  evento_id       INTEGER DEFAULT NULL,
+  cliente_dni     TEXT DEFAULT '',
+  cliente_tel     TEXT DEFAULT '',
+  cliente_email   TEXT DEFAULT '',
+  cliente2_nac    TEXT DEFAULT '',
+  cliente2_dni    TEXT DEFAULT '',
+  cliente2_dom    TEXT DEFAULT '',
+  cliente2_tel    TEXT DEFAULT '',
+  cliente2_email  TEXT DEFAULT '',
+  hora_inicio     TEXT DEFAULT '',
+  hora_fin        TEXT DEFAULT '',
+  direccion       TEXT DEFAULT '',
+  invitados       TEXT DEFAULT '',
+  ciudad          TEXT DEFAULT '',
+  dia_firma       TEXT DEFAULT '',
+  nombre_paquete  TEXT DEFAULT '',
+  servicios       TEXT DEFAULT '[]',
+  contacto_nombre TEXT DEFAULT '',
+  contacto_rel    TEXT DEFAULT '',
+  contacto_tel    TEXT DEFAULT '',
+  civil_fecha     TEXT DEFAULT '',
+  civil_hora      TEXT DEFAULT '',
+  civil_dir       TEXT DEFAULT '',
+  reli_fecha      TEXT DEFAULT '',
+  reli_hora       TEXT DEFAULT '',
+  reli_dir        TEXT DEFAULT '',
+  formas_pago     TEXT DEFAULT '[]'
+);

@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.83</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.51</div>
     </div>
   </aside>
 
@@ -8268,7 +8268,7 @@ async function evHub_link(slug) {
 let ctTipo = null;
 let ctSvcData = [];
 const CT_CFG_KEY = 'crd_contratos_cfg';
-const CT_USE_D1  = false; // CRP override: true (uses CLIENTES_WORKER /contratos)
+const CT_USE_D1  = true;
 
 async function initContratosPage() {
   const saved = S.get(CT_CFG_KEY);
@@ -8884,6 +8884,7 @@ async function ctGenerar() {
           headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             numero:          json.numero,
+            fecha_evento:    _isBoda ? (data.fiesta?.fecha || '') : (data.evento?.fecha || ''),
             cliente:         _isBoda ? (data.novia?.nombre || '') : (data.cliente?.nombre || ''),
             cliente2:        _isBoda ? (data.novio?.nombre || '') : data.tipo === 'XV' ? (data.quinceanera?.nombre || '') : '',
             lugar:           _isBoda ? (data.fiesta?.lugar || '') : (data.evento?.salon || ''),
