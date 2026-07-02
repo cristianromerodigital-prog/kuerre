@@ -634,6 +634,39 @@ export default {
         return await handleSolicitudesList(env, request);
       }
 
+      // ── Servicios/precios (ABM en D1 — reemplaza la gsheet; antes del KV match) ──
+      if (path === '/servicios' && method === 'GET') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const { results } = await env.KUERRE_DB.prepare('SELECT * FROM servicios ORDER BY orden, id').all();
+        return json((results || []).map(s => ({
+          ...s,
+          label: `[${s.id}] ${s.descripcion} — $${Number(s.pesos || 0).toLocaleString('es-AR')}`
+        })));
+      }
+      if (path === '/servicios' && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const d = await request.json();
+        if (!d.descripcion || !String(d.descripcion).trim()) return json({ error: 'descripcion requerida' }, 400);
+        let id = String(d.id || '').trim();
+        if (!id) {
+          const max = await env.KUERRE_DB.prepare("SELECT MAX(CAST(id AS INTEGER)) AS m FROM servicios").first();
+          id = String((max?.m || 0) + 1).padStart(3, '0');
+        }
+        await env.KUERRE_DB.prepare(`
+          INSERT INTO servicios (id, descripcion, pesos, activo, orden) VALUES (?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET descripcion=excluded.descripcion, pesos=excluded.pesos,
+            activo=excluded.activo, orden=excluded.orden
+        `).bind(id, String(d.descripcion).trim(), Math.round(Number(d.pesos) || 0),
+                (d.activo === 0 || d.activo === false) ? 0 : 1, Number(d.orden) || 0).run();
+        return json({ ok: true, id });
+      }
+      const servicioDelMatch = path.match(/^\/servicios\/([A-Za-z0-9_-]+)$/);
+      if (servicioDelMatch && method === 'DELETE') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        await env.KUERRE_DB.prepare('DELETE FROM servicios WHERE id=?').bind(servicioDelMatch[1]).run();
+        return json({ ok: true });
+      }
+
       // ── crd_content: lectura pública para index.html ──────────────────────
       if (path === '/crd_content' && method === 'GET') {
         const val = await env.KUERRE_KV.get('crd_content');

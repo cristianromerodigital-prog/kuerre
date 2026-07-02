@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.53</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.55</div>
     </div>
   </aside>
 
@@ -1836,6 +1836,20 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <p style="font-size:11px;color:var(--gray);letter-spacing:1px;margin-top:4px">Generación automática · Google Drive</p>
           </div>
           <button onclick="showPage('clientes')" style="background:none;border:1px solid rgba(255,255,255,0.12);color:var(--gray2);font-size:10px;letter-spacing:1.5px;padding:8px 18px;cursor:pointer;text-transform:uppercase">✕ Cerrar</button>
+        </div>
+        <div class="settings-section" style="margin-bottom:20px">
+          <div class="settings-section-title" style="cursor:pointer;user-select:none" onclick="svToggle()">
+            💲 Servicios y precios <span id="sv-arrow" style="font-size:10px;color:var(--gray)">▼</span>
+          </div>
+          <div id="sv-body" style="display:none;margin-top:14px">
+            <div id="sv-list" style="max-height:340px;overflow-y:auto"></div>
+            <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="margin:0;width:70px"><label class="form-label">ID</label><input class="form-input" id="sv-new-id" placeholder="auto"></div>
+              <div class="form-group" style="margin:0;flex:1;min-width:180px"><label class="form-label">Descripción</label><input class="form-input" id="sv-new-desc" placeholder="Ej: Invitación digital"></div>
+              <div class="form-group" style="margin:0;width:130px"><label class="form-label">Precio ($)</label><input class="form-input" type="number" id="sv-new-pesos" placeholder="0"></div>
+              <button class="btn-add" onclick="svAdd()">+ Agregar</button>
+            </div>
+          </div>
         </div>
         <div class="settings-section" style="margin-bottom:20px">
           <div class="settings-section-title" style="cursor:pointer;user-select:none" onclick="ctToggleCfg()">
@@ -7324,11 +7338,6 @@ function _jsonp(url) {
 }
 
 async function abrirSelectorServicios() {
-  const gasUrl = ctGetUrl();
-  if(!gasUrl) {
-    toast('Configura la URL del Apps Script en Contratos primero.', 'error');
-    return;
-  }
   saveCurrentPackFields();
   const modal = document.getElementById('svc-selector-modal');
   const listEl = document.getElementById('svc-selector-list');
@@ -7336,7 +7345,7 @@ async function abrirSelectorServicios() {
   listEl.innerHTML = 'Cargando servicios...';
   try {
     if(!_cachedServicios) {
-      _cachedServicios = await _jsonp(gasUrl + '?action=getServicios' + ctExtraParams());
+      _cachedServicios = (await svFetchServicios()).filter(s => s.activo !== 0);
     }
     const pack = getPresupuesto().packs[currentPresupuestoPack];
     const current = pack.items || [...(pack.fotoItems||[]), ...(pack.videoItems||[])];
@@ -8623,17 +8632,97 @@ function ctExtraParams() {
     : '';
 }
 
+// ── ABM Servicios/Precios en D1 (reemplaza la gsheet) ──
+let _svCache = null;
+
+// [COMPARTIDA] usada por ctCargarServicios y abrirSelectorServicios
+async function svFetchServicios(force) {
+  if (_svCache && !force) return _svCache;
+  const r = await fetch(CLIENTES_WORKER + '/servicios', { headers: { 'Authorization': 'Bearer ' + getAdminJWT() } });
+  if (!r.ok) throw new Error('Error cargando servicios (' + r.status + ')');
+  _svCache = await r.json();
+  return _svCache;
+}
+
+function svToggle() {
+  const body = document.getElementById('sv-body');
+  const arrow = document.getElementById('sv-arrow');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  arrow.textContent = open ? '▼' : '▲';
+  if (!open) svRender();
+}
+
+async function svRender() {
+  const el = document.getElementById('sv-list');
+  el.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:8px 0">Cargando...</div>';
+  try {
+    const list = await svFetchServicios(true);
+    if (!list.length) { el.innerHTML = '<div style="color:var(--gray);font-size:12px;padding:8px 0">Sin servicios cargados. Agregá el primero abajo.</div>'; return; }
+    el.innerHTML = list.map(s => `
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <span style="font-size:11px;color:var(--gray2);width:34px;flex-shrink:0">${s.id}</span>
+        <input class="form-input" style="flex:1;padding:6px 10px;font-size:12px" value="${(s.descripcion||'').replace(/"/g,'&quot;')}" onchange="svUpdate('${s.id}','descripcion',this.value)">
+        <input class="form-input" type="number" style="width:120px;padding:6px 10px;font-size:12px" value="${s.pesos||0}" onchange="svUpdate('${s.id}','pesos',this.value)">
+        <button class="btn-sm" onclick="svToggleActivo('${s.id}')" title="Activar / desactivar" style="opacity:${s.activo?1:0.35}">${s.activo?'ON':'OFF'}</button>
+        <button class="btn-sm" onclick="svDelete('${s.id}')" style="color:var(--red)">✕</button>
+      </div>`).join('');
+  } catch(err) { el.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px 0">' + err.message + '</div>'; }
+}
+
+async function svPost(body) {
+  const r = await fetch(CLIENTES_WORKER + '/servicios', { method: 'POST', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) { toast('Error guardando servicio', 'error'); return null; }
+  _svCache = null;
+  _cachedServicios = null;
+  return r.json();
+}
+
+async function svAdd() {
+  const desc = document.getElementById('sv-new-desc').value.trim();
+  if (!desc) { toast('Descripción requerida', 'error'); return; }
+  const res = await svPost({
+    id: document.getElementById('sv-new-id').value.trim(),
+    descripcion: desc,
+    pesos: Number(document.getElementById('sv-new-pesos').value) || 0
+  });
+  if (res && res.ok) {
+    ['sv-new-id','sv-new-desc','sv-new-pesos'].forEach(id => document.getElementById(id).value = '');
+    toast('Servicio agregado ✓');
+    svRender();
+    ctCargarServicios();
+  }
+}
+
+async function svUpdate(id, field, value) {
+  const s = (_svCache || await svFetchServicios()).find(x => x.id === id);
+  if (!s) return;
+  const res = await svPost({ ...s, [field]: field === 'pesos' ? (Number(value) || 0) : value });
+  if (res && res.ok) { toast('Guardado ✓'); ctCargarServicios(); }
+}
+
+async function svToggleActivo(id) {
+  const s = (_svCache || await svFetchServicios()).find(x => x.id === id);
+  if (!s) return;
+  const res = await svPost({ ...s, activo: s.activo ? 0 : 1 });
+  if (res && res.ok) { svRender(); ctCargarServicios(); }
+}
+
+async function svDelete(id) {
+  if (!confirm('¿Eliminar el servicio ' + id + '?')) return;
+  const r = await fetch(CLIENTES_WORKER + '/servicios/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + getAdminJWT() } });
+  if (r.ok) { _svCache = null; _cachedServicios = null; toast('Servicio eliminado'); svRender(); ctCargarServicios(); }
+}
+
 function ctCargarServicios() {
-  const url = ctGetUrl();
-  if (!url) return null;
   const grid = document.getElementById('ct-svc-grid');
   if (!grid) return null;
   grid.innerHTML = '<div style="color:var(--gray);font-size:12px;grid-column:1/-1">Cargando...</div>';
-  ctSvcReady = _jsonp(url + '?action=getServicios' + ctExtraParams())
-    .then(data => ctRenderServicios(data))
+  ctSvcReady = svFetchServicios(true)
+    .then(data => ctRenderServicios((data || []).filter(s => s.activo !== 0)))
     .catch(err => {
       console.error('[ctCargarServicios]', err);
-      grid.innerHTML = `<div style="color:var(--red);font-size:12px;grid-column:1/-1">Error cargando servicios: ${err.message || err}. Verificá la URL y que el Apps Script esté desplegado.</div>`;
+      grid.innerHTML = `<div style="color:var(--red);font-size:12px;grid-column:1/-1">Error cargando servicios: ${err.message || err}. Cargalos en "Servicios y precios".</div>`;
     });
   return ctSvcReady;
 }
