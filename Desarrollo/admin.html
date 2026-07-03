@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.56</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.57</div>
     </div>
   </aside>
 
@@ -1019,6 +1019,27 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
                   <input type="checkbox" id="inv-estilo-aero" style="accent-color:var(--gold);width:15px;height:15px">
                   <label for="inv-estilo-aero" style="font-size:12px;color:var(--gray2);cursor:pointer">Efecto Aero (glassmorphism)</label>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Formato de portada</label>
+                  <select class="form-input" id="inv-formato" onchange="invFormatoChange()">
+                    <option value="clasico">Clásica</option>
+                    <option value="wedding">Wedding</option>
+                  </select>
+                </div>
+              </div>
+              <div class="inv-form-2col" id="inv-wedding-opts" style="display:none;margin-top:16px">
+                <div class="form-group">
+                  <label class="form-label">Texto script (portada)</label>
+                  <input type="text" class="form-input" id="inv-wedding-script" placeholder="The Wedding">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Efecto de separación texto/foto</label>
+                  <select class="form-input" id="inv-wedding-fx">
+                    <option value="glow">Glow suave + sombra</option>
+                    <option value="blur">Aero / blur detrás</option>
+                    <option value="sombra">Solo sombra oscura</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -1717,6 +1738,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div class="form-group"><label class="form-label">Precio (sin ARS)</label><input class="form-input" id="cnt-svc-price-2" placeholder="Desde $20.000"></div>
             </div>
             <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-svc-desc-2"></textarea></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Promo Combo Lanzamiento</div>
+            <label style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--gray2);cursor:pointer;margin-bottom:12px">
+              <input type="checkbox" id="cnt-svc-promo-enabled" checked style="accent-color:var(--gold);width:15px;height:15px">
+              Mostrar cartel de promo arriba de las cards
+            </label>
+            <div class="form-group"><label class="form-label">Texto del cartel</label><input class="form-input" id="cnt-svc-promo-text" placeholder="Promo Combo Lanzamiento · 50% OFF"></div>
           </div>
           <button class="btn-add" onclick="saveContentSection('servicios')">Guardar Servicios</button>
         </div>
@@ -5555,11 +5584,20 @@ function loadContentPage() {
   });
   renderStatsEditor(a.stats || [{n:'300+',l:'Eventos cubiertos'},{n:'8+',l:'Años experiencia'},{n:'2',l:'Marcas propias'},{n:'100%',l:'Clientes felices'}]);
 
-  // SERVICES
-  const svc = c.services || {};
-  document.getElementById('cnt-svc-eyebrow').value = svc.eyebrow || 'Qué ofrezco';
-  document.getElementById('cnt-svc-title').value = svc.title || 'Mis servicios';
-  renderServicesEditor(svc.items || SERVICES_DEFAULT);
+  // SERVICIOS (kuerre: 3 cards fijas + promo combo)
+  const svc = c.servicios || {};
+  document.getElementById('cnt-svc-eyebrow').value = svc.eyebrow || '';
+  document.getElementById('cnt-svc-title').value = svc.title || '';
+  (svc.cards || []).forEach((card, i) => {
+    const n = document.getElementById('cnt-svc-name-'+i); if(n) n.value = card.name || '';
+    const d = document.getElementById('cnt-svc-desc-'+i); if(d) d.value = card.desc || '';
+    const p = document.getElementById('cnt-svc-price-'+i); if(p) p.value = card.price || '';
+  });
+  const promo = svc.promo_combo || {};
+  const promoEnabledEl = document.getElementById('cnt-svc-promo-enabled');
+  if(promoEnabledEl) promoEnabledEl.checked = promo.enabled !== false;
+  const promoTextEl = document.getElementById('cnt-svc-promo-text');
+  if(promoTextEl) promoTextEl.value = promo.text || '';
 
   // PRICING — render first tab
   renderPricingEditor('xv');
@@ -5878,6 +5916,21 @@ function saveContentSection(section) {
       eyebrow: document.getElementById('cnt-svc-eyebrow').value.trim(),
       title: document.getElementById('cnt-svc-title').value.trim(),
       items: collectServices()
+    };
+  }
+  else if(section === 'servicios') {
+    c.servicios = {
+      eyebrow: document.getElementById('cnt-svc-eyebrow').value.trim(),
+      title: document.getElementById('cnt-svc-title').value.trim(),
+      cards: [0, 1, 2].map(i => ({
+        name: document.getElementById('cnt-svc-name-' + i).value.trim(),
+        desc: document.getElementById('cnt-svc-desc-' + i).value.trim(),
+        price: document.getElementById('cnt-svc-price-' + i).value.trim()
+      })),
+      promo_combo: {
+        enabled: document.getElementById('cnt-svc-promo-enabled').checked,
+        text: document.getElementById('cnt-svc-promo-text').value.trim()
+      }
     };
   }
   else if(section === 'pricing') {
@@ -6449,6 +6502,10 @@ function openInviteModal(id) {
     document.getElementById('inv-env-particulas-tam-val').textContent = tam;
     document.getElementById('inv-color-esquema').value = c.color_esquema || 'negro';
     document.getElementById('inv-estilo-aero').checked = !!c.estilo_aero;
+    document.getElementById('inv-formato').value = c.formato || 'clasico';
+    document.getElementById('inv-wedding-script').value = c.wedding_script || '';
+    document.getElementById('inv-wedding-fx').value = c.wedding_fx || 'glow';
+    invFormatoChange();
     const slugEl = document.getElementById('inv-slug');
     slugEl.value = inv.slug || '';
     slugEl.dataset.manual = inv.slug ? '1' : '';
@@ -6483,6 +6540,10 @@ function openInviteModal(id) {
     document.getElementById('inv-tipo').value = 'casamiento';
     document.getElementById('inv-color-esquema').value = 'negro';
     document.getElementById('inv-estilo-aero').checked = false;
+    document.getElementById('inv-formato').value = 'clasico';
+    document.getElementById('inv-wedding-script').value = '';
+    document.getElementById('inv-wedding-fx').value = 'glow';
+    invFormatoChange();
     setHeroTextPos(0, 0);
     ['inv-media-preview-img','inv-media-preview-vid'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
     invTipoChange();
@@ -6542,6 +6603,9 @@ function readInviteForm() {
       env_particulas_tam: parseInt(document.getElementById('inv-env-particulas-tam').value),
       color_esquema: document.getElementById('inv-color-esquema').value,
       estilo_aero: document.getElementById('inv-estilo-aero').checked,
+      formato: document.getElementById('inv-formato').value,
+      wedding_script: document.getElementById('inv-wedding-script').value.trim(),
+      wedding_fx: document.getElementById('inv-wedding-fx').value,
       logo_dark: S.get('crd_site_logo') || '',
       logo_light: S.get('crd_site_logo') || '',
       logo_filter: S.get('crd_site_logo_filter') || '',
@@ -6830,6 +6894,11 @@ function invTipoChange() {
   document.getElementById('inv-recepcion-lugar-wrap').style.display = esBoda ? '' : 'none';
   document.getElementById('inv-lugar-hint').style.display = esBoda ? 'none' : 'block';
   document.getElementById('inv-recepcion-hora-label').textContent = esBoda ? 'Horario — Recepción / Fiesta' : 'Horario del evento';
+}
+
+function invFormatoChange() {
+  const wedding = document.getElementById('inv-formato').value === 'wedding';
+  document.getElementById('inv-wedding-opts').style.display = wedding ? '' : 'none';
 }
 
 function invPreviewMedia(url, type) {
