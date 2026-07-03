@@ -30,13 +30,13 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
 #hero-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0}
 @media(min-width:769px){#hero-media{object-fit:contain}}
 #hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(12,12,12,0.3) 0%,rgba(12,12,12,0.5) 60%,rgba(12,12,12,0.85) 100%);z-index:1}
-#hero-content{position:relative;z-index:2;padding:0 24px}
+#hero-content{position:relative;z-index:2;padding:0 24px;display:flex;flex-direction:column;align-items:center}
 .hero-eyebrow{font-size:10px;letter-spacing:6px;text-transform:uppercase;color:var(--gold);margin-bottom:24px;opacity:0.9}
 .hero-names{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,10vw,100px);font-weight:300;line-height:1;letter-spacing:-1px;margin-bottom:16px}
 .hero-names em{font-style:italic;color:var(--gold2)}
 .hero-ampersand{color:var(--gold);font-weight:300;padding:0 8px}
 .hero-date{font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--gray2);margin-top:20px}
-#countdown{display:flex;gap:32px;justify-content:center;margin-top:36px}
+#countdown{display:flex;gap:32px;justify-content:center;margin-top:36px;order:99}
 .cd-unit{text-align:center}
 .cd-num{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:var(--gold);display:block;line-height:1}
 .cd-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gray);margin-top:4px;display:block}
@@ -446,6 +446,7 @@ const CONFIG = {
   LOCALE:      'es-AR'
 };
 const CF_URL_INV = CONFIG.CF_URL; // alias para compatibilidad
+const PREVIEW_MODE = new URLSearchParams(location.search).get('preview') === '1';
 
 // ── PARTÍCULAS AERO ──
 let _aeroRAF = null, _aeroCanvas = null;
@@ -558,6 +559,114 @@ function formatFechaLimite(iso) {
   return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
 }
 
+const HERO_BLOCK_IDS = ['eyebrow', 'names', 'date'];
+let heroLayout = null;
+
+function defaultHeroLayout(tx, ty) {
+  return {
+    order: ['eyebrow', 'names', 'date'],
+    pos: { eyebrow: { x: tx, y: ty }, names: { x: tx, y: ty }, date: { x: tx, y: ty } }
+  };
+}
+
+function resolveHeroLayout(c) {
+  if (c.hero_layout && Array.isArray(c.hero_layout.order) && c.hero_layout.pos) return c.hero_layout;
+  return defaultHeroLayout(c.hero_text_x || 0, c.hero_text_y || 0);
+}
+
+function applyHeroLayout(layout) {
+  HERO_BLOCK_IDS.forEach((id, i) => {
+    const el = document.getElementById('hero-' + id);
+    if (!el) return;
+    const ord = layout.order.indexOf(id);
+    el.style.order = ord === -1 ? i : ord;
+    const p = layout.pos[id] || { x: 0, y: 0 };
+    el.style.transform = (p.x || p.y) ? `translate(${p.x}px,${p.y}px)` : '';
+  });
+}
+
+window.applyHeroPreview = function(c) {
+  if (!PREVIEW_MODE) return;
+  cfg = c || {};
+  renderHero(cfg);
+};
+
+window.getHeroLayout = function() {
+  return heroLayout ? JSON.parse(JSON.stringify(heroLayout)) : null;
+};
+
+let heroDrag = null;
+let heroWheelTimer = null;
+
+function initHeroPreviewInteractions() {
+  HERO_BLOCK_IDS.forEach(id => {
+    const el = document.getElementById('hero-' + id);
+    if (!el) return;
+    el.style.cursor = 'grab';
+    el.addEventListener('mousedown', e => startHeroDrag(e, id));
+    el.addEventListener('wheel', e => wheelHeroNudge(e, id), { passive: false });
+  });
+  document.addEventListener('mousemove', onHeroDragMove);
+  document.addEventListener('mouseup', endHeroDrag);
+}
+
+function startHeroDrag(e, id) {
+  e.preventDefault();
+  const p = heroLayout.pos[id] || { x: 0, y: 0 };
+  heroDrag = { id, startX: e.clientX, startY: e.clientY, origX: p.x, origY: p.y };
+  document.getElementById('hero-' + id).style.cursor = 'grabbing';
+}
+
+function onHeroDragMove(e) {
+  if (!heroDrag) return;
+  const dx = e.clientX - heroDrag.startX;
+  const dy = e.clientY - heroDrag.startY;
+  heroLayout.pos[heroDrag.id] = { x: heroDrag.origX + dx, y: heroDrag.origY + dy };
+  applyHeroLayout(heroLayout);
+  checkHeroReorder(heroDrag.id);
+}
+
+function checkHeroReorder(draggedId) {
+  const draggedEl = document.getElementById('hero-' + draggedId);
+  const draggedRect = draggedEl.getBoundingClientRect();
+  const draggedMid = draggedRect.top + draggedRect.height / 2;
+  HERO_BLOCK_IDS.filter(id => id !== draggedId).forEach(otherId => {
+    const otherEl = document.getElementById('hero-' + otherId);
+    const r = otherEl.getBoundingClientRect();
+    const otherMid = r.top + r.height / 2;
+    const draggedOrder = heroLayout.order.indexOf(draggedId);
+    const otherOrder = heroLayout.order.indexOf(otherId);
+    const shouldSwap = (draggedOrder < otherOrder && draggedMid > otherMid) ||
+                        (draggedOrder > otherOrder && draggedMid < otherMid);
+    if (shouldSwap) {
+      heroLayout.order[draggedOrder] = otherId;
+      heroLayout.order[otherOrder] = draggedId;
+      applyHeroLayout(heroLayout);
+    }
+  });
+}
+
+function endHeroDrag() {
+  if (!heroDrag) return;
+  document.getElementById('hero-' + heroDrag.id).style.cursor = 'grab';
+  heroDrag = null;
+  emitHeroLayoutChange();
+}
+
+function wheelHeroNudge(e, id) {
+  e.preventDefault();
+  const p = heroLayout.pos[id] || { x: 0, y: 0 };
+  const dy = e.deltaY > 0 ? 2 : -2;
+  heroLayout.pos[id] = { x: p.x, y: p.y + dy };
+  applyHeroLayout(heroLayout);
+  clearTimeout(heroWheelTimer);
+  heroWheelTimer = setTimeout(emitHeroLayoutChange, 150);
+}
+
+function emitHeroLayoutChange() {
+  window.dispatchEvent(new CustomEvent('herolayoutchange', { detail: JSON.parse(JSON.stringify(heroLayout)) }));
+}
+
 function renderHero(c) {
   document.title = c.titulo || (c.novios ? `Invitación — ${c.novios}` : 'Invitación');
   document.getElementById('hero-eyebrow').textContent = c.tipo === 'save_the_date' ? (c.titulo || 'Save The Date') : (c.titulo || '¡Nos casamos!');
@@ -569,6 +678,8 @@ function renderHero(c) {
     document.getElementById('hero-names').textContent = names;
   }
   document.getElementById('hero-date').textContent = c.fecha_display || '';
+  heroLayout = resolveHeroLayout(c);
+  applyHeroLayout(heroLayout);
 
   const wrap = document.getElementById('hero-media-wrap');
   if (c.media_url) {
@@ -766,6 +877,14 @@ function svgChurch() { return `<svg width="28" height="28" fill="none" viewBox="
 function svgParty() { return `<svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l-4 14 5-5 4 6-1-15z"/></svg>`; }
 
 async function init() {
+  if (PREVIEW_MODE) {
+    cfg = {};
+    document.body.style.userSelect = 'none';
+    renderHero(cfg);
+    document.getElementById('invite-app').style.display = 'block';
+    initHeroPreviewInteractions();
+    return;
+  }
   if (!cfg) cfg = await parseConfig();
   if (!cfg) {
     document.getElementById('placeholder').style.display = 'flex';

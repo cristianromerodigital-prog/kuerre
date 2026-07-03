@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.57</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.56</div>
     </div>
   </aside>
 
@@ -740,26 +740,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <!-- POSICIÓN TEXTO PORTADA -->
             <div class="inv-modal-section">
               <div class="inv-modal-section-title">Posición del Texto en Portada</div>
-              <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-                <div style="display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);gap:4px">
-                  <div></div>
-                  <button type="button" onclick="nudgeHeroText(0,-20)" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:18px;cursor:pointer;border-radius:4px">↑</button>
-                  <div></div>
-                  <button type="button" onclick="nudgeHeroText(-20,0)" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:18px;cursor:pointer;border-radius:4px">←</button>
-                  <button type="button" onclick="resetHeroTextPos()" style="background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);color:var(--gold);font-size:13px;cursor:pointer;border-radius:4px" title="Centrar">⊙</button>
-                  <button type="button" onclick="nudgeHeroText(20,0)" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:18px;cursor:pointer;border-radius:4px">→</button>
-                  <div></div>
-                  <button type="button" onclick="nudgeHeroText(0,20)" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--white);font-size:18px;cursor:pointer;border-radius:4px">↓</button>
-                  <div></div>
-                </div>
-                <div style="font-size:12px;color:var(--gray2);line-height:1.8">
-                  <div>X: <span id="inv-text-x-val" style="color:var(--gold);font-family:monospace;font-size:13px">0</span> px</div>
-                  <div>Y: <span id="inv-text-y-val" style="color:var(--gold);font-family:monospace;font-size:13px">0</span> px</div>
-                  <div style="font-size:10px;color:var(--gray);margin-top:6px">Cada paso = 20px · ⊙ centra</div>
-                </div>
-              </div>
-              <input type="hidden" id="inv-text-x" value="0">
-              <input type="hidden" id="inv-text-y" value="0">
+              <div style="font-size:11px;color:var(--gray2);margin-bottom:10px;line-height:1.6">Ajustá dónde va cada texto sobre la foto o video de portada.</div>
+              <button type="button" class="btn-sm" onclick="openHeroPopup()">✎ Editar posición</button>
             </div>
 
             <!-- HORARIOS -->
@@ -1050,6 +1032,22 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div style="display:flex;gap:10px">
               <button class="btn-sm" onclick="saveAndPreviewInvite()">Guardar y previsualizar</button>
               <button class="btn-add" onclick="saveInvite()">Guardar invitación</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HERO POSITION POPUP -->
+      <div class="modal-bg" id="inv-hero-popup" style="z-index:600">
+        <div class="modal" style="max-width:460px;width:auto;background:var(--black2)">
+          <div class="modal-header">
+            <span>Posición del Texto en Portada</span>
+            <button class="modal-close" onclick="closeHeroPopup()">✕</button>
+          </div>
+          <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;align-items:center">
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;line-height:1.6;text-align:center;max-width:340px">Arrastrá los textos para reposicionarlos y reordenarlos (arriba/medio/abajo). Rueda del mouse sobre un texto = ajuste fino.</div>
+            <div id="inv-hero-popup-frame-wrap" style="overflow:hidden;border:1px solid var(--border);border-radius:8px;background:#000">
+              <iframe id="inv-hero-preview" style="width:390px;height:844px;border:0;display:block;transform-origin:0 0"></iframe>
             </div>
           </div>
         </div>
@@ -1738,14 +1736,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <div class="form-group"><label class="form-label">Precio (sin ARS)</label><input class="form-input" id="cnt-svc-price-2" placeholder="Desde $20.000"></div>
             </div>
             <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="cnt-svc-desc-2"></textarea></div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-section-title">Promo Combo Lanzamiento</div>
-            <label style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--gray2);cursor:pointer;margin-bottom:12px">
-              <input type="checkbox" id="cnt-svc-promo-enabled" checked style="accent-color:var(--gold);width:15px;height:15px">
-              Mostrar cartel de promo arriba de las cards
-            </label>
-            <div class="form-group"><label class="form-label">Texto del cartel</label><input class="form-input" id="cnt-svc-promo-text" placeholder="Consultá aquí por Promo Combo Lanzamiento · 50% OFF"></div>
           </div>
           <button class="btn-add" onclick="saveContentSection('servicios')">Guardar Servicios</button>
         </div>
@@ -5584,20 +5574,11 @@ function loadContentPage() {
   });
   renderStatsEditor(a.stats || [{n:'300+',l:'Eventos cubiertos'},{n:'8+',l:'Años experiencia'},{n:'2',l:'Marcas propias'},{n:'100%',l:'Clientes felices'}]);
 
-  // SERVICIOS (kuerre: 3 cards fijas + promo combo)
-  const svc = c.servicios || {};
-  document.getElementById('cnt-svc-eyebrow').value = svc.eyebrow || '';
-  document.getElementById('cnt-svc-title').value = svc.title || '';
-  (svc.cards || []).forEach((card, i) => {
-    const n = document.getElementById('cnt-svc-name-'+i); if(n) n.value = card.name || '';
-    const d = document.getElementById('cnt-svc-desc-'+i); if(d) d.value = card.desc || '';
-    const p = document.getElementById('cnt-svc-price-'+i); if(p) p.value = card.price || '';
-  });
-  const promo = svc.promo_combo || {};
-  const promoEnabledEl = document.getElementById('cnt-svc-promo-enabled');
-  if(promoEnabledEl) promoEnabledEl.checked = promo.enabled !== false;
-  const promoTextEl = document.getElementById('cnt-svc-promo-text');
-  if(promoTextEl) promoTextEl.value = promo.text || '';
+  // SERVICES
+  const svc = c.services || {};
+  document.getElementById('cnt-svc-eyebrow').value = svc.eyebrow || 'Qué ofrezco';
+  document.getElementById('cnt-svc-title').value = svc.title || 'Mis servicios';
+  renderServicesEditor(svc.items || SERVICES_DEFAULT);
 
   // PRICING — render first tab
   renderPricingEditor('xv');
@@ -5916,21 +5897,6 @@ function saveContentSection(section) {
       eyebrow: document.getElementById('cnt-svc-eyebrow').value.trim(),
       title: document.getElementById('cnt-svc-title').value.trim(),
       items: collectServices()
-    };
-  }
-  else if(section === 'servicios') {
-    c.servicios = {
-      eyebrow: document.getElementById('cnt-svc-eyebrow').value.trim(),
-      title: document.getElementById('cnt-svc-title').value.trim(),
-      cards: [0, 1, 2].map(i => ({
-        name: document.getElementById('cnt-svc-name-' + i).value.trim(),
-        desc: document.getElementById('cnt-svc-desc-' + i).value.trim(),
-        price: document.getElementById('cnt-svc-price-' + i).value.trim()
-      })),
-      promo_combo: {
-        enabled: document.getElementById('cnt-svc-promo-enabled').checked,
-        text: document.getElementById('cnt-svc-promo-text').value.trim()
-      }
     };
   }
   else if(section === 'pricing') {
@@ -6510,7 +6476,8 @@ function openInviteModal(id) {
     slugEl.value = inv.slug || '';
     slugEl.dataset.manual = inv.slug ? '1' : '';
     invPreviewMedia(c.media_url, c.media_type);
-    setHeroTextPos(c.hero_text_x || 0, c.hero_text_y || 0);
+    _heroLayout = resolveHeroLayoutFromConfig(c);
+    initHeroPreviewIframe();
     invSetMode(c.tipo === 'save_the_date' ? 'save_the_date' : 'invitacion');
     document.getElementById('inv-rsvp-summary').textContent = '';
     document.getElementById('inv-rsvp-panel-url').textContent = '';
@@ -6544,7 +6511,8 @@ function openInviteModal(id) {
     document.getElementById('inv-wedding-script').value = '';
     document.getElementById('inv-wedding-fx').value = 'glow';
     invFormatoChange();
-    setHeroTextPos(0, 0);
+    _heroLayout = defaultHeroLayout(0, 0);
+    initHeroPreviewIframe();
     ['inv-media-preview-img','inv-media-preview-vid'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
     invTipoChange();
   }
@@ -6609,25 +6577,12 @@ function readInviteForm() {
       logo_dark: S.get('crd_site_logo') || '',
       logo_light: S.get('crd_site_logo') || '',
       logo_filter: S.get('crd_site_logo_filter') || '',
-      hero_text_x: parseInt(document.getElementById('inv-text-x').value) || 0,
-      hero_text_y: parseInt(document.getElementById('inv-text-y').value) || 0
+      hero_layout: _heroLayout || defaultHeroLayout(0, 0)
     },
     slug: document.getElementById('inv-slug').value.trim() || toSlug(document.getElementById('inv-novios').value.trim()) || 'invitacion'
   };
 }
 
-function nudgeHeroText(dx, dy) {
-  const x = (parseInt(document.getElementById('inv-text-x').value) || 0) + dx;
-  const y = (parseInt(document.getElementById('inv-text-y').value) || 0) + dy;
-  setHeroTextPos(x, y);
-}
-function resetHeroTextPos() { setHeroTextPos(0, 0); }
-function setHeroTextPos(x, y) {
-  document.getElementById('inv-text-x').value = x;
-  document.getElementById('inv-text-y').value = y;
-  document.getElementById('inv-text-x-val').textContent = x;
-  document.getElementById('inv-text-y-val').textContent = y;
-}
 
 function getRealInviteSlug() {
   if (!invEditingId) return '';
@@ -6690,25 +6645,29 @@ function saveInvite() {
   const data = readInviteForm();
   if (!data.config.novios && !data.config.titulo) { toast('Ingresá al menos un nombre o título'); return; }
   const list = getInvites();
+  let savedId;
   if (invEditingId) {
+    savedId = invEditingId;
     const idx = list.findIndex(i => i.id === invEditingId);
     if (idx !== -1) { list[idx].tipo = data.tipo; list[idx].config = data.config; list[idx].slug = data.slug; }
   } else {
-    const newId = 'inv_' + Date.now();
-    list.unshift({ id: newId, tipo: data.tipo, config: data.config, slug: data.slug, created: new Date().toISOString() });
+    savedId = 'inv_' + Date.now();
+    list.unshift({ id: savedId, tipo: data.tipo, config: data.config, slug: data.slug, created: new Date().toISOString() });
     if (_invClienteId) {
       const cid = _invClienteId;
       fetch(CLIENTES_WORKER + '/solicitudes/' + cid + '/invite', {
         method: 'PATCH',
         headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invite_id: newId })
+        body: JSON.stringify({ invite_id: savedId })
       }).then(function() {
         const idx = _clientes.findIndex(function(x){ return x.id === cid; });
-        if (idx !== -1) _clientes[idx].invite_id = newId;
+        if (idx !== -1) _clientes[idx].invite_id = savedId;
       }).catch(function(){});
     }
   }
   saveInvites(list);
+  const inv = list.find(i => i.id === savedId);
+  if (inv) genInviteUrl(inv);
   closeInviteModal();
   renderInvitesPage();
   toast('Invitación guardada ✓');
@@ -6900,6 +6859,103 @@ function invFormatoChange() {
   const wedding = document.getElementById('inv-formato').value === 'wedding';
   document.getElementById('inv-wedding-opts').style.display = wedding ? '' : 'none';
 }
+
+// ── HERO PREVIEW (arrastre/reorden/rueda) ──
+let _heroLayout = null;
+let _heroPreviewDebounce = null;
+let _heroPreviewListenersBound = false;
+const HERO_PREVIEW_WATCH_FIELDS = ['inv-novios', 'inv-titulo', 'inv-fecha-display', 'inv-media-url',
+  'inv-wedding-script', 'inv-formato', 'inv-color-esquema', 'inv-wedding-fx', 'inv-media-type', 'inv-tipo'];
+
+function defaultHeroLayout(tx, ty) {
+  return {
+    order: ['eyebrow', 'names', 'date'],
+    pos: { eyebrow: { x: tx, y: ty }, names: { x: tx, y: ty }, date: { x: tx, y: ty } }
+  };
+}
+
+function resolveHeroLayoutFromConfig(c) {
+  if (c && c.hero_layout && Array.isArray(c.hero_layout.order) && c.hero_layout.pos) return c.hero_layout;
+  return defaultHeroLayout((c && c.hero_text_x) || 0, (c && c.hero_text_y) || 0);
+}
+
+function buildHeroPreviewCfg() {
+  return {
+    formato: document.getElementById('inv-formato').value,
+    tipo: document.getElementById('inv-tipo').value,
+    novios: document.getElementById('inv-novios').value.trim(),
+    titulo: document.getElementById('inv-titulo').value.trim(),
+    fecha_display: document.getElementById('inv-fecha-display').value.trim(),
+    fecha_iso: document.getElementById('inv-fecha-iso').value,
+    media_url: document.getElementById('inv-media-url').value.trim(),
+    media_type: document.getElementById('inv-media-type').value,
+    color_esquema: document.getElementById('inv-color-esquema').value,
+    wedding_script: document.getElementById('inv-wedding-script').value.trim(),
+    wedding_fx: document.getElementById('inv-wedding-fx').value,
+    hero_layout: _heroLayout
+  };
+}
+
+function refreshHeroPreview() {
+  const iframe = document.getElementById('inv-hero-preview');
+  if (!iframe || !iframe.contentWindow || !iframe.contentWindow.applyHeroPreview) return;
+  iframe.contentWindow.applyHeroPreview(buildHeroPreviewCfg());
+}
+
+function scheduleHeroPreviewRefresh() {
+  clearTimeout(_heroPreviewDebounce);
+  _heroPreviewDebounce = setTimeout(refreshHeroPreview, 200);
+}
+
+function bindHeroPreviewFieldListeners() {
+  if (_heroPreviewListenersBound) return;
+  _heroPreviewListenersBound = true;
+  const modal = document.getElementById('inv-modal');
+  modal.addEventListener('input', e => {
+    if (HERO_PREVIEW_WATCH_FIELDS.includes(e.target.id)) scheduleHeroPreviewRefresh();
+  });
+  modal.addEventListener('change', e => {
+    if (HERO_PREVIEW_WATCH_FIELDS.includes(e.target.id)) scheduleHeroPreviewRefresh();
+  });
+}
+
+function initHeroPreviewIframe() {
+  bindHeroPreviewFieldListeners();
+  const iframe = document.getElementById('inv-hero-preview');
+  iframe.onload = () => {
+    iframe.contentWindow.addEventListener('herolayoutchange', e => { _heroLayout = e.detail; });
+    refreshHeroPreview();
+  };
+  iframe.src = getInvBaseUrl() + '?preview=1&_=' + Date.now();
+}
+
+const HERO_POPUP_NATIVE_W = 390;
+const HERO_POPUP_NATIVE_H = 844;
+
+function openHeroPopup() {
+  document.getElementById('inv-hero-popup').classList.add('open');
+  scaleHeroPopupFrame();
+  refreshHeroPreview();
+}
+
+function closeHeroPopup() {
+  document.getElementById('inv-hero-popup').classList.remove('open');
+}
+
+function scaleHeroPopupFrame() {
+  const wrap = document.getElementById('inv-hero-popup-frame-wrap');
+  const iframe = document.getElementById('inv-hero-preview');
+  const maxW = Math.min(HERO_POPUP_NATIVE_W, window.innerWidth - 80);
+  const maxH = window.innerHeight - 260;
+  const scale = Math.min(maxW / HERO_POPUP_NATIVE_W, maxH / HERO_POPUP_NATIVE_H, 1);
+  iframe.style.transform = `scale(${scale})`;
+  wrap.style.width = (HERO_POPUP_NATIVE_W * scale) + 'px';
+  wrap.style.height = (HERO_POPUP_NATIVE_H * scale) + 'px';
+}
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('inv-hero-popup').classList.contains('open')) scaleHeroPopupFrame();
+});
 
 function invPreviewMedia(url, type) {
   const t = type || document.getElementById('inv-media-type').value;
