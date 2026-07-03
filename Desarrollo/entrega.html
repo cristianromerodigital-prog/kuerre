@@ -535,6 +535,25 @@ function applyLogo(src, filter) {
   if(preImg) { preImg.src = src; preImg.style.filter = f; preWrap.style.display = 'flex'; document.querySelector('.loading-spinner').style.display = 'none'; }
 }
 
+// ── Datos pre-indexados por el admin en CF KV (misma cache que usa premiere.html, <1s) ──
+function _cfIndexKey() { return 'crd_pm_' + (EVENT_ID || CFG.folderId); }
+
+function tabsFromIndex(photoRows, videoRows) {
+  const tabs = [];
+  const panels = {};
+  (photoRows || []).forEach(row => {
+    const key = 'foto_' + row.folderId;
+    tabs.push({ key, label: row.label, type: 'fotos', folderId: row.folderId });
+    panels[key] = row.items || [];
+  });
+  (videoRows || []).forEach(row => {
+    const key = 'video_' + row.folderId;
+    tabs.push({ key, label: row.label, type: 'videos', folderId: row.folderId });
+    panels[key] = row.items || [];
+  });
+  return { tabs, panels };
+}
+
 async function init() {
   startFrases();
 
@@ -544,6 +563,7 @@ async function init() {
     : Promise.resolve(null);
   const fetchGasUrl = fetch(CF_URL + '/KUERRE_contratos_cfg').then(r => r.text()).catch(() => null);
   const fetchSett   = fetch(CF_URL + '/KUERRE_settings').then(r => r.text()).catch(() => null);
+  const fetchIndex  = fetch(CF_URL + '/' + _cfIndexKey() + '?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
 
   // Esperar evento + GAS URL (ambos necesarios antes del Drive call)
   const [eventData, gasRaw] = await Promise.all([fetchEvent, fetchGasUrl]);
@@ -561,15 +581,8 @@ async function init() {
     showError('No se especificó carpeta. Contactá al fotógrafo para obtener el enlace correcto.');
     stopFrases(); return;
   }
-  if(!GAS_URL) {
-    showError('Sin conexión con el servidor. Contactá al fotógrafo.');
-    stopFrases(); return;
-  }
 
-  // Iniciar carga de Drive
-  const drivePromise = gasCallRetry({ action: 'getDriveFolder', folder: CFG.folderId });
-
-  // Aplicar social cuando llegue (no bloquea Drive)
+  // Aplicar social en paralelo (no bloquea nada)
   fetchSett.then(raw => {
     if(!raw) return;
     try {
@@ -589,9 +602,25 @@ async function init() {
     } catch(e) {}
   });
 
-  // Esperar Drive (cuello de botella real)
+  // 1. Fast path: datos pre-indexados por el admin (misma cache de premiere.html)
   try {
-    const root = await drivePromise;
+    const idx = await fetchIndex;
+    if(idx && ((idx.photoRows && idx.photoRows.length) || (idx.videoRows && idx.videoRows.length))) {
+      const { tabs, panels } = tabsFromIndex(idx.photoRows, idx.videoRows);
+      allPanels = panels;
+      renderTabs(tabs);
+      if(tabs.length > 0) await switchTab(tabs[0]);
+      stopFrases(); hideLoading(); return;
+    }
+  } catch(e) {}
+
+  // 2. Fallback: admin no indexó aún — cargar en vivo desde Drive vía GAS
+  if(!GAS_URL) {
+    showError('Sin conexión con el servidor. Contactá al fotógrafo.');
+    stopFrases(); return;
+  }
+  try {
+    const root = await gasCallRetry({ action: 'getDriveFolder', folder: CFG.folderId });
     if(root.error) { showError('Error al cargar: ' + root.error); stopFrases(); return; }
     await buildStructure(root);
   } catch(err) {
@@ -1097,10 +1126,15 @@ function showError(msg) {
   document.getElementById('panels-container').innerHTML =
     `<div style="text-align:center;padding:80px 20px;color:rgba(255,255,255,.4);font-size:13px;line-height:1.8">${msg}</div>`;
 }
+const _loadStart = Date.now();
+
 function hideLoading() {
-  const ls = document.getElementById('loading-screen');
-  ls.classList.add('hidden');
-  setTimeout(() => ls.style.display = 'none', 700);
+  const remaining = Math.max(0, 3000 - (Date.now() - _loadStart));
+  setTimeout(() => {
+    const ls = document.getElementById('loading-screen');
+    ls.classList.add('hidden');
+    setTimeout(() => ls.style.display = 'none', 700);
+  }, remaining);
 }
 
 // ═══════════════════════════════════════════════════════════
