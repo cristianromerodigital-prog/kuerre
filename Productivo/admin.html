@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.56</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.57</div>
     </div>
   </aside>
 
@@ -6782,9 +6782,14 @@ function invApplySubtiuloPreset(val) {
 }
 
 function openInvDriveBrowser() {
-  openDriveBrowser(url => {
+  openDriveBrowser((url, fileName) => {
+    if (fileName && /\.(mp4|mov|webm|m4v|avi)$/i.test(fileName)) {
+      toast('Los videos de Drive no se pueden reproducir acá — subilo con el botón "⬆ Subir"', 'error');
+      return;
+    }
     document.getElementById('inv-media-url').value = url;
-    invPreviewMedia(url, document.getElementById('inv-media-type').value);
+    document.getElementById('inv-media-type').value = 'image';
+    invPreviewMedia(url, 'image');
   });
 }
 
@@ -7604,7 +7609,7 @@ function dbSelectFile(fileId, fileName) {
   if(pendingPhotoCallback) {
     const cb = pendingPhotoCallback;
     pendingPhotoCallback = null;
-    cb(url);
+    cb(url, fileName);
     closeDriveBrowser();
     return;
   }
