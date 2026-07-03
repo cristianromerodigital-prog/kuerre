@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <script>
-var KVER='1.45';
+var KVER='1.46';
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/kuerre/sw.js').catch(function(){});
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
@@ -273,6 +273,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 [data-demo] { cursor:pointer; }
 
 /* ── DEMO BUBBLE (cartel "es interactivo") ── */
+.phone-lg-wrap { position:relative; display:inline-flex; }
 .demo-tag, .demo-tag-inline { position:relative; display:inline-flex; align-items:center; gap:10px;
   background:linear-gradient(135deg,#9060b8,#c090e0); color:#fff; padding:7px 20px 7px 7px;
   border-radius:26px; box-shadow:0 10px 28px rgba(144,96,184,.4); font-size:11.5px; font-weight:600;
@@ -283,13 +284,12 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   display:flex; align-items:center; justify-content:center; color:var(--green); }
 .demo-tag-icon svg { display:block; animation:demo-icon-bounce 1.6s ease-in-out infinite; }
 @keyframes demo-icon-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-2px); } }
-.demo-tag { position:absolute; bottom:28px; left:50%; transform:translateX(-50%); z-index:6;
+.demo-tag { position:absolute; top:100%; margin-top:14px; left:50%; transform:translateX(-50%); z-index:6;
   pointer-events:none; animation:demo-tag-float 2.4s ease-in-out infinite; }
 .demo-tag-inline { animation:demo-tag-pulse 2.4s ease-in-out infinite; }
 .demo-tag-inline .demo-tag-icon { width:24px; height:24px; }
 @keyframes demo-tag-float { 0%,100% { transform:translateX(-50%) translateY(0); } 50% { transform:translateX(-50%) translateY(-5px); } }
 @keyframes demo-tag-pulse { 0%,100% { opacity:1; } 50% { opacity:.75; } }
-@media(max-width:900px) { .demo-tag { bottom:18px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .qr-live-pop { animation:none; }
@@ -447,7 +447,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
     <a href="https://wa.me/541162557763" target="_blank" aria-label="WhatsApp">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.126.554 4.12 1.524 5.851L.057 23.633a.5.5 0 0 0 .61.61l5.782-1.467A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.956 0-3.784-.535-5.348-1.464l-.383-.229-3.962 1.005 1.005-3.831-.253-.404A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
     </a>
-    <span id="site-version" style="font-size:9px;opacity:0.35;letter-spacing:1px;font-family:'Inter',sans-serif;margin-left:6px;color:inherit">v1.45</span>
+    <span id="site-version" style="font-size:9px;opacity:0.35;letter-spacing:1px;font-family:'Inter',sans-serif;margin-left:6px;color:inherit">v1.46</span>
   </div>
 </div>
 
@@ -586,6 +586,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   <div class="feat-visual">
     <div class="feat-visual-bg" id="inv-bg" style="background-image:url('https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(5,5,20,.55)"></div>
+    <div class="phone-lg-wrap">
     <div class="phone-lg" data-demo="invite.html?i=demo">
       <div class="phone-lg-notch"></div>
       <div class="phone-lg-screen" style="background:#080810">
@@ -611,6 +612,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
       </div>
     </div>
     <div class="demo-tag"><span class="demo-tag-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 13 12 8 17 13"/><polyline points="7 18 12 13 17 18"/></svg></span>¡Tocá para interactuar!</div>
+    </div>
   </div>
 </div>
 
@@ -627,6 +629,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   <div class="feat-visual">
     <div class="feat-visual-bg" id="qr-bg" style="background-image:url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(10,6,20,.45)"></div>
+    <div class="phone-lg-wrap">
     <div class="phone-lg" data-demo="fiestas.html?e=demo">
       <div class="phone-lg-notch"></div>
       <div class="phone-lg-screen" style="background:#0a0a14">
@@ -650,6 +653,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
       </div>
     </div>
     <div class="demo-tag"><span class="demo-tag-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 13 12 8 17 13"/><polyline points="7 18 12 13 17 18"/></svg></span>¡Tocá para interactuar!</div>
+    </div>
   </div>
   <div class="feat-content">
     <span class="feat-label" id="qr-label">QR Fiestas</span>
@@ -702,6 +706,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   <div class="feat-visual">
     <div class="feat-visual-bg" id="pm-bg" style="background-image:url('https://images.unsplash.com/photo-1485846234645-a62644f84728?w=900&auto=format&q=80')"></div>
     <div class="feat-visual-overlay" style="background:rgba(5,5,20,.55)"></div>
+    <div class="phone-lg-wrap">
     <div class="phone-lg" data-demo="premiere.html?id=demo">
       <div class="phone-lg-notch"></div>
       <div class="phone-lg-screen" style="background:#080810">
@@ -730,6 +735,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
       </div>
     </div>
     <div class="demo-tag"><span class="demo-tag-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 13 12 8 17 13"/><polyline points="7 18 12 13 17 18"/></svg></span>¡Tocá para interactuar!</div>
+    </div>
   </div>
 </div>
 
