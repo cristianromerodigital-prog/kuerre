@@ -916,6 +916,71 @@ export default {
         return json({ ok: true });
       }
 
+      // ── Invitaciones: descarga video de Drive y lo guarda en R2 ─────────────────
+      const invMediaFromDriveMatch = path.match(/^\/invite-media\/([a-zA-Z0-9_-]+)\/from-drive$/);
+      if (invMediaFromDriveMatch && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const invId = invMediaFromDriveMatch[1];
+        const { fileId } = await request.json();
+        if (!fileId) return json({ error: 'fileId requerido' }, 400);
+
+        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36';
+        let driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        let resp = await fetch(driveUrl, { headers: { 'User-Agent': ua }, redirect: 'follow' });
+        const ct = resp.headers.get('content-type') || '';
+        if (ct.includes('text/html')) {
+          const html = await resp.text();
+          const m = html.match(/confirm=([^&"'\s]+)/);
+          if (!m) return json({ error: 'Drive: no se pudo obtener confirm token' }, 502);
+          driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${m[1]}`;
+          resp = await fetch(driveUrl, { headers: { 'User-Agent': ua }, redirect: 'follow' });
+        }
+        if (!resp.ok) return json({ error: 'Drive respondió ' + resp.status }, 502);
+        const contentType = resp.headers.get('content-type') || 'video/mp4';
+        await env.MEDIA.put(`invite-media/${invId}.mp4`, resp.body, { httpMetadata: { contentType } });
+        const workerOrigin = new URL(request.url).origin;
+        return json({ ok: true, url: `${workerOrigin}/invite-media/${invId}` });
+      }
+
+      // ── Invitaciones: sirve el video guardado en R2 (con Range para seek) ───────
+      const invMediaMatch = path.match(/^\/invite-media\/([a-zA-Z0-9_-]+)$/);
+      if (invMediaMatch && method === 'GET') {
+        const invId = invMediaMatch[1];
+        const key = `invite-media/${invId}.mp4`;
+        const rangeHeader = request.headers.get('Range');
+        const commonHeaders = {
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*',
+        };
+        if (rangeHeader) {
+          const meta = await env.MEDIA.head(key);
+          if (!meta) return new Response('Not found', { status: 404 });
+          const m = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+          if (!m) return new Response('Range Not Satisfiable', { status: 416 });
+          const offset = parseInt(m[1]);
+          const end = m[2] ? Math.min(parseInt(m[2]), meta.size - 1) : meta.size - 1;
+          const length = end - offset + 1;
+          const obj = await env.MEDIA.get(key, { range: { offset, length } });
+          return new Response(obj?.body ?? null, {
+            status: 206,
+            headers: { ...commonHeaders,
+              'Content-Type': meta.httpMetadata?.contentType || 'video/mp4',
+              'Content-Range': `bytes ${offset}-${end}/${meta.size}`,
+              'Content-Length': String(length),
+            }
+          });
+        }
+        const obj = await env.MEDIA.get(key);
+        if (!obj) return new Response('Not found', { status: 404 });
+        return new Response(obj.body, {
+          headers: { ...commonHeaders,
+            'Content-Type': obj.httpMetadata?.contentType || 'video/mp4',
+            'Content-Length': String(obj.size),
+          }
+        });
+      }
+
       // ── Google Drive video proxy (bypasses CORS + virus warning) ───────────
       if (path.startsWith('/api/gdrive/')) {
         const fileId = path.split('/api/gdrive/')[1]?.split('/')[0];
