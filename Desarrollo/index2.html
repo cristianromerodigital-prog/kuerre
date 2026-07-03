@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <script>
-var KVER='1.43';
+var KVER='1.44';
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/kuerre/sw.js').catch(function(){});
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
@@ -285,12 +285,19 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 @keyframes demo-tag-float { 0%,100% { transform:translateX(-50%) translateY(0); } 50% { transform:translateX(-50%) translateY(-5px); } }
 @keyframes demo-tag-pulse { 0%,100% { opacity:1; } 50% { opacity:.55; } }
 @media(max-width:900px) { .demo-tag { bottom:14px; } }
+.demo-arrow { display:flex; justify-content:center; color:var(--green); opacity:.8; animation:demo-arrow-bounce 1.6s ease-in-out infinite; }
+.demo-arrow svg { display:block; }
+@keyframes demo-arrow-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(6px); } }
+.feat-visual .demo-arrow { position:absolute; bottom:66px; left:50%; z-index:6; pointer-events:none;
+  animation:demo-arrow-bounce-abs 1.6s ease-in-out infinite; }
+@keyframes demo-arrow-bounce-abs { 0%,100% { transform:translateX(-50%) translateY(0); } 50% { transform:translateX(-50%) translateY(6px); } }
+@media(max-width:900px) { .feat-visual .demo-arrow { bottom:56px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .qr-live-pop { animation:none; }
   .inv-cta-pulse { animation:none; }
   .pm-fade { transition:none; }
-  .demo-tag, .demo-tag-inline { animation:none; }
+  .demo-tag, .demo-tag-inline, .demo-arrow { animation:none; }
 }
 
 /* PHONE LARGE */
@@ -442,7 +449,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
     <a href="https://wa.me/541162557763" target="_blank" aria-label="WhatsApp">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.126.554 4.12 1.524 5.851L.057 23.633a.5.5 0 0 0 .61.61l5.782-1.467A11.947 11.947 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.956 0-3.784-.535-5.348-1.464l-.383-.229-3.962 1.005 1.005-3.831-.253-.404A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
     </a>
-    <span id="site-version" style="font-size:9px;opacity:0.35;letter-spacing:1px;font-family:'Inter',sans-serif;margin-left:6px;color:inherit">v1.43</span>
+    <span id="site-version" style="font-size:9px;opacity:0.35;letter-spacing:1px;font-family:'Inter',sans-serif;margin-left:6px;color:inherit">v1.44</span>
   </div>
 </div>
 
@@ -605,6 +612,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
         </div>
       </div>
     </div>
+    <div class="demo-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>
     <div class="demo-tag"><span class="demo-tag-dot"></span>Tocá para interactuar</div>
   </div>
 </div>
@@ -644,6 +652,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
         </div>
       </div>
     </div>
+    <div class="demo-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>
     <div class="demo-tag"><span class="demo-tag-dot"></span>Tocá para interactuar</div>
   </div>
   <div class="feat-content">
@@ -724,6 +733,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
         </div>
       </div>
     </div>
+    <div class="demo-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>
     <div class="demo-tag"><span class="demo-tag-dot"></span>Tocá para interactuar</div>
   </div>
 </div>
@@ -757,6 +767,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           </div>
         </div>
       </div>
+      <div class="demo-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>
       <div class="demo-tag-inline"><span class="demo-tag-dot"></span>Demo interactiva</div>
       <div class="card-name" id="svc-name-0">Invitación Digital</div>
       <div class="card-desc" id="svc-desc-0">Invitación animada con cuenta regresiva, música de fondo, mapa interactivo y confirmación de asistencia. Sin papel, con estilo.</div>
@@ -779,6 +790,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           </div>
         </div>
       </div>
+      <div class="demo-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>
       <div class="demo-tag-inline"><span class="demo-tag-dot"></span>Demo interactiva</div>
       <div class="card-name" id="svc-name-1">QR Fiestas</div>
       <div class="card-desc" id="svc-desc-1">Tus invitados escanean un QR y suben fotos en tiempo real. Una galería colaborativa con el espíritu del evento, disponible para todos.</div>
@@ -807,6 +819,7 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
           </div>
         </div>
       </div>
+      <div class="demo-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>
       <div class="demo-tag-inline"><span class="demo-tag-dot"></span>Demo interactiva</div>
       <div class="card-name" id="svc-name-2">Premiere</div>
       <div class="card-desc" id="svc-desc-2">Tu primer vistazo a las fotos y el video presentado con experiencia cinematográfica. Una entrega que se siente como estreno de película.</div>
