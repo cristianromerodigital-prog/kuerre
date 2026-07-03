@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="page-title">Entrega · KUERRE</title>
+<title id="page-title">Premiere · KUERRE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -63,7 +63,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 .nav-btn-select { border:1px solid rgba(255,255,255,.2); color:rgba(255,255,255,.6); background:transparent; }
 .nav-btn-select:hover { border-color:rgba(255,255,255,.5); color:var(--white); }
 .nav-btn-select.active { border-color:var(--green); color:var(--green); background:rgba(0,212,232,.08); }
-.nav-avatar { width:34px; height:34px; border-radius:4px; background:linear-gradient(135deg,var(--green),var(--gold)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; color:var(--bg); cursor:default; letter-spacing:.05em; }
+.nav-avatar { width:34px; height:34px; border-radius:4px; background:linear-gradient(135deg,var(--green),var(--gold)); background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; color:var(--bg); cursor:default; letter-spacing:.05em; }
 
 /* ── HERO ── */
 #hero { position:relative; width:100%; height:100vh; min-height:620px; overflow:hidden; }
@@ -139,6 +139,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 .card { position:relative; flex-shrink:0; width:224px; border-radius:4px; overflow:hidden; cursor:pointer; z-index:1; transition:transform .35s cubic-bezier(.25,.46,.45,.94) .18s, box-shadow .35s ease .18s, z-index 0s .18s; }
 .card:hover { transform:scale(1.16) translateY(-6px); box-shadow:0 28px 70px rgba(0,0,0,.85); z-index:40; }
 .card-thumb { width:100%; aspect-ratio:3/2; object-fit:cover; object-position:top center; display:block; background:#1a1a20; transition:transform .4s ease .18s; }
+.card-thumb, .ae-item img, #lb-img, .lb-thumb { -webkit-user-drag:none; -webkit-touch-callout:none; user-select:none; -webkit-user-select:none; }
 .card:hover .card-thumb { transform:scale(1.05); }
 .card-overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:14px; background:linear-gradient(to top, rgba(0,0,0,.9) 0%, rgba(0,0,0,.4) 45%, transparent 100%); opacity:0; transition:opacity .25s ease .25s; }
 .card:hover .card-overlay { opacity:1; }
@@ -415,7 +416,6 @@ body.ae-select .ae-item .ae-check { display:flex; }
     <li><a href="#videos">Videos</a></li>
   </ul>
   <div class="nav-right">
-    <button class="nav-btn nav-btn-select" id="btn-select" onclick="toggleSelectMode()">☑ Seleccionar</button>
     <button class="nav-btn nav-btn-outline" id="btn-dl-all" onclick="dlAll()">↓ Todo</button>
     <div class="nav-avatar" id="nav-avatar">CR</div>
   </div>
@@ -548,7 +548,7 @@ body.ae-select .ae-item .ae-check { display:flex; }
   </div>
   <div class="lb-main">
     <button class="lb-nav" id="lb-prev" onclick="lbPrev()">‹</button>
-    <img id="lb-img" src="" alt="">
+    <img id="lb-img" src="" alt="" draggable="false" oncontextmenu="return false">
     <button class="lb-nav" id="lb-next" onclick="lbNext()">›</button>
   </div>
   <div class="lb-thumbs-wrap">
@@ -596,7 +596,7 @@ const CFG = {
   fecha:         p.get('fecha')   || '',
   tipo:          p.get('tipo')    || '',
   portadaId:     p.get('portada') || '',
-  allowDownload: p.get('dl') !== '0',
+  allowDownload: false,
   welcomeMsg:    p.get('msg')    || '',
 };
 
@@ -872,6 +872,12 @@ function applyLogo(src) {
 }
 
 function applyConfig() {
+  // Descargas deshabilitadas en premiere (solo entrega.html) — pisa lo que venga del KV/URL
+  CFG.allowDownload = false;
+  const selDl = document.querySelector('.selbar-btn-dl');
+  if(selDl) selDl.style.display = 'none';
+  const dlAllBtn = document.getElementById('btn-dl-all');
+  if(dlAllBtn) dlAllBtn.style.display = 'none';
   const nombres = CFG.nombres || 'Tu premiere';
   document.getElementById('page-title').textContent = nombres + ' — KUERRE';
 
@@ -886,10 +892,17 @@ function applyConfig() {
   if(CFG.fecha) document.getElementById('hero-fecha-text').textContent = CFG.fecha;
   else document.querySelector('.hero-badge').style.display = 'none';
 
-  // Nav avatar initials
-  const initials = nombres.split(/\s+/).filter(w => /[a-záéíóúñ]/i.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+  // Nav avatar: miniatura de portada, o iniciales si no hay portada
   const av = document.getElementById('nav-avatar');
-  if(av && initials) av.textContent = initials;
+  if(av) {
+    if(CFG.portadaId) {
+      av.style.backgroundImage = `url('${thumbUrl(CFG.portadaId, 80)}')`;
+      av.textContent = '';
+    } else {
+      const initials = nombres.split(/\s+/).filter(w => /[a-záéíóúñ]/i.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+      if(initials) av.textContent = initials;
+    }
+  }
 
   // Hero bg
   if(CFG.portadaId) {
@@ -1047,7 +1060,7 @@ function buildPhotoRow(row) {
     const dlAttrs = CFG.allowDownload ? `href="${dlHref}" download="${photo.name}" target="_blank"` : `href="#" onclick="return false"`;
     card.innerHTML = `
       <div class="card-check">✓</div>
-      <img class="card-thumb" src="${thumbUrl(photo.id, 440)}" alt="${photo.name}" loading="lazy">
+      <img class="card-thumb" src="${thumbUrl(photo.id, 440)}" alt="${photo.name}" loading="lazy" draggable="false" oncontextmenu="return false">
       <div class="card-overlay">
         <div class="card-name">${photo.name.replace(/\.[^.]+$/,'')}</div>
         <div class="card-btns">
@@ -1091,7 +1104,7 @@ function buildVideoRow(row) {
     card.className = 'video-card';
     card.innerHTML = `
       <div class="video-thumb-wrap">
-        <img class="video-thumb" src="${thumbUrl(video.id, 720)}" alt="${video.name}" loading="lazy">
+        <img class="video-thumb" src="${thumbUrl(video.id, 720)}" alt="${video.name}" loading="lazy" draggable="false" oncontextmenu="return false">
         <div class="video-play-overlay"><div class="video-play-circle">▶</div></div>
       </div>
       <div class="video-info">
@@ -1143,6 +1156,8 @@ function buildThumbs() {
     const t = document.createElement('img');
     t.className = 'lb-thumb' + (i===lbIndex?' active':'');
     t.src = thumbUrl(p.id, 100);
+    t.draggable = false;
+    t.oncontextmenu = () => false;
     t.loading = 'lazy';
     t.addEventListener('click', () => { lbIndex=i; renderLb(); });
     strip.appendChild(t);
@@ -1292,7 +1307,7 @@ function openAlbumExpand(photos, albumName) {
     item.dataset.id = photo.id;
     item.innerHTML = `
       <div class="ae-check">✓</div>
-      <img src="${thumbUrl(photo.id, 600)}" alt="${photo.name}" loading="lazy">`;
+      <img src="${thumbUrl(photo.id, 600)}" alt="${photo.name}" loading="lazy" draggable="false" oncontextmenu="return false">`;
     item.addEventListener('click', () => {
       if(document.body.classList.contains('ae-select')) {
         aeToggleSelect(photo.id, item);
