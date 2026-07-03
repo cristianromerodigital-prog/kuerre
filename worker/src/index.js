@@ -743,7 +743,7 @@ export default {
         try { invCfg = JSON.parse(rawInv); } catch { return json({ error: 'Config inválida' }, 500); }
         if (invSlug === 'demo') {
           const d = new Date(Date.now() + 21 * 86400000);
-          invCfg.fecha_iso = d.toISOString().slice(0, 10) + 'T21:00:00';
+          invCfg.fecha_iso = d.toISOString().slice(0, 10);
           invCfg.fecha_display = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
         }
         return json(invCfg);
