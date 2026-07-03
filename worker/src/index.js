@@ -942,42 +942,52 @@ export default {
         return json({ ok: true, url: `${workerOrigin}/invite-media/${invId}` });
       }
 
-      // ── Invitaciones: sirve el video guardado en R2 (con Range para seek) ───────
+      // ── Invitaciones: sirve el video guardado en R2 (cacheado en el edge, con Range) ─
       const invMediaMatch = path.match(/^\/invite-media\/([a-zA-Z0-9_-]+)$/);
       if (invMediaMatch && method === 'GET') {
         const invId = invMediaMatch[1];
         const key = `invite-media/${invId}.mp4`;
-        const rangeHeader = request.headers.get('Range');
+        const cache = caches.default;
+        const cacheKey = new Request(new URL(path, request.url).toString(), { method: 'GET' });
+
+        let buf, contentType;
+        const cached = await cache.match(cacheKey);
+        if (cached) {
+          contentType = cached.headers.get('Content-Type') || 'video/mp4';
+          buf = await cached.arrayBuffer();
+        } else {
+          const obj = await env.MEDIA.get(key);
+          if (!obj) return new Response('Not found', { status: 404 });
+          contentType = obj.httpMetadata?.contentType || 'video/mp4';
+          buf = await obj.arrayBuffer();
+          ctx.waitUntil(cache.put(cacheKey, new Response(buf, {
+            headers: { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=86400' }
+          })));
+        }
+
         const commonHeaders = {
           'Accept-Ranges': 'bytes',
-          'Cache-Control': 'public, max-age=3600',
+          'Cache-Control': 'public, max-age=86400',
           'Access-Control-Allow-Origin': '*',
         };
+        const size = buf.byteLength;
+        const rangeHeader = request.headers.get('Range');
         if (rangeHeader) {
-          const meta = await env.MEDIA.head(key);
-          if (!meta) return new Response('Not found', { status: 404 });
           const m = rangeHeader.match(/bytes=(\d+)-(\d*)/);
           if (!m) return new Response('Range Not Satisfiable', { status: 416 });
           const offset = parseInt(m[1]);
-          const end = m[2] ? Math.min(parseInt(m[2]), meta.size - 1) : meta.size - 1;
-          const length = end - offset + 1;
-          const obj = await env.MEDIA.get(key, { range: { offset, length } });
-          return new Response(obj?.body ?? null, {
+          const end = m[2] ? Math.min(parseInt(m[2]), size - 1) : size - 1;
+          return new Response(buf.slice(offset, end + 1), {
             status: 206,
             headers: { ...commonHeaders,
-              'Content-Type': meta.httpMetadata?.contentType || 'video/mp4',
-              'Content-Range': `bytes ${offset}-${end}/${meta.size}`,
-              'Content-Length': String(length),
+              'Content-Type': contentType,
+              'Content-Range': `bytes ${offset}-${end}/${size}`,
+              'Content-Length': String(end - offset + 1),
             }
           });
         }
-        const obj = await env.MEDIA.get(key);
-        if (!obj) return new Response('Not found', { status: 404 });
-        return new Response(obj.body, {
-          headers: { ...commonHeaders,
-            'Content-Type': obj.httpMetadata?.contentType || 'video/mp4',
-            'Content-Length': String(obj.size),
-          }
+        return new Response(buf, {
+          headers: { ...commonHeaders, 'Content-Type': contentType, 'Content-Length': String(size) }
         });
       }
 
