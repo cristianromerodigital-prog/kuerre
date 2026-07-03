@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.55</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.56</div>
     </div>
   </aside>
 
@@ -2349,9 +2349,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <span style="color:var(--violet);margin-left:8px">●</span> Book
               <span style="color:var(--cyan);margin-left:8px">●</span> Civil
               <span style="color:var(--green);margin-left:8px">●</span> Religiosa
+              <span style="color:var(--gray);margin-left:8px">●</span> Nota
             </span>
             <button class="btn-sm" onclick="calAbrirAgendar('')">+ Agendar</button>
-            <button class="btn-sm btn-sec" onclick="calSyncGAS()" id="cal-btn-sync">Sincronizar con Google Calendar</button>
+            
           </div>
         </div>
 
@@ -3796,6 +3797,12 @@ function cmGoEntrega() {
   document.getElementById('cliente-modal').style.display = 'none';
   showPage('entregas');
   if (_clienteActual) {
+    // Si el cliente ya tiene entrega en crd_entregas, editarla en vez de crear una nueva
+    const entregas = getEntregas();
+    const nombresCl = (_clienteActual.nombre_display || '').trim().toLowerCase();
+    const exIdx = entregas.findIndex(e => e.clienteId === _clienteActual.id
+      || ((e.nombres || '').trim().toLowerCase() === nombresCl && e.tipo !== 'Book' && (e.estado || 'En edición') !== 'Entregado'));
+    if (exIdx !== -1) { editarEntrega(exIdx); return; }
     document.getElementById('ent-nombres').value = _clienteActual.nombre_display || '';
     const tipoMap = { BODA: 'Boda', XV: 'XV Años', CUMPLE: 'Cumpleaños' };
     document.getElementById('ent-tipo').value = tipoMap[_clienteActual.tipo] || 'Evento';
@@ -3862,7 +3869,6 @@ async function cmSaveBook() {
       const idx = _clientes.findIndex(function(x){ return x.id === _clienteActual.id; });
       if (idx !== -1) { _clientes[idx].book_fecha = fecha; _clientes[idx].book_hora = hora; _clientes[idx].book_zona = zona; }
       document.getElementById('cm-resumen').innerHTML = cmBuildResumen(_clienteActual);
-      calSyncEvento({ tipo: 'book', fecha, hora, lugar: zona, nombre: _clienteActual.nombre_display });
       toast('Book guardado ✓');
     }
   } catch(e) { toast('Error al guardar', 'error'); }
@@ -4036,6 +4042,7 @@ async function cmSaveEntregaFolder() {
       toast('Folder guardado');
       const idx = _clientes.findIndex(function(x){ return x.id === _clienteActual.id; });
       if (idx !== -1) { _clientes[idx].entrega_folder = folder; _clienteActual.entrega_folder = folder; }
+      if (folder) upsertEntregaFromCliente(_clienteActual, folder);
       cmUpdateEntregaLink();
       renderClientes();
     } else { toast(d.error || 'Error al guardar', 'error'); }
@@ -4067,6 +4074,7 @@ async function cmCrearCarpetas() {
       _clienteActual = _clientes[idx];
     }
     cmMostrarDriveLinks(d.ids);
+    if (d.ids.entrega) upsertEntregaFromCliente(_clienteActual, d.ids.entrega);
     cmUpdateEntregaLink();
     renderClientes();
     const estadoEl = document.getElementById('cm-fiesta-estado');
@@ -7675,6 +7683,56 @@ function checkEntregaDuplicate(tipo, nombres, excludeId) {
     (e.estado || 'En edición') !== 'Entregado'
   );
 }
+// [COMPARTIDA] Upsert en crd_entregas desde un cliente (sección Clientes). Match por clienteId o nombres.
+function upsertEntregaFromCliente(cliente, folderRaw) {
+  if (!cliente || !folderRaw) return false;
+  const fid = entFolderId(folderRaw);
+  if (!fid) return false;
+  const entregas = getEntregas();
+  const nombres = cliente.nombre_display || 'Entrega';
+  let ev = entregas.find(e => e.clienteId === cliente.id);
+  if (!ev) ev = entregas.find(e =>
+    (e.nombres || '').trim().toLowerCase() === nombres.trim().toLowerCase() &&
+    e.tipo !== 'Book' && (e.estado || 'En edición') !== 'Entregado');
+  if (ev) {
+    if (ev.folderId === fid && ev.clienteId === cliente.id) return false;
+    ev.folderId = fid;
+    ev.clienteId = cliente.id;
+  } else {
+    const tipoMap = { BODA: 'Boda', XV: 'XV Años', CUMPLE: 'Cumpleaños' };
+    const tipo = tipoMap[cliente.tipo] || 'Evento';
+    let fecha = '';
+    if (cliente.fecha) {
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const [y, m, d] = cliente.fecha.split('-');
+      fecha = parseInt(d, 10) + ' ' + meses[parseInt(m, 10) - 1] + ' ' + y;
+    }
+    ev = { id: nextEntSysId(), numId: nextEntNumId(tipo), clienteId: cliente.id, folderId: fid, nombres,
+      slug: [makeEntregaSlug(nombres), parseFechaSlug(fecha)].filter(Boolean).join('-'),
+      fecha, tipo, frase: '', welcomeMsg: '', portadaId: '', allowDownload: true, overlay: 'violeta',
+      creado: new Date().toLocaleDateString('es-AR'), estado: 'En edición', notas: '' };
+    entregas.unshift(ev);
+  }
+  setEntregas(entregas);
+  preIndexPremiere(ev);
+  return true;
+}
+
+async function syncEntregasFromClientes() {
+  if (!CLIENTES_WORKER || !getAdminJWT()) return false;
+  try {
+    const r = await fetch(CLIENTES_WORKER + '/solicitudes?limit=200&offset=0', {
+      headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+    });
+    const d = await r.json();
+    let changed = false;
+    (d.solicitudes || []).forEach(c => {
+      if (c.entrega_folder && c.entrega_folder.trim() && upsertEntregaFromCliente(c, c.entrega_folder.trim())) changed = true;
+    });
+    return changed;
+  } catch(e) { return false; }
+}
+
 function guardarEntrega() {
   const raw = document.getElementById('ent-folder').value.trim();
   const fid = entFolderId(raw);
@@ -7688,6 +7746,7 @@ function guardarEntrega() {
   if(_editingEntregaIdx >= 0 && entregas[_editingEntregaIdx]) {
     ev.id = entregas[_editingEntregaIdx].id;
     ev.numId = entregas[_editingEntregaIdx].numId || '';
+    ev.clienteId = entregas[_editingEntregaIdx].clienteId;
     ev.creado = entregas[_editingEntregaIdx].creado;
     ev.estado = entregas[_editingEntregaIdx].estado || 'En edición';
     ev.notas = entregas[_editingEntregaIdx].notas || '';
@@ -8146,6 +8205,8 @@ function loadEntregasPage() {
     if (Array.isArray(ent)) localStorage.setItem('crd_entregas', JSON.stringify(ent));
     if (Array.isArray(ped)) localStorage.setItem('crd_pedidos', JSON.stringify(ped));
     renderEntregasList();
+    // Reconciliar entregas cargadas desde la sección Clientes (entrega_folder en el worker)
+    syncEntregasFromClientes().then(changed => { if (changed) renderEntregasList(); });
   });
 }
 function pickPortadaDrive() {
@@ -9078,8 +9139,6 @@ async function ctGenerar() {
             body: JSON.stringify(payload)
           }).then(function(r){ return r.json(); }).then(function(d){
             if (d.ok) {
-              let evFecha = data.tipo === 'BODA' ? (data.fiesta?.fecha||'') : (data.evento?.fecha||'');
-              if (evFecha) calSyncEvento({ tipo:'evento', fecha:evFecha, hora:'', lugar:'', nombre: data.tipo==='BODA' ? (data.novia?.nombre||'')+' & '+(data.novio?.nombre||'') : data.tipo==='XV' ? 'XV '+(data.quinceanera?.nombre||'') : 'Cumple '+(data.cliente?.nombre||'') });
               patchContrato(d.id, false);
             }
           }).catch(function(){});
@@ -10137,9 +10196,16 @@ async function loadCalendarioPage() {
       if (c.fecha) {
         _calEventos.push({ fecha: c.fecha, hora: c.hora_inicio || '', tipo: 'evento', nombre: c.nombre_display, lugar: c.salon || '', id: c.id });
       }
+      if (c.book_fecha) _calEventos.push({ fecha: c.book_fecha, hora: c.book_hora || '', tipo: 'book', nombre: c.nombre_display, lugar: c.book_zona || '', id: c.id });
       if (c.civil_fecha) _calEventos.push({ fecha: c.civil_fecha, hora: c.civil_hora || '', tipo: 'civil', nombre: c.nombre_display, lugar: c.civil_dir || '', id: c.id });
       if (c.reli_fecha)  _calEventos.push({ fecha: c.reli_fecha,  hora: c.reli_hora  || '', tipo: 'religiosa', nombre: c.nombre_display, lugar: c.reli_dir  || '', id: c.id });
     }
+    try {
+      const ag = await fetch(CLIENTES_WORKER + '/agenda', { headers: { 'Authorization': 'Bearer ' + getAdminJWT() } }).then(function(r){ return r.json(); });
+      for (const n of (ag.agenda || [])) {
+        _calEventos.push({ fecha: n.fecha, hora: n.hora || '', tipo: 'nota', nombre: n.titulo, lugar: n.lugar || '', agendaId: n.id });
+      }
+    } catch(e) {}
     renderCalendar();
   } catch(e) {
     if (grid) grid.innerHTML = '<div style="grid-column:1/-1;color:var(--red);font-size:12px">Error al cargar</div>';
@@ -10159,7 +10225,7 @@ function renderCalendar() {
   let inicioCol   = new Date(y, m, 1).getDay();
   if (inicioCol === 0) inicioCol = 7;
 
-  const colores = { evento: 'var(--gold)', book: 'var(--violet)', civil: 'var(--cyan)', religiosa: 'var(--green)' };
+  const colores = { evento: 'var(--gold)', book: 'var(--violet)', civil: 'var(--cyan)', religiosa: 'var(--green)', nota: 'var(--gray)' };
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
   const evPorDia = {};
@@ -10195,8 +10261,8 @@ function calSelDia(fechaStr) {
   renderCalendar();
   const evs = _calEventos.filter(function(ev){ return ev.fecha && ev.fecha.slice(0,10) === fechaStr; });
   const panel = document.getElementById('cal-day-panel');
-  const colores = { evento: 'var(--gold)', book: 'var(--violet)', civil: 'var(--cyan)', religiosa: 'var(--green)' };
-  const etiquetas = { evento: 'Evento', book: 'Book', civil: 'Civil', religiosa: 'Religiosa' };
+  const colores = { evento: 'var(--gold)', book: 'var(--violet)', civil: 'var(--cyan)', religiosa: 'var(--green)', nota: 'var(--gray)' };
+  const etiquetas = { evento: 'Evento', book: 'Book', civil: 'Civil', religiosa: 'Religiosa', nota: 'Nota' };
   if (!evs.length) { if (panel) panel.style.display = 'none'; return; }
   const p = fechaStr.split('-');
   const tituloEl = document.getElementById('cal-day-titulo');
@@ -10208,7 +10274,9 @@ function calSelDia(fechaStr) {
       + '<div><div style="font-size:13px;color:var(--white)">'+ev.nombre+'</div>'
       + (ev.hora ? '<div style="font-size:10px;color:var(--gray2);margin-top:2px">🕐 '+ev.hora+'</div>' : '')
       + (ev.lugar ? '<div style="font-size:10px;color:var(--gray2);margin-top:2px">📍 '+ev.lugar+'</div>' : '')
-      + '</div></div>';
+      + '</div>'
+      + '<button onclick="calEliminar(\''+(ev.tipo==='nota'?ev.agendaId:ev.id)+'\',\''+ev.tipo+'\',\''+String(ev.nombre).replace(/'/g,"\\'")+'\')" title="Eliminar de la agenda y de Google Calendar" style="margin-left:auto;background:none;border:none;color:var(--gray2);cursor:pointer;font-size:13px;padding:0 2px">🗑</button>'
+      + '</div>';
   }).join('');
   if (panel) panel.style.display = 'block';
 }
@@ -10219,8 +10287,8 @@ function renderProximas() {
     .filter(function(ev){ return ev.fecha && new Date(ev.fecha + 'T00:00:00') >= hoy; })
     .sort(function(a,b){ return a.fecha.localeCompare(b.fecha); })
     .slice(0, 20);
-  const colores = { evento: 'var(--gold)', book: 'var(--violet)', civil: 'var(--cyan)', religiosa: 'var(--green)' };
-  const iconos = { evento: '🎉', book: '📸', civil: '⚖️', religiosa: '⛪' };
+  const colores = { evento: 'var(--gold)', book: 'var(--violet)', civil: 'var(--cyan)', religiosa: 'var(--green)', nota: 'var(--gray)' };
+  const iconos = { evento: '🎉', book: '📸', civil: '⚖️', religiosa: '⛪', nota: '📌' };
   const prox = document.getElementById('cal-proximas');
   if (!prox) return;
   if (!futuras.length) { prox.innerHTML = '<div style="color:var(--gray2);font-size:12px">No hay fechas próximas cargadas.</div>'; return; }
@@ -10231,46 +10299,52 @@ function renderProximas() {
       + '<span style="font-size:11px;color:'+(colores[ev.tipo]||'var(--gray)')+';min-width:80px">'+(p[2]+'/'+p[1]+'/'+p[0])+(ev.hora?' '+ev.hora:'')+'</span>'
       + '<span style="font-size:12px;color:var(--white)">'+ev.nombre+'</span>'
       + (ev.lugar ? '<span style="font-size:10px;color:var(--gray2)">· '+ev.lugar+'</span>' : '')
+      + '<button onclick="calEliminar(\''+(ev.tipo==='nota'?ev.agendaId:ev.id)+'\',\''+ev.tipo+'\',\''+String(ev.nombre).replace(/'/g,"\\'")+'\')" title="Eliminar de la agenda y de Google Calendar" style="margin-left:auto;background:none;border:none;color:var(--gray2);cursor:pointer;font-size:13px;padding:0 2px">🗑</button>'
       + '</div>';
   }).join('');
 }
 
-function calSyncEvento(ev) {
-  const url = ctGetUrl();
-  if (!url || !ev?.fecha) return;
-  const iconos = { evento: '🎉 Evento — ', book: '📸 Book — ', civil: '⚖️ Civil — ', religiosa: '⛪ Religiosa — ' };
-  const payload = {
-    titulo: (iconos[ev.tipo] || '📅 ') + ev.nombre,
-    fecha: ev.fecha, hora: ev.hora || '09:00',
-    tipo: ev.tipo, nombre: ev.nombre, lugar: ev.lugar || ''
-  };
-  _jsonp(url + '?action=syncCalendar&events=' + encodeURIComponent(JSON.stringify([payload])) + ctExtraParams())
-    .catch(function(){});
+async function calEliminar(id, tipo, nombre) {
+  if (!confirm('¿Eliminar "' + nombre + '" (' + tipo + ') de la agenda y de Google Calendar?')) return;
+  try {
+    let r;
+    if (tipo === 'nota') {
+      r = await fetch(CLIENTES_WORKER + '/agenda/' + id, {
+        method: 'DELETE', headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+      }).then(function(x){ return x.json(); });
+    } else {
+      r = await fetch(CLIENTES_WORKER + '/solicitudes/' + id + '/agendar', {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo })
+      }).then(function(x){ return x.json(); });
+    }
+    if (r.ok) { toast('Fecha eliminada ✓'); await loadCalendarioPage(); }
+    else toast(r.error || 'Error', 'error');
+  } catch(e) { toast('Error de conexión', 'error'); }
 }
 
 async function calSyncGAS() {
-  const url = ctGetUrl();
-  if (!url) { toast('Configurá la URL del Apps Script primero en Contratos → Configuración', 'error'); return; }
   const btn = document.getElementById('cal-btn-sync');
   if (btn) { btn.disabled = true; btn.textContent = 'Sincronizando...'; }
   try {
-    const iconos = { evento: '🎉 Evento — ', book: '📸 Book — ', civil: '⚖️ Civil — ', religiosa: '⛪ Religiosa — ' };
-    const eventos = _calEventos.map(function(ev){ return {
-      titulo: (iconos[ev.tipo]||'📅 ') + ev.nombre,
-      fecha: ev.fecha, hora: ev.hora || '09:00',
-      tipo: ev.tipo, nombre: ev.nombre, lugar: ev.lugar || ''
-    }; });
-    const res = await _jsonp(url + '?action=syncCalendar&events=' + encodeURIComponent(JSON.stringify(eventos)) + ctExtraParams());
-    if (res.ok) toast('Sincronizado: ' + res.synced + ' eventos en Google Calendar ✓');
-    else toast(res.error || 'Error al sincronizar', 'error');
+    const res = await fetch(CLIENTES_WORKER + '/calendario/sync', {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+    }).then(function(r){ return r.json(); });
+    if (res.ok) {
+      toast('Sync ✓ — ' + res.created + ' creados, ' + res.deleted + ' borrados, ' + res.moved + ' movidos, ' + res.imported + ' importados, ' + res.removed + ' quitados');
+      await loadCalendarioPage();
+    } else toast(res.error || 'Error al sincronizar', 'error');
   } catch(e) { toast('Error: ' + e.message, 'error'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = 'Sincronizar con Google Calendar'; } }
 }
 
 // ── AGENDAR DESDE CALENDARIO ──
 function calAbrirAgendar(fechaStr) {
-  document.getElementById('cal-ag-fecha').value = fechaStr || '';
-  document.getElementById('cal-ag-hora').value = '';
+  const ahora = new Date();
+  if (!fechaStr) fechaStr = _calDiaSel || (ahora.getFullYear() + '-' + String(ahora.getMonth()+1).padStart(2,'0') + '-' + String(ahora.getDate()).padStart(2,'0'));
+  document.getElementById('cal-ag-fecha').value = fechaStr;
+  document.getElementById('cal-ag-hora').value = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
   document.getElementById('cal-ag-lugar').value = '';
   document.getElementById('cal-ag-buscar').value = '';
   document.getElementById('cal-ag-cliente-id').value = '';
@@ -10328,12 +10402,10 @@ async function calAgGuardar() {
       toast('Fecha agendada ✓');
       document.getElementById('cal-agendar-modal').style.display = 'none';
       const idx = _clientes.findIndex(function(c){ return c.id === clienteId; });
-      const nombre = idx !== -1 ? _clientes[idx].nombre_display : clienteId;
       if (idx !== -1) {
         if (tipo === 'evento') _clientes[idx].fecha = fecha;
         if (tipo === 'book') { _clientes[idx].book_fecha = fecha; _clientes[idx].book_hora = hora; _clientes[idx].book_zona = lugar; }
       }
-      calSyncEvento({ tipo, fecha, hora, lugar, nombre });
       await loadCalendarioPage();
     } else toast(r.error || 'Error', 'error');
   } catch(e) { toast('Error de conexión', 'error'); }

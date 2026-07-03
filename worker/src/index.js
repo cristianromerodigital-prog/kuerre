@@ -335,6 +335,22 @@ async function handleSolicitudesDelete(id, env) {
   return json({ ok: true });
 }
 
+async function handleEntregaConfigPatch(id, request, env) {
+  const body = await request.json();
+  const fields = [];
+  const vals = [];
+  for (const k of ['folder_id','portada','overlay','allow_dl']) {
+    if (body[k] !== undefined) {
+      fields.push(`${k} = ?`);
+      vals.push(k === 'allow_dl' ? (body[k] ? 1 : 0) : body[k]);
+    }
+  }
+  if (!fields.length) return json({ error: 'Nada que actualizar' }, 400);
+  vals.push(id);
+  await env.KUERRE_DB.prepare(`UPDATE entrega_configs SET ${fields.join(', ')} WHERE id = ?`).bind(...vals).run();
+  return json({ ok: true });
+}
+
 async function handleCrearCarpetas(id, request, env) {
   const sol = await env.KUERRE_DB.prepare('SELECT * FROM solicitudes WHERE id = ?').bind(id).first();
   if (!sol) return json({ error: 'Solicitud no encontrada' }, 404);
@@ -966,17 +982,40 @@ export default {
         const { tipo, fecha, hora, lugar } = await request.json().catch(() => ({}));
         const sid = agendarMatch[1];
         if (tipo === 'evento') {
-          await env.KUERRE_DB.prepare('UPDATE solicitudes SET fecha=? WHERE id=?').bind(fecha||'', sid).run();
+          // La fecha del evento vive en la tabla eventos (fuente de verdad para el calendario)
+          const sol = await env.KUERRE_DB.prepare('SELECT evento_id FROM solicitudes WHERE id=?').bind(sid).first();
+          if (!sol?.evento_id) return json({ error: 'Cliente sin evento vinculado' }, 400);
+          await env.KUERRE_DB.prepare('UPDATE eventos SET fecha=? WHERE id=?').bind(fecha||'', sol.evento_id).run();
         } else if (tipo === 'book') {
           await env.KUERRE_DB.prepare('UPDATE solicitudes SET book_fecha=?, book_hora=?, book_zona=? WHERE id=?').bind(fecha||'', hora||'', lugar||'', sid).run();
-        } else if (tipo === 'civil' || tipo === 'religiosa') {
-          const row = await env.KUERRE_DB.prepare('SELECT data_json FROM solicitudes WHERE id=?').bind(sid).first();
-          let dj = {};
-          try { dj = JSON.parse(row?.data_json || '{}'); } catch(e) {}
-          dj[tipo] = { fecha: fecha||'', horario: hora||'', direccion: lugar||'' };
-          await env.KUERRE_DB.prepare('UPDATE solicitudes SET data_json=? WHERE id=?').bind(JSON.stringify(dj), sid).run();
+        } else if (tipo === 'civil') {
+          await env.KUERRE_DB.prepare('UPDATE solicitudes SET civil_fecha=?, civil_hora=?, civil_dir=? WHERE id=?').bind(fecha||'', hora||'', lugar||'', sid).run();
+        } else if (tipo === 'religiosa') {
+          await env.KUERRE_DB.prepare('UPDATE solicitudes SET reli_fecha=?, reli_hora=?, reli_dir=? WHERE id=?').bind(fecha||'', hora||'', lugar||'', sid).run();
         }
         return json({ ok: true });
+      }
+      if (agendarMatch && method === 'DELETE') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const { tipo } = await request.json().catch(() => ({}));
+        if (!tipo) return json({ error: 'tipo requerido' }, 400);
+        const sid = agendarMatch[1];
+        if (tipo === 'evento') {
+          const sol = await env.KUERRE_DB.prepare('SELECT evento_id FROM solicitudes WHERE id=?').bind(sid).first();
+          if (sol?.evento_id) await env.KUERRE_DB.prepare("UPDATE eventos SET fecha='' WHERE id=?").bind(sol.evento_id).run();
+        } else if (tipo === 'book') {
+          await env.KUERRE_DB.prepare("UPDATE solicitudes SET book_fecha='', book_hora='', book_zona='' WHERE id=?").bind(sid).run();
+        } else if (tipo === 'civil') {
+          await env.KUERRE_DB.prepare("UPDATE solicitudes SET civil_fecha='', civil_hora='', civil_dir='' WHERE id=?").bind(sid).run();
+        } else if (tipo === 'religiosa') {
+          await env.KUERRE_DB.prepare("UPDATE solicitudes SET reli_fecha='', reli_hora='', reli_dir='' WHERE id=?").bind(sid).run();
+        }
+        return json({ ok: true });
+      }
+      const entregaConfigMatch = path.match(/^\/entrega_configs\/([A-Z2-9]{6})$/);
+      if (entregaConfigMatch && method === 'PATCH') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleEntregaConfigPatch(entregaConfigMatch[1], request, env);
       }
       const solicitudDataMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/data$/);
       if (solicitudDataMatch && method === 'PATCH') {
