@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.57</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.58</div>
     </div>
   </aside>
 
@@ -6782,14 +6782,35 @@ function invApplySubtiuloPreset(val) {
 }
 
 function openInvDriveBrowser() {
-  openDriveBrowser((url, fileName) => {
-    if (fileName && /\.(mp4|mov|webm|m4v|avi)$/i.test(fileName)) {
-      toast('Los videos de Drive no se pueden reproducir acá — subilo con el botón "⬆ Subir"', 'error');
+  openDriveBrowser(async (url, fileName) => {
+    const isVideo = fileName && /\.(mp4|mov|webm|m4v|avi)$/i.test(fileName);
+    if (!isVideo) {
+      document.getElementById('inv-media-url').value = url;
+      document.getElementById('inv-media-type').value = 'image';
+      invPreviewMedia(url, 'image');
       return;
     }
-    document.getElementById('inv-media-url').value = url;
-    document.getElementById('inv-media-type').value = 'image';
-    invPreviewMedia(url, 'image');
+    if (!invEditingId) {
+      toast('Guardá la invitación primero, después subí el video desde Drive', 'error');
+      return;
+    }
+    const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    const fileId = m ? m[1] : null;
+    if (!fileId) { toast('No se pudo leer el ID del archivo de Drive', 'error'); return; }
+    toast('Descargando video de Drive…');
+    try {
+      const res = await crclubApi(`/invite-media/${invEditingId}/from-drive`, 'POST', { fileId });
+      if (res.ok) {
+        document.getElementById('inv-media-url').value = res.url;
+        document.getElementById('inv-media-type').value = 'video';
+        invPreviewMedia(res.url, 'video');
+        toast('Video cargado ✓');
+      } else {
+        toast('Error: ' + (res.error || 'no se pudo descargar el video'), 'error');
+      }
+    } catch (e) {
+      toast('Error descargando el video de Drive', 'error');
+    }
   });
 }
 
