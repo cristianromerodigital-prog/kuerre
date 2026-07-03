@@ -1137,6 +1137,18 @@ document.querySelectorAll('[data-demo]').forEach(function(el) {
   }, { threshold: .3 });
   starters.forEach(function(s) { io.observe(s[0]); });
 })();
+
+// Timeline: encender nodos al entrar en viewport
+(function() {
+  var stages = document.querySelectorAll('.tl-stage');
+  if (!stages.length) return;
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(en) {
+      if (en.isIntersecting) { en.target.classList.add('tl-on'); io.unobserve(en.target); }
+    });
+  }, { threshold: .2 });
+  stages.forEach(function(s) { io.observe(s); });
+})();
 </script>
 </body>
 </html>
