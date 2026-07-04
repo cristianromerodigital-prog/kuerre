@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.60</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.61</div>
     </div>
   </aside>
 
@@ -1045,7 +1045,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <button class="modal-close" onclick="closeHeroPopup()">✕</button>
           </div>
           <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;align-items:center">
-            <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;line-height:1.6;text-align:center;max-width:340px">Arrastrá los textos de la portada para reposicionarlos y reordenarlos. Rueda del mouse = ajuste fino. Click en cualquier texto de la invitación (incluida la portada) abre un panel para cambiar su tamaño y grosor.</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;line-height:1.6;text-align:center;max-width:340px">Arrastrá los textos de la portada (o el countdown) para reposicionarlos. Los 3 textos también se reordenan entre sí; el countdown solo se mueve. Rueda del mouse = ajuste fino. Click en cualquier texto de la invitación (incluida la portada) abre un panel para cambiar su tamaño y grosor.</div>
             <div id="inv-hero-popup-frame-wrap" style="overflow:hidden;border:1px solid var(--border);border-radius:8px;background:#000">
               <iframe id="inv-hero-preview" style="width:390px;height:844px;border:0;display:block;transform-origin:0 0"></iframe>
             </div>
@@ -6908,7 +6908,7 @@ const HERO_PREVIEW_WATCH_FIELDS = ['inv-novios', 'inv-titulo', 'inv-fecha-displa
 function defaultHeroLayout(tx, ty) {
   return {
     order: ['eyebrow', 'names', 'date'],
-    pos: { eyebrow: { x: tx, y: ty }, names: { x: tx, y: ty }, date: { x: tx, y: ty } }
+    pos: { eyebrow: { x: tx, y: ty }, names: { x: tx, y: ty }, date: { x: tx, y: ty }, countdown: { x: 0, y: 0 } }
   };
 }
 
