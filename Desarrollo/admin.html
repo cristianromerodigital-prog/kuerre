@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.59</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.60</div>
     </div>
   </aside>
 
@@ -6478,6 +6478,7 @@ function openInviteModal(id) {
     invPreviewMedia(c.media_url, c.media_type);
     _heroLayout = resolveHeroLayoutFromConfig(c);
     _textStyles = c.text_styles || {};
+    _textContent = c.text_content || {};
     initHeroPreviewIframe();
     invSetMode(c.tipo === 'save_the_date' ? 'save_the_date' : 'invitacion');
     document.getElementById('inv-rsvp-summary').textContent = '';
@@ -6514,6 +6515,7 @@ function openInviteModal(id) {
     invFormatoChange();
     _heroLayout = defaultHeroLayout(0, 0);
     _textStyles = {};
+    _textContent = {};
     initHeroPreviewIframe();
     ['inv-media-preview-img','inv-media-preview-vid'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
     invTipoChange();
@@ -6580,7 +6582,8 @@ function readInviteForm() {
       logo_light: S.get('crd_site_logo') || '',
       logo_filter: S.get('crd_site_logo_filter') || '',
       hero_layout: _heroLayout || defaultHeroLayout(0, 0),
-      text_styles: _textStyles || {}
+      text_styles: _textStyles || {},
+      text_content: _textContent || {}
     },
     slug: document.getElementById('inv-slug').value.trim() || toSlug(document.getElementById('inv-novios').value.trim()) || 'invitacion'
   };
@@ -6892,6 +6895,7 @@ function invFormatoChange() {
 // ── HERO PREVIEW (arrastre/reorden/rueda) ──
 let _heroLayout = null;
 let _textStyles = null;
+let _textContent = null;
 let _heroPreviewDebounce = null;
 let _heroPreviewListenersBound = false;
 const HERO_PREVIEW_WATCH_FIELDS = ['inv-novios', 'inv-titulo', 'inv-fecha-display', 'inv-media-url',
@@ -6949,7 +6953,8 @@ function buildInvitePreviewCfg() {
     regalo_titulo: document.getElementById('inv-regalo-titulo').value.trim(),
     regalo_texto: document.getElementById('inv-regalo-texto').value.trim(),
     hero_layout: _heroLayout,
-    text_styles: _textStyles
+    text_styles: _textStyles,
+    text_content: _textContent
   };
 }
 
@@ -6981,7 +6986,7 @@ function initHeroPreviewIframe() {
   const iframe = document.getElementById('inv-hero-preview');
   iframe.onload = () => {
     iframe.contentWindow.addEventListener('herolayoutchange', e => { _heroLayout = e.detail; });
-    iframe.contentWindow.addEventListener('textstyleschange', e => { _textStyles = e.detail; });
+    iframe.contentWindow.addEventListener('textstyleschange', e => { _textStyles = e.detail.styles; _textContent = e.detail.content; });
     refreshHeroPreview();
   };
   iframe.src = getInvBaseUrl() + '?preview=1&_=' + Date.now();
