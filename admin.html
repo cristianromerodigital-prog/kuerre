@@ -741,7 +741,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="inv-modal-section">
               <div class="inv-modal-section-title">Posición del Texto en Portada</div>
               <div style="font-size:11px;color:var(--gray2);margin-bottom:10px;line-height:1.6">Ajustá dónde va cada texto sobre la foto o video de portada.</div>
-              <button type="button" class="btn-sm" onclick="openHeroPopup()">✎ Editar posición</button>
+              <button type="button" class="btn-sm" onclick="openHeroPopup()">✎ Editor visual</button>
             </div>
 
             <!-- HORARIOS -->
@@ -1041,11 +1041,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="modal-bg" id="inv-hero-popup" style="z-index:600">
         <div class="modal" style="max-width:460px;width:auto;background:var(--black2)">
           <div class="modal-header">
-            <span>Posición del Texto en Portada</span>
+            <span>Editor visual de la invitación</span>
             <button class="modal-close" onclick="closeHeroPopup()">✕</button>
           </div>
           <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;align-items:center">
-            <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;line-height:1.6;text-align:center;max-width:340px">Arrastrá los textos para reposicionarlos y reordenarlos (arriba/medio/abajo). Rueda del mouse sobre un texto = ajuste fino.</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;line-height:1.6;text-align:center;max-width:340px">Arrastrá los textos de la portada para reposicionarlos y reordenarlos. Rueda del mouse = ajuste fino. Click en cualquier texto de la invitación (incluida la portada) abre un panel para cambiar su tamaño y grosor.</div>
             <div id="inv-hero-popup-frame-wrap" style="overflow:hidden;border:1px solid var(--border);border-radius:8px;background:#000">
               <iframe id="inv-hero-preview" style="width:390px;height:844px;border:0;display:block;transform-origin:0 0"></iframe>
             </div>
@@ -6477,6 +6477,7 @@ function openInviteModal(id) {
     slugEl.dataset.manual = inv.slug ? '1' : '';
     invPreviewMedia(c.media_url, c.media_type);
     _heroLayout = resolveHeroLayoutFromConfig(c);
+    _textStyles = c.text_styles || {};
     initHeroPreviewIframe();
     invSetMode(c.tipo === 'save_the_date' ? 'save_the_date' : 'invitacion');
     document.getElementById('inv-rsvp-summary').textContent = '';
@@ -6512,6 +6513,7 @@ function openInviteModal(id) {
     document.getElementById('inv-wedding-fx').value = 'glow';
     invFormatoChange();
     _heroLayout = defaultHeroLayout(0, 0);
+    _textStyles = {};
     initHeroPreviewIframe();
     ['inv-media-preview-img','inv-media-preview-vid'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
     invTipoChange();
@@ -6577,7 +6579,8 @@ function readInviteForm() {
       logo_dark: S.get('crd_site_logo') || '',
       logo_light: S.get('crd_site_logo') || '',
       logo_filter: S.get('crd_site_logo_filter') || '',
-      hero_layout: _heroLayout || defaultHeroLayout(0, 0)
+      hero_layout: _heroLayout || defaultHeroLayout(0, 0),
+      text_styles: _textStyles || {}
     },
     slug: document.getElementById('inv-slug').value.trim() || toSlug(document.getElementById('inv-novios').value.trim()) || 'invitacion'
   };
@@ -6888,10 +6891,15 @@ function invFormatoChange() {
 
 // ── HERO PREVIEW (arrastre/reorden/rueda) ──
 let _heroLayout = null;
+let _textStyles = null;
 let _heroPreviewDebounce = null;
 let _heroPreviewListenersBound = false;
 const HERO_PREVIEW_WATCH_FIELDS = ['inv-novios', 'inv-titulo', 'inv-fecha-display', 'inv-media-url',
-  'inv-wedding-script', 'inv-formato', 'inv-color-esquema', 'inv-wedding-fx', 'inv-media-type', 'inv-tipo'];
+  'inv-wedding-script', 'inv-formato', 'inv-color-esquema', 'inv-wedding-fx', 'inv-media-type', 'inv-tipo',
+  'inv-subtitulo', 'inv-presentacion', 'inv-ceremonia-hora', 'inv-ceremonia-lugar', 'inv-ceremonia-dir',
+  'inv-recepcion-hora', 'inv-fin-fiesta-hora', 'inv-lugar-nombre', 'inv-lugar-dir', 'inv-lugar-maps',
+  'inv-dresscode', 'inv-dresscode-nota', 'inv-alias', 'inv-alias-banco', 'inv-alias-titular', 'inv-cbu',
+  'inv-rsvp-activo', 'inv-rsvp-limite', 'inv-spotify', 'inv-regalo-label', 'inv-regalo-titulo', 'inv-regalo-texto'];
 
 function defaultHeroLayout(tx, ty) {
   return {
@@ -6905,7 +6913,7 @@ function resolveHeroLayoutFromConfig(c) {
   return defaultHeroLayout((c && c.hero_text_x) || 0, (c && c.hero_text_y) || 0);
 }
 
-function buildHeroPreviewCfg() {
+function buildInvitePreviewCfg() {
   return {
     formato: document.getElementById('inv-formato').value,
     tipo: document.getElementById('inv-tipo').value,
@@ -6918,14 +6926,37 @@ function buildHeroPreviewCfg() {
     color_esquema: document.getElementById('inv-color-esquema').value,
     wedding_script: document.getElementById('inv-wedding-script').value.trim(),
     wedding_fx: document.getElementById('inv-wedding-fx').value,
-    hero_layout: _heroLayout
+    subtitulo_html: document.getElementById('inv-subtitulo').value.trim(),
+    presentacion: document.getElementById('inv-presentacion').value.trim(),
+    ceremonia_hora: document.getElementById('inv-ceremonia-hora').value.trim(),
+    ceremonia_lugar: document.getElementById('inv-ceremonia-lugar').value.trim(),
+    ceremonia_direccion: document.getElementById('inv-ceremonia-dir').value.trim(),
+    recepcion_hora: document.getElementById('inv-recepcion-hora').value.trim(),
+    fin_fiesta_hora: document.getElementById('inv-fin-fiesta-hora').value.trim(),
+    lugar_nombre: document.getElementById('inv-lugar-nombre').value.trim(),
+    lugar_direccion: document.getElementById('inv-lugar-dir').value.trim(),
+    lugar_maps: document.getElementById('inv-lugar-maps').value.trim(),
+    dresscode: document.getElementById('inv-dresscode').value.trim(),
+    dresscode_nota: document.getElementById('inv-dresscode-nota').value.trim(),
+    alias_mp: document.getElementById('inv-alias').value.trim(),
+    alias_banco: document.getElementById('inv-alias-banco').value.trim(),
+    alias_titular: document.getElementById('inv-alias-titular').value.trim(),
+    cbu: document.getElementById('inv-cbu').value.trim(),
+    rsvp_activo: document.getElementById('inv-rsvp-activo').checked,
+    rsvp_limite: document.getElementById('inv-rsvp-limite').value,
+    spotify_url: document.getElementById('inv-spotify').value.trim(),
+    regalo_label: document.getElementById('inv-regalo-label').value.trim(),
+    regalo_titulo: document.getElementById('inv-regalo-titulo').value.trim(),
+    regalo_texto: document.getElementById('inv-regalo-texto').value.trim(),
+    hero_layout: _heroLayout,
+    text_styles: _textStyles
   };
 }
 
 function refreshHeroPreview() {
   const iframe = document.getElementById('inv-hero-preview');
   if (!iframe || !iframe.contentWindow || !iframe.contentWindow.applyHeroPreview) return;
-  iframe.contentWindow.applyHeroPreview(buildHeroPreviewCfg());
+  iframe.contentWindow.applyHeroPreview(buildInvitePreviewCfg());
 }
 
 function scheduleHeroPreviewRefresh() {
@@ -6950,6 +6981,7 @@ function initHeroPreviewIframe() {
   const iframe = document.getElementById('inv-hero-preview');
   iframe.onload = () => {
     iframe.contentWindow.addEventListener('herolayoutchange', e => { _heroLayout = e.detail; });
+    iframe.contentWindow.addEventListener('textstyleschange', e => { _textStyles = e.detail; });
     refreshHeroPreview();
   };
   iframe.src = getInvBaseUrl() + '?preview=1&_=' + Date.now();
