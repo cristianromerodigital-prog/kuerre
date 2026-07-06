@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.62</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.63</div>
     </div>
   </aside>
 
@@ -4161,7 +4161,13 @@ function showPage(id) {
   if (id === 'dashboard') renderDashboard();
   if (id === 'photos') renderPhotosPage();
   if (id === 'video') loadVideoPage();
-  if (id === 'content') { initContentIfEmpty(); loadContentPage(); }
+  if (id === 'content') {
+    fetchFromCloud('crd_content').then(cloud => {
+      if (cloud && typeof cloud === 'object') localStorage.setItem('crd_content', JSON.stringify(cloud));
+      loadContentPage();
+    });
+    setTimeout(loadDestinations, 100);
+  }
   if (id === 'invites') renderInvitesPage();
   if (id === 'fiestas') loadFiestasPage();
   if (id === 'calendario') loadCalendarioPage();
