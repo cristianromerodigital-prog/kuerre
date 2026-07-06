@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.61</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.62</div>
     </div>
   </aside>
 
@@ -1710,7 +1710,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="settings-section-title">Encabezado de la sección</div>
             <div class="form-row">
               <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-svc-eyebrow" placeholder="Nuestros servicios"></div>
-              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-svc-title" placeholder="Tres experiencias digitales, un solo proveedor"></div>
+              <div class="form-group"><label class="form-label">Título (Enter = salto de línea)</label><textarea class="form-textarea" id="cnt-svc-title" style="min-height:60px" placeholder="Tres experiencias digitales, un solo proveedor"></textarea></div>
+            </div>
+            <div class="form-row" style="margin-top:10px">
+              <div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="cnt-svc-promo-enabled" style="width:auto"> Mostrar cartel de promo</label></div>
+              <div class="form-group"><label class="form-label">Texto del cartel</label><input class="form-input" id="cnt-svc-promo-text" placeholder="Consultá aquí por Promo Combo Lanzamiento · 50% OFF"></div>
             </div>
           </div>
           <div class="settings-section">
@@ -1746,7 +1750,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="settings-section-title">Encabezado</div>
             <div class="form-row">
               <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-cf-eyebrow" placeholder="Proceso"></div>
-              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-cf-title" placeholder="Simple, rápido y sin complicaciones"></div>
+              <div class="form-group"><label class="form-label">Título (Enter = salto de línea)</label><textarea class="form-textarea" id="cnt-cf-title" style="min-height:60px" placeholder="Simple, rápido y sin complicaciones"></textarea></div>
             </div>
           </div>
           <div class="settings-section">
@@ -1773,7 +1777,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="settings-section-title">Encabezado</div>
             <div class="form-row">
               <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="cnt-faq-eyebrow" placeholder="Preguntas frecuentes"></div>
-              <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="cnt-faq-title" placeholder="¿Tenés dudas? Las respondemos todas"></div>
+              <div class="form-group"><label class="form-label">Título (Enter = salto de línea)</label><textarea class="form-textarea" id="cnt-faq-title" style="min-height:60px" placeholder="¿Tenés dudas?&#10;Las respondemos todas"></textarea></div>
             </div>
           </div>
           <div class="settings-section">
@@ -5559,43 +5563,139 @@ function switchPricingTab(tab, btn) {
 function loadContentPage() {
   const c = getContent();
 
+  // GLOBAL
+  const g = c.global || {};
+  document.getElementById('cnt-global-wa').value = g.wa_number || '';
+  document.getElementById('cnt-global-ig').value = g.ig_url || '';
+  document.getElementById('cnt-global-topbar').value = g.topbar_left || '';
+  document.getElementById('cnt-global-nav-cta').value = g.nav_cta_text || '';
+  document.getElementById('cnt-global-nav-cta-url').value = g.nav_cta_url || '';
+  document.getElementById('cnt-global-footer').value = g.footer_copyright || '';
+
   // HERO
   const h = c.hero || {};
-  ['eyebrow','avail','title','desc','btn1','btn2'].forEach(k => {
-    const el = document.getElementById('cnt-hero-'+k);
-    if(el) el.value = h[k] || '';
+  document.getElementById('cnt-hero-eyebrow').value = h.eyebrow || '';
+  document.getElementById('cnt-hero-title').value = h.title || '';
+  document.getElementById('cnt-hero-desc').value = h.desc || '';
+  document.getElementById('cnt-hero-btn1').value = h.btn1_text || '';
+  document.getElementById('cnt-hero-btn1-url').value = h.btn1_url || '';
+  document.getElementById('cnt-hero-btn2').value = h.btn2_text || '';
+  document.getElementById('cnt-hero-bg').value = h.bg_image || '';
+
+  // TRUST BAR
+  const trust = c.trust || [];
+  for (let i = 0; i < 4; i++) {
+    const item = trust[i] || {};
+    const numEl = document.getElementById('cnt-trust-num-' + i);
+    const labelEl = document.getElementById('cnt-trust-label-' + i);
+    if (numEl) numEl.value = item.num || '';
+    if (labelEl) labelEl.value = item.label || '';
+  }
+
+  // FEATURE SECTIONS (Invitaciones, QR, Premiere)
+  const featureSections = [
+    { key: 'invitaciones', pfx: 'inv' },
+    { key: 'qr',           pfx: 'qr'  },
+    { key: 'premiere',     pfx: 'pm'  }
+  ];
+  featureSections.forEach(s => {
+    const d = c[s.key] || {};
+    const p = s.pfx;
+    document.getElementById('cnt-' + p + '-label').value = d.label || '';
+    document.getElementById('cnt-' + p + '-title').value = d.title || '';
+    document.getElementById('cnt-' + p + '-desc').value = d.desc || '';
+    const feats = d.features || [];
+    for (let i = 0; i < 5; i++) {
+      const el = document.getElementById('cnt-' + p + '-feat-' + i);
+      if (el) el.value = feats[i] || '';
+    }
+    document.getElementById('cnt-' + p + '-btn').value = d.btn_text || '';
+    document.getElementById('cnt-' + p + '-btn-url').value = d.btn_url || '';
+    document.getElementById('cnt-' + p + '-bg').value = d.bg_image || '';
   });
 
-  // ABOUT
-  const a = c.about || {};
-  ['eyebrow','title','p1','p2','p3','p4','btn'].forEach(k => {
-    const el = document.getElementById('cnt-about-'+k);
-    if(el) el.value = a[k] || '';
-  });
-  renderStatsEditor(a.stats || [{n:'300+',l:'Eventos cubiertos'},{n:'8+',l:'Años experiencia'},{n:'2',l:'Marcas propias'},{n:'100%',l:'Clientes felices'}]);
+  // SERVICIOS
+  const svc = c.servicios || {};
+  document.getElementById('cnt-svc-eyebrow').value = svc.eyebrow || '';
+  document.getElementById('cnt-svc-title').value = svc.title || '';
+  const cards = svc.cards || [];
+  for (let i = 0; i < 3; i++) {
+    const card = cards[i] || {};
+    const nameEl = document.getElementById('cnt-svc-name-' + i);
+    const priceEl = document.getElementById('cnt-svc-price-' + i);
+    const descEl = document.getElementById('cnt-svc-desc-' + i);
+    if (nameEl) nameEl.value = card.name || '';
+    if (priceEl) priceEl.value = card.price || '';
+    if (descEl) descEl.value = card.desc || '';
+  }
+  const promo = svc.promo_combo || {};
+  const promoEnabledEl = document.getElementById('cnt-svc-promo-enabled');
+  const promoTextEl = document.getElementById('cnt-svc-promo-text');
+  if (promoEnabledEl) promoEnabledEl.checked = promo.enabled !== false;
+  if (promoTextEl) promoTextEl.value = promo.text || '';
 
-  // SERVICES
-  const svc = c.services || {};
-  document.getElementById('cnt-svc-eyebrow').value = svc.eyebrow || 'Qué ofrezco';
-  document.getElementById('cnt-svc-title').value = svc.title || 'Mis servicios';
-  renderServicesEditor(svc.items || SERVICES_DEFAULT);
+  // COMO FUNCIONA
+  const cf = c.como_funciona || {};
+  document.getElementById('cnt-cf-eyebrow').value = cf.eyebrow || '';
+  document.getElementById('cnt-cf-title').value = cf.title || '';
+  const steps = cf.steps || [];
+  for (let i = 0; i < 3; i++) {
+    const step = steps[i] || {};
+    const nameEl = document.getElementById('cnt-cf-step-name-' + i);
+    const descEl = document.getElementById('cnt-cf-step-desc-' + i);
+    if (nameEl) nameEl.value = step.name || '';
+    if (descEl) descEl.value = step.desc || '';
+  }
 
-  // PRICING — render first tab
-  renderPricingEditor('xv');
+  // FAQ
+  const faq = c.faq || {};
+  document.getElementById('cnt-faq-eyebrow').value = faq.eyebrow || '';
+  document.getElementById('cnt-faq-title').value = faq.title || '';
+  renderFaqEditor(faq.items || []);
 
-  // CONTACT
-  const ct = c.contact || {};
-  ['eyebrow','title','desc','email','phone','location','wa-number'].forEach(k => {
-    const el = document.getElementById('cnt-'+k);
-    if(el) el.value = ct[k.replace('-','_')] || ct[k] || '';
-  });
+  // CTA FINAL
+  const ctaFinal = c.cta_final || {};
+  document.getElementById('cnt-cta-title').value = ctaFinal.title || '';
+  document.getElementById('cnt-cta-desc').value = ctaFinal.desc || '';
+  document.getElementById('cnt-cta-btn').value = ctaFinal.btn_text || '';
+  document.getElementById('cnt-cta-btn-url').value = ctaFinal.btn_url || '';
+}
 
-  // SOCIAL
-  const sc = c.social || {};
-  ['ig','fb','wa','social-title','social-desc'].forEach(k => {
-    const el = document.getElementById('cnt-'+k);
-    if(el) el.value = sc[k.replace('-','_')] || sc[k] || '';
-  });
+// ── FAQ EDITOR (Kuerre) ──
+function renderFaqEditor(items) {
+  const container = document.getElementById('cnt-faq-list');
+  if (!container) return;
+  container.innerHTML = items.map((item, i) => `
+    <div class="settings-section" style="margin-bottom:10px">
+      <div class="form-group"><label class="form-label">Pregunta ${i+1}</label><input class="form-input" id="cnt-faq-q-${i}" value="${(item.q||'').replace(/"/g,'&quot;')}"></div>
+      <div class="form-group"><label class="form-label">Respuesta</label><textarea class="form-textarea" id="cnt-faq-a-${i}">${item.a||''}</textarea></div>
+      <button class="btn-sm" onclick="removeFaqItem(${i})" style="color:var(--red)">✕ Quitar pregunta</button>
+    </div>`).join('');
+  container.dataset.count = items.length;
+}
+
+function addFaqItem() {
+  const items = collectFaqItems();
+  items.push({ q: '', a: '' });
+  renderFaqEditor(items);
+}
+
+function removeFaqItem(idx) {
+  const items = collectFaqItems();
+  items.splice(idx, 1);
+  renderFaqEditor(items);
+}
+
+function collectFaqItems() {
+  const container = document.getElementById('cnt-faq-list');
+  const count = parseInt((container && container.dataset.count) || '0', 10);
+  const items = [];
+  for (let i = 0; i < count; i++) {
+    const q = document.getElementById('cnt-faq-q-' + i);
+    const a = document.getElementById('cnt-faq-a-' + i);
+    if (q) items.push({ q: q.value.trim(), a: (a ? a.value.trim() : '') });
+  }
+  return items;
 }
 
 // ── STATS EDITOR ──
@@ -5870,82 +5970,103 @@ function collectPricingPackages() {
 function saveContentSection(section) {
   const c = getContent();
 
-  if(section === 'hero') {
+  if (section === 'global') {
+    c.global = {
+      wa_number: document.getElementById('cnt-global-wa').value.trim(),
+      ig_url: document.getElementById('cnt-global-ig').value.trim(),
+      topbar_left: document.getElementById('cnt-global-topbar').value.trim(),
+      nav_cta_text: document.getElementById('cnt-global-nav-cta').value.trim(),
+      nav_cta_url: document.getElementById('cnt-global-nav-cta-url').value.trim(),
+      footer_copyright: document.getElementById('cnt-global-footer').value.trim()
+    };
+  }
+  else if (section === 'hero') {
     c.hero = {
       eyebrow: document.getElementById('cnt-hero-eyebrow').value.trim(),
-      avail: document.getElementById('cnt-hero-avail').value.trim(),
       title: document.getElementById('cnt-hero-title').value.trim(),
       desc: document.getElementById('cnt-hero-desc').value.trim(),
-      btn1: document.getElementById('cnt-hero-btn1').value.trim(),
-      btn2: document.getElementById('cnt-hero-btn2').value.trim()
+      btn1_text: document.getElementById('cnt-hero-btn1').value.trim(),
+      btn1_url: document.getElementById('cnt-hero-btn1-url').value.trim(),
+      btn2_text: document.getElementById('cnt-hero-btn2').value.trim(),
+      bg_image: document.getElementById('cnt-hero-bg').value.trim()
     };
   }
-  else if(section === 'about') {
-    c.about = {
-      eyebrow: document.getElementById('cnt-about-eyebrow').value.trim(),
-      title: document.getElementById('cnt-about-title').value.trim(),
-      p1: document.getElementById('cnt-about-p1').value.trim(),
-      p2: document.getElementById('cnt-about-p2').value.trim(),
-      p3: document.getElementById('cnt-about-p3').value.trim(),
-      p4: document.getElementById('cnt-about-p4').value.trim(),
-      btn: document.getElementById('cnt-about-btn').value.trim(),
-      stats: collectStats()
+  else if (section === 'trust') {
+    const trust = [];
+    for (let i = 0; i < 4; i++) {
+      trust.push({
+        num: document.getElementById('cnt-trust-num-' + i).value.trim(),
+        label: document.getElementById('cnt-trust-label-' + i).value.trim()
+      });
+    }
+    c.trust = trust;
+  }
+  else if (section === 'invitaciones' || section === 'qr' || section === 'premiere') {
+    const pfxMap = { invitaciones: 'inv', qr: 'qr', premiere: 'pm' };
+    const p = pfxMap[section];
+    const feats = [];
+    for (let i = 0; i < 5; i++) {
+      const el = document.getElementById('cnt-' + p + '-feat-' + i);
+      if (el && el.value.trim()) feats.push(el.value.trim());
+    }
+    c[section] = {
+      label: document.getElementById('cnt-' + p + '-label').value.trim(),
+      title: document.getElementById('cnt-' + p + '-title').value.trim(),
+      desc: document.getElementById('cnt-' + p + '-desc').value.trim(),
+      features: feats,
+      btn_text: document.getElementById('cnt-' + p + '-btn').value.trim(),
+      btn_url: document.getElementById('cnt-' + p + '-btn-url').value.trim(),
+      bg_image: document.getElementById('cnt-' + p + '-bg').value.trim()
     };
   }
-  else if(section === 'services') {
-    c.services = {
+  else if (section === 'servicios') {
+    const cards = [];
+    for (let i = 0; i < 3; i++) {
+      cards.push({
+        name: document.getElementById('cnt-svc-name-' + i).value.trim(),
+        desc: document.getElementById('cnt-svc-desc-' + i).value.trim(),
+        price: document.getElementById('cnt-svc-price-' + i).value.trim()
+      });
+    }
+    const promoEnabledEl = document.getElementById('cnt-svc-promo-enabled');
+    const promoTextEl = document.getElementById('cnt-svc-promo-text');
+    c.servicios = {
       eyebrow: document.getElementById('cnt-svc-eyebrow').value.trim(),
       title: document.getElementById('cnt-svc-title').value.trim(),
-      items: collectServices()
+      cards: cards,
+      promo_combo: {
+        enabled: promoEnabledEl ? promoEnabledEl.checked : true,
+        text: promoTextEl ? promoTextEl.value.trim() : ''
+      }
     };
   }
-  else if(section === 'pricing') {
-    if(!c.pricing) c.pricing = {};
-    c.pricing[currentPricingTab] = collectPricingPackages();
-  }
-  else if(section === 'contact') {
-    c.contact = {
-      eyebrow: document.getElementById('cnt-contact-eyebrow').value.trim(),
-      title: document.getElementById('cnt-contact-title').value.trim(),
-      desc: document.getElementById('cnt-contact-desc').value.trim(),
-      email: document.getElementById('cnt-email').value.trim(),
-      phone: document.getElementById('cnt-phone').value.trim(),
-      location: document.getElementById('cnt-location').value.trim(),
-      wa_number: document.getElementById('cnt-wa-number').value.trim()
+  else if (section === 'como') {
+    const steps = [];
+    for (let i = 0; i < 3; i++) {
+      steps.push({
+        name: document.getElementById('cnt-cf-step-name-' + i).value.trim(),
+        desc: document.getElementById('cnt-cf-step-desc-' + i).value.trim()
+      });
+    }
+    c.como_funciona = {
+      eyebrow: document.getElementById('cnt-cf-eyebrow').value.trim(),
+      title: document.getElementById('cnt-cf-title').value.trim(),
+      steps: steps
     };
   }
-  else if(section === 'social') {
-    c.social = {
-      ig: document.getElementById('cnt-ig').value.trim(),
-      fb: document.getElementById('cnt-fb').value.trim(),
-      wa: document.getElementById('cnt-wa').value.trim(),
-      social_title: document.getElementById('cnt-social-title').value.trim(),
-      social_desc: document.getElementById('cnt-social-desc').value.trim()
+  else if (section === 'faq') {
+    c.faq = {
+      eyebrow: document.getElementById('cnt-faq-eyebrow').value.trim(),
+      title: document.getElementById('cnt-faq-title').value.trim(),
+      items: collectFaqItems()
     };
   }
-
-  if(section === 'cta') {
-    // Save destinations
-    const destKeys = ['consultar','portfolio','precios','servicios','consultar_nav'];
-    if(!c.cta_destinations) c.cta_destinations = {};
-    destKeys.forEach(k => {
-      const waBtn = document.getElementById('dest-'+k+'-wa');
-      if(waBtn) c.cta_destinations[k] = waBtn.classList.contains('active') ? 'wa' : 'form';
-    });
-    c.cta_messages = {
-      consultar: document.getElementById('cta-consultar').value.trim(),
-      portfolio: document.getElementById('cta-portfolio').value.trim(),
-      precios: document.getElementById('cta-precios').value.trim(),
-      servicios: document.getElementById('cta-servicios').value.trim()
-    };
-  }
-  else if(section === 'legal') {
-    c.legal = {
-      privacy_label: document.getElementById('cnt-legal-privacy-label').value.trim(),
-      privacy_text: document.getElementById('cnt-legal-privacy-text').value.trim(),
-      terms_label: document.getElementById('cnt-legal-terms-label').value.trim(),
-      terms_text: document.getElementById('cnt-legal-terms-text').value.trim(),
-      copyright: document.getElementById('cnt-legal-copyright').value.trim()
+  else if (section === 'cta') {
+    c.cta_final = {
+      title: document.getElementById('cnt-cta-title').value.trim(),
+      desc: document.getElementById('cnt-cta-desc').value.trim(),
+      btn_text: document.getElementById('cnt-cta-btn').value.trim(),
+      btn_url: document.getElementById('cnt-cta-btn-url').value.trim()
     };
   }
 
