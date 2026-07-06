@@ -265,10 +265,18 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
 #demo-modal.open { display:flex; }
 .demo-modal-frame { width:min(420px,92vw); height:min(86vh,780px); background:#111; border-radius:34px;
   border:8px solid #1c1c1e; overflow:hidden; display:flex; flex-direction:column;
-  box-shadow:0 40px 120px rgba(0,0,0,.6); }
-.demo-modal-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:#000; }
+  box-shadow:0 40px 120px rgba(0,0,0,.6); transition:width .25s ease,height .25s ease; }
+.demo-modal-frame.is-desktop { border-radius:14px; border-width:3px; }
+.demo-modal-frame.is-desktop #demo-modal-iframe { flex:none; }
+.demo-modal-bar { display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center; padding:10px 16px; background:#000; }
 .demo-modal-bar a { color:#c090e0; font-size:11px; letter-spacing:.08em; text-decoration:none; }
 .demo-modal-bar button { background:none; border:none; color:#fff; font-size:16px; cursor:pointer; padding:4px 8px; }
+.demo-modal-view-toggle { display:none; gap:6px; }
+.demo-modal-view-toggle.show { display:flex; }
+.demo-modal-view-toggle button { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25);
+  color:#fff; font-size:10px; letter-spacing:.05em; padding:5px 12px; border-radius:20px; cursor:pointer;
+  font-family:inherit; white-space:nowrap; }
+.demo-modal-view-toggle button.active { background:#9060b8; border-color:#9060b8; }
 #demo-modal-iframe { flex:1; width:100%; border:none; background:#0a0a12; }
 [data-demo] { cursor:pointer; }
 
@@ -950,6 +958,10 @@ footer p { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.05em; }
   <div class="demo-modal-frame">
     <div class="demo-modal-bar">
       <a id="demo-modal-open" href="#" target="_blank">Abrir en pestaña nueva ↗</a>
+      <div class="demo-modal-view-toggle" id="demo-modal-view-toggle">
+        <button id="demo-view-mobile" class="active" onclick="setDemoView('mobile')">📱 Celular</button>
+        <button id="demo-view-desktop" onclick="setDemoView('desktop')">💻 PC</button>
+      </div>
       <button onclick="closeDemoModal()" aria-label="Cerrar">✕</button>
     </div>
     <iframe id="demo-modal-iframe" title="Demo KUERRE"></iframe>
@@ -1190,13 +1202,40 @@ function pmCrossfade(container) {
 }
 
 // ── MODAL DEMO ──────────────────────────────────────────────────
-// [COMPARTIDA] abre demo en modal (desktop) o pestaña nueva (mobile)
+// [COMPARTIDA] abre demo en modal, siempre (celular y desktop)
+var DEMO_DESKTOP_W = 1280, DEMO_DESKTOP_H = 900;
 function openDemoModal(url) {
-  if (window.innerWidth <= 900) { window.open(url, '_blank'); return; }
   var m = document.getElementById('demo-modal');
+  var toggle = document.getElementById('demo-modal-view-toggle');
+  toggle.classList.toggle('show', url.indexOf('fiestas.html') !== -1);
   document.getElementById('demo-modal-iframe').src = url;
   document.getElementById('demo-modal-open').href = url;
   m.classList.add('open');
+  setDemoView('mobile');
+}
+function setDemoView(mode) {
+  var frame = document.querySelector('.demo-modal-frame');
+  var iframe = document.getElementById('demo-modal-iframe');
+  document.getElementById('demo-view-mobile').classList.toggle('active', mode === 'mobile');
+  document.getElementById('demo-view-desktop').classList.toggle('active', mode === 'desktop');
+  frame.classList.toggle('is-desktop', mode === 'desktop');
+  if (mode === 'desktop') {
+    // Renderiza el iframe a resolución desktop real y lo escala para que entre en la pantalla
+    var frameW = Math.min(window.innerWidth * 0.94, 960);
+    var scale = frameW / DEMO_DESKTOP_W;
+    iframe.style.width = DEMO_DESKTOP_W + 'px';
+    iframe.style.height = DEMO_DESKTOP_H + 'px';
+    iframe.style.transform = 'scale(' + scale + ')';
+    iframe.style.transformOrigin = '0 0';
+    frame.style.width = frameW + 'px';
+    frame.style.height = Math.min(DEMO_DESKTOP_H * scale, window.innerHeight * 0.78) + 'px';
+  } else {
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.transform = 'none';
+    frame.style.width = '';
+    frame.style.height = '';
+  }
 }
 function closeDemoModal() {
   var m = document.getElementById('demo-modal');
