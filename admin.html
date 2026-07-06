@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.65</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.66</div>
     </div>
   </aside>
 
@@ -4273,7 +4273,7 @@ async function cmCrearCarpetas() {
     const r = await fetch(CLIENTES_WORKER + '/solicitudes/' + _clienteActual.id + '/carpetas', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ codigoContrato: codigo })
+      body: JSON.stringify({ codigoContrato: codigo, driveRoot: '1te7B-sW6T-OzZepaUQe8kD2SiIdQsEzb' })
     });
     const d = await r.json();
     if (!d.ok) { toast(d.error || 'Error al crear carpetas', 'error'); return; }
