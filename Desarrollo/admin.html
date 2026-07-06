@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.66</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.67</div>
     </div>
   </aside>
 
@@ -4033,7 +4033,8 @@ function cmGoEntrega() {
 
 function cmGetFiestaUrl() {
   if (!_clienteActual) return '';
-  return (location.origin + '/fiestas.html?e=' + slugifyFiesta(_clienteActual.nombre_display, _clienteActual.fecha));
+  const slug = _clienteActual.evento_slug || slugifyFiesta(_clienteActual.nombre_display, _clienteActual.fecha);
+  return (location.origin + '/fiestas.html?e=' + slug);
 }
 
 function cmOpenFiesta() {

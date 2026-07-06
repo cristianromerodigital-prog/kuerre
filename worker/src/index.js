@@ -285,6 +285,9 @@ async function handleSolicitudesCreate(request, env) {
         env.KUERRE_DB.prepare(`INSERT INTO entrega_configs (id,folder_id,portada,overlay,allow_dl,evento_id,created_at) VALUES (?,'',' ','violeta',1,?,?)`)
           .bind(id, eventoId, now),
       ]);
+      // El admin comparte el link publico de fiestas via slug (fiestas.html?e=slug), no via fiesta_id
+      // crudo — sin este mapeo resolveEventId() nunca lo encuentra y el visor dice "evento no existe".
+      await env.KUERRE_KV.put('fiesta_slug_' + eventoSlug, fiesta_id);
       return json({ ok: true, id });
     } catch (e) {
       if (attempt === 1) throw e;
@@ -310,7 +313,7 @@ async function handleSolicitudesList(env, request) {
   const total = countRow ? countRow.n : 0;
 
   const { results } = await env.KUERRE_DB.prepare(`
-    SELECT s.*, e.fecha, e.tipo, e.nombre AS nombre_display,
+    SELECT s.*, e.fecha, e.tipo, e.nombre AS nombre_display, e.slug AS evento_slug,
            ef.estado AS fiesta_estado, ec.folder_id AS entrega_folder
     FROM solicitudes s
     LEFT JOIN eventos e ON e.id = s.evento_id
@@ -352,7 +355,11 @@ async function handleEntregaConfigPatch(id, request, env) {
 }
 
 async function handleCrearCarpetas(id, request, env) {
-  const sol = await env.KUERRE_DB.prepare('SELECT * FROM solicitudes WHERE id = ?').bind(id).first();
+  const sol = await env.KUERRE_DB.prepare(`
+    SELECT s.*, e.nombre AS nombre_display, e.fecha, e.tipo, e.slug AS evento_slug
+    FROM solicitudes s LEFT JOIN eventos e ON e.id = s.evento_id
+    WHERE s.id = ?
+  `).bind(id).first();
   if (!sol) return json({ error: 'Solicitud no encontrada' }, 404);
 
   const { codigoContrato, driveRoot } = await request.json();
@@ -404,6 +411,10 @@ async function handleCrearCarpetas(id, request, env) {
     env.KUERRE_DB.prepare(`UPDATE entrega_configs SET folder_id=? WHERE id=?`)
       .bind(ids.entrega, id),
   ]);
+
+  // Backfill: clientes creados antes de este fix (o si por algun motivo nunca
+  // se escribio al crear la solicitud) tambien quedan con el link publico andando.
+  if (sol.evento_slug) await env.KUERRE_KV.put('fiesta_slug_' + sol.evento_slug, sol.fiesta_id);
 
   return json({ ok: true, ids });
 }
