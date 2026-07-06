@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.64</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.65</div>
     </div>
   </aside>
 
@@ -7092,7 +7092,7 @@ function readInviteForm() {
       fecha_iso: document.getElementById('inv-s-fecha-iso').value,
       media_url: document.getElementById('inv-s-media-url').value.trim(),
       media_type: mType ? mType.value : 'image',
-      youtube_audio: extractYouTubeId(document.getElementById('inv-s-youtube-audio').value),
+      youtube_audio: document.getElementById('inv-s-youtube-audio').value.trim(),
       recepcion_hora: document.getElementById('inv-s-recepcion-hora').value.trim(),
       lugar_nombre: document.getElementById('inv-s-lugar-nombre').value.trim(),
       lugar_direccion: document.getElementById('inv-s-lugar-dir').value.trim(),
