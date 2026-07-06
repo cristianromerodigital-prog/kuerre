@@ -1204,9 +1204,11 @@ function pmCrossfade(container) {
 // ── MODAL DEMO ──────────────────────────────────────────────────
 // [COMPARTIDA] abre demo en modal, siempre (celular y desktop)
 var DEMO_DESKTOP_W = 1280, DEMO_DESKTOP_H = 900;
+var _demoBaseUrl = '';
 function openDemoModal(url) {
   var m = document.getElementById('demo-modal');
   var toggle = document.getElementById('demo-modal-view-toggle');
+  _demoBaseUrl = url;
   toggle.classList.toggle('show', url.indexOf('fiestas.html') !== -1 || url.indexOf('premiere.html') !== -1);
   document.getElementById('demo-modal-iframe').src = url;
   document.getElementById('demo-modal-open').href = url;
@@ -1219,6 +1221,10 @@ function setDemoView(mode) {
   document.getElementById('demo-view-mobile').classList.toggle('active', mode === 'mobile');
   document.getElementById('demo-view-desktop').classList.toggle('active', mode === 'desktop');
   frame.classList.toggle('is-desktop', mode === 'desktop');
+  // fiestas.html decide su layout "TV" con un flag leído una sola vez al cargar
+  // (no reacciona a resize como un media query normal), asi que hay que
+  // recargar el iframe con ?tv=1 para forzar el layout de escritorio real.
+  var isFiestas = _demoBaseUrl.indexOf('fiestas.html') !== -1;
   if (mode === 'desktop') {
     // Renderiza el iframe a resolución desktop real y lo escala para que entre en la pantalla
     var frameW = Math.min(window.innerWidth * 0.94, 960);
@@ -1229,12 +1235,14 @@ function setDemoView(mode) {
     iframe.style.transformOrigin = '0 0';
     frame.style.width = frameW + 'px';
     frame.style.height = Math.min(DEMO_DESKTOP_H * scale, window.innerHeight * 0.78) + 'px';
+    if (isFiestas) iframe.src = _demoBaseUrl + (_demoBaseUrl.indexOf('?') === -1 ? '?' : '&') + 'tv=1';
   } else {
     iframe.style.width = '100%';
     iframe.style.height = '100%';
     iframe.style.transform = 'none';
     frame.style.width = '';
     frame.style.height = '';
+    if (isFiestas) iframe.src = _demoBaseUrl;
   }
 }
 function closeDemoModal() {
