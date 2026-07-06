@@ -1207,7 +1207,7 @@ var DEMO_DESKTOP_W = 1280, DEMO_DESKTOP_H = 900;
 function openDemoModal(url) {
   var m = document.getElementById('demo-modal');
   var toggle = document.getElementById('demo-modal-view-toggle');
-  toggle.classList.toggle('show', url.indexOf('fiestas.html') !== -1);
+  toggle.classList.toggle('show', url.indexOf('fiestas.html') !== -1 || url.indexOf('premiere.html') !== -1);
   document.getElementById('demo-modal-iframe').src = url;
   document.getElementById('demo-modal-open').href = url;
   m.classList.add('open');
