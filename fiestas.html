@@ -374,7 +374,7 @@ let _feedCount = 0;
 let _feedPointer = 0;
 let _feedColorIdx = 0;
 let isUploading = false;
-const IS_TV = params.get('tv') !== '0' && window.innerWidth > 1024 && window.innerHeight > 600 && !('ontouchstart' in window);
+const IS_TV = params.get('tv') === '1' || (params.get('tv') !== '0' && window.innerWidth > 1024 && window.innerHeight > 600 && !('ontouchstart' in window));
 
 // ── CURSOR ──
 const cur = document.getElementById('cursor');
