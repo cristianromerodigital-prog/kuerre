@@ -1192,6 +1192,14 @@ function applyContent(c) {
   set('cta-desc', cta.desc);
   setBtnText('cta-btn', cta.btn_text);
   if (cta.btn_url) setHref('cta-btn', cta.btn_url);
+
+  // Normalizar TODOS los links de WhatsApp al número central de Global,
+  // preservando el mensaje (?text=...) propio de cada botón.
+  if (g.wa_number) {
+    document.querySelectorAll('a[href^="https://wa.me/"]').forEach(function(a) {
+      a.href = a.href.replace(/^https:\/\/wa\.me\/\d+/, 'https://wa.me/' + g.wa_number);
+    });
+  }
 }
 
 // ── ANIMACIONES DEMO ──────────────────────────────────────────────
