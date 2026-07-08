@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.70</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.71</div>
     </div>
   </aside>
 
@@ -10147,6 +10147,7 @@ async function ctCargarSolicitud(sol) {
     }
   } else if (sol.tipo === 'XV') {
     set('ct-x-quince-nombre',  sol.quinceanera_nombre);
+    set('ct-x-quince-nac',     sol.quinceanera_nac);
     set('ct-x-cliente-nombre', sol.cliente_nombre);
     set('ct-x-cliente-dni',    sol.cliente_dni);
     set('ct-x-cliente-tel',    sol.cliente_tel);
