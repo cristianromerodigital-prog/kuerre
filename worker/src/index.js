@@ -1022,9 +1022,14 @@ export default {
       const solicitudDelMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})$/);
       if (solicitudDelMatch && method === 'GET') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
-        const row = await env.KUERRE_DB.prepare('SELECT * FROM solicitudes WHERE id=?').bind(solicitudDelMatch[1]).first();
+        const row = await env.KUERRE_DB.prepare(`
+          SELECT s.*, e.tipo, e.fecha AS fecha_ev, e.nombre AS nombre_display
+          FROM solicitudes s LEFT JOIN eventos e ON e.id = s.evento_id
+          WHERE s.id=?`).bind(solicitudDelMatch[1]).first();
         if (!row) return json({ error: 'Not found' }, 404);
-        return json({ id: row.id, tipo: row.tipo, data: JSON.parse(row.data_json || '{}') });
+        // Todas las columnas de la DB, sin whitelist — lo que se agregue a la tabla llega solo al admin
+        const { fecha_ev, data_json, ...rest } = row;
+        return json({ ...rest, fecha: fecha_ev || '' });
       }
       if (solicitudDelMatch && method === 'DELETE') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
