@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.67</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.68</div>
     </div>
   </aside>
 
@@ -2074,19 +2074,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <label class="form-label">URL del Web App (Apps Script) <i class="tip" data-tip="URL del script de Google Apps Script que procesa los contratos y genera el documento en Drive. La obtenés desde Apps Script → Implementar → Administrar implementaciones.">?</i></label>
               <input class="form-input" id="ct-apps-url" placeholder="https://script.google.com/macros/s/.../exec">
             </div>
-            <div class="form-group" style="margin-top:10px">
-              <label class="form-label">ID carpeta raíz de Drive <i class="tip" data-tip="ID o URL de la carpeta principal en Google Drive donde se crean las subcarpetas de cada cliente. Si pegás la URL completa, se extrae el ID solo.">?</i></label>
-              <div style="display:flex;gap:8px"><input class="form-input" id="ct-drive-root-id" placeholder="ID o URL de la carpeta padre en Google Drive" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('ct-drive-root-id','folder')" title="Copiar link completo de Drive" style="white-space:nowrap">Copiar link</button></div>
-            </div>
-            <div class="form-group" style="margin-top:10px">
-              <label class="form-label">ID hoja de servicios (Google Sheet) <i class="tip" data-tip="ID o URL de la hoja de cálculo de Google Sheets que contiene los servicios y precios disponibles para seleccionar en el contrato.">?</i></label>
-              <div style="display:flex;gap:8px"><input class="form-input" id="ct-presupuestos-id" placeholder="ID o URL del Google Sheet con los servicios" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('ct-presupuestos-id','sheet')" title="Copiar link completo del Sheet" style="white-space:nowrap">Copiar link</button></div>
-            </div>
-            <div class="form-group" style="margin-top:10px">
-              <label class="form-label">ID hoja del sistema (Google Sheet) <i class="tip" data-tip="ID o URL de la hoja del sistema donde se registran contratos, numeración y cláusulas. Se obtiene del Apps Script en PropertiesService → SYSTEM_SHEET_ID.">?</i></label>
-              <div style="display:flex;gap:8px"><input class="form-input" id="ct-system-sheet-id" placeholder="ID o URL del Google Sheet del sistema" onblur="driveNormalizeInput(this)" style="flex:1"><button class="btn-sm" onclick="driveCopyLink('ct-system-sheet-id','sheet')" title="Copiar link completo del Sheet" style="white-space:nowrap">Copiar link</button></div>
-            </div>
-            <button class="btn-sm btn-sec" style="margin-top:12px" onclick="ctSaveCfg()">Guardar configuración</button>
+            <button class="btn-sm btn-sec" style="margin-top:8px" onclick="ctSaveCfg()">Guardar URL</button>
           </div>
         </div>
         <div id="ct-num-preview" style="display:none;text-align:center;margin-bottom:20px">
@@ -9095,7 +9083,12 @@ const CT_CFG_KEY = 'crd_contratos_cfg';
 const CT_USE_D1  = true;
 
 async function initContratosPage() {
-  const saved = S.get(CT_CFG_KEY);
+  let saved = S.get(CT_CFG_KEY);
+  if (saved && (saved.systemSheetId || saved.presupuestosId || saved.driveRootId || saved.calendarId)) {
+    saved = { url: saved.url || '' };
+    S.set(CT_CFG_KEY, saved);
+    syncToCloud(CT_CFG_KEY, JSON.stringify(saved));
+  }
   if (saved) {
     if (saved.url)            document.getElementById('ct-apps-url').value = saved.url;
     if (saved.driveRootId)   document.getElementById('ct-drive-root-id').value = saved.driveRootId;
@@ -9377,22 +9370,11 @@ function ctToggleCfg() {
 }
 
 function ctSaveCfg() {
-  const url            = document.getElementById('ct-apps-url').value.trim();
-  const driveRootId    = document.getElementById('ct-drive-root-id').value.trim();
-  const presupuestosId = document.getElementById('ct-presupuestos-id').value.trim();
-  const systemSheetId  = document.getElementById('ct-system-sheet-id').value.trim();
+  const url = document.getElementById('ct-apps-url').value.trim();
   if (!url) { toast('Ingresá la URL del Apps Script', 'error'); return; }
-  const cfg = { url, driveRootId, presupuestosId, systemSheetId };
-  S.set(CT_CFG_KEY, cfg);
-  syncToCloud(CT_CFG_KEY, JSON.stringify(cfg));
-  if (driveRootId || presupuestosId) {
-    const body = {};
-    if (driveRootId)    body.DRIVE_ROOT_ID   = driveRootId;
-    if (presupuestosId) body.PRESUPUESTOS_ID  = presupuestosId;
-    fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify({ action: 'setConfig', ...body }) })
-      .catch(() => {});
-  }
-  toast('Configuración guardada');
+  S.set(CT_CFG_KEY, { url });
+  syncToCloud(CT_CFG_KEY, JSON.stringify({ url }));
+  toast('URL guardada');
   ctToggleCfg();
   ctCargarServicios();
 }
