@@ -248,6 +248,7 @@ function moverArchivoACarpeta(fileId, carpetaId) {
   try {
     var file = DriveApp.getFileById(fileId);
     var dest = DriveApp.getFolderById(carpetaId);
+    if (file.isTrashed()) file.setTrashed(false);
     var parents = file.getParents();
     while (parents.hasNext()) { parents.next().removeFile(file); }
     dest.addFile(file);

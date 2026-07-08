@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.75</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.76</div>
     </div>
   </aside>
 
@@ -9842,6 +9842,15 @@ async function ctGenerar() {
           try {
             const d = await ctCrearCarpetasParaSolicitud(id, String(json.numero));
             if (!d || !d.ok) toast('Contrato generado, pero falló la creación de carpetas en Drive' + (d && d.error ? ': ' + d.error : ''), 'error');
+            else if (d.ids && d.ids.contrato) {
+              // El doc y el PDF generados van a la carpeta Contrato del cliente
+              const gasUrl = ctGetUrl();
+              const docId  = (json.docUrl || '').match(/\/d\/([^/?]+)/)?.[1];
+              const pdfId  = (json.pdfUrl || '').match(/\/d\/([^/?]+)/)?.[1];
+              [docId, pdfId].forEach(function(fid) {
+                if (gasUrl && fid) fetch(gasUrl, { method: 'POST', body: JSON.stringify({ action: 'moverArchivo', fileId: fid, carpetaId: d.ids.contrato }) }).catch(function(){});
+              });
+            }
           } catch(e) {
             toast('Contrato generado, pero falló la creación de carpetas en Drive', 'error');
           }

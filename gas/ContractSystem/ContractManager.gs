@@ -61,8 +61,7 @@ function crearContrato(formJson) {
  * Usa las cláusulas CUMPLE de la hoja.
  */
 function generarContratoCumple(d) {
-  const carpetaId = getConfigValue('CARPETA_CUMPLE_ID');
-  const carpeta   = DriveApp.getFolderById(carpetaId);
+  // KUERRE: sin carpeta staging — el admin mueve doc y PDF a la carpeta Contrato del cliente
   const titulo    = `Contrato ${d.numero} — Cumpleaños — ${d.cliente.nombre}`;
 
   const doc  = DocumentApp.create(titulo);
@@ -158,10 +157,7 @@ function generarContratoCumple(d) {
   _p(body, 'Fecha: ___ / ___ / _______', { align: DocumentApp.HorizontalAlignment.CENTER });
 
   doc.saveAndClose();
-  const file = DriveApp.getFileById(doc.getId());
-  carpeta.addFile(file);
-  DriveApp.getRootFolder().removeFile(file);
-  const pdfUrl = _exportarPDF(doc.getId(), carpeta, d.numero);
+  const pdfUrl = _exportarPDF(doc.getId(), DriveApp.getRootFolder(), d.numero);
 
   return {
     docUrl: `https://docs.google.com/document/d/${doc.getId()}/edit`,

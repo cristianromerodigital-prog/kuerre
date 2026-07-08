@@ -15,8 +15,7 @@
  * @returns {Object} {docUrl, pdfUrl}
  */
 function generarContratoXV(d) {
-  const carpetaId = getConfigValue('CARPETA_XV_ID');
-  const carpeta   = DriveApp.getFolderById(carpetaId);
+  // KUERRE: sin carpeta staging — el admin mueve doc y PDF a la carpeta Contrato del cliente
   const titulo    = `Contrato ${d.numero} — XV — ${d.quinceanera.nombre}`;
 
   const doc  = DocumentApp.create(titulo);
@@ -191,11 +190,8 @@ function generarContratoXV(d) {
 
   // Guardar y mover a Drive
   doc.saveAndClose();
-  const file = DriveApp.getFileById(doc.getId());
-  carpeta.addFile(file);
-  DriveApp.getRootFolder().removeFile(file);
 
-  const pdfUrl = _exportarPDF(doc.getId(), carpeta, d.numero);
+  const pdfUrl = _exportarPDF(doc.getId(), DriveApp.getRootFolder(), d.numero);
 
   return {
     docUrl: `https://docs.google.com/document/d/${doc.getId()}/edit`,
