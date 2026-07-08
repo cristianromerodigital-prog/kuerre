@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.76</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.77</div>
     </div>
   </aside>
 
@@ -4440,8 +4440,8 @@ async function init() {
   } else if (!S.get('crd_settings')) S.set('crd_settings', {availability:'Tomando fechas para 2025 y 2026',waSuffix: CONFIG.WA_DEFAULT,countdownDate:new Date(Date.now()+30*24*60*60*1000).toISOString(),countdownMsg:'Solo 2 fechas libres este mes',priceSilver:'',priceGold:'',pricePlatinum:''});
   // Invitaciones: siempre sincronizar del cloud (fuente de verdad)
   const cloudInvites = await fetchFromCloud('crd_invites');
-  if (cloudInvites !== null) S.set('crd_invites', cloudInvites);
-  else if (!S.get('crd_invites')) S.set('crd_invites', []);
+  if (cloudInvites !== null) localStorage.setItem('crd_invites', JSON.stringify(cloudInvites));
+  else if (!S.get('crd_invites')) localStorage.setItem('crd_invites', '[]');
 
   // Entregas y pedidos: siempre sincronizar del cloud (datos colaborativos)
   const cloudEntregas = await fetchFromCloud('crd_entregas');
