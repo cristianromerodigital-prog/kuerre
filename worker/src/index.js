@@ -950,7 +950,9 @@ export default {
         const contentType = resp.headers.get('content-type') || 'video/mp4';
         await env.MEDIA.put(`invite-media/${invId}.mp4`, resp.body, { httpMetadata: { contentType } });
         const workerOrigin = new URL(request.url).origin;
-        return json({ ok: true, url: `${workerOrigin}/invite-media/${invId}` });
+        // ?v= cambia en cada carga -- el edge cachea por URL completa (24hs), así que sin
+        // esto un video nuevo podía seguir sirviendo el viejo hasta que vencía el TTL.
+        return json({ ok: true, url: `${workerOrigin}/invite-media/${invId}?v=${Date.now()}` });
       }
 
       // ── Invitaciones: sirve el video guardado en R2 (cacheado en el edge, con Range) ─
@@ -959,7 +961,7 @@ export default {
         const invId = invMediaMatch[1];
         const key = `invite-media/${invId}.mp4`;
         const cache = caches.default;
-        const cacheKey = new Request(new URL(path, request.url).toString(), { method: 'GET' });
+        const cacheKey = new Request(new URL(path + url.search, request.url).toString(), { method: 'GET' });
 
         let buf, contentType;
         const cached = await cache.match(cacheKey);
