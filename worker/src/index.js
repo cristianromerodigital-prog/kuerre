@@ -216,6 +216,13 @@ function generateEventId() {
   return id;
 }
 
+function toSlugW(str) {
+  return (str || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function nowISO() { return new Date().toISOString(); }
 
 async function handleSolicitudesCreate(request, env) {
@@ -294,6 +301,42 @@ async function handleSolicitudesCreate(request, env) {
       // El admin comparte el link publico de fiestas via slug (fiestas.html?e=slug), no via fiesta_id
       // crudo — sin este mapeo resolveEventId() nunca lo encuentra y el visor dice "evento no existe".
       await env.KUERRE_KV.put('fiesta_slug_' + eventoSlug, fiesta_id);
+
+      // Invitación: se crea junto con Fiesta QR y Entrega (mismo id en minuscula que usa el admin
+      // para armar el slug — debe coincidir con lo que genInviteUrl() recalcula en admin.html).
+      try {
+        const inviteId = id.toLowerCase();
+        const inviteTipoMap = { BODA: 'casamiento', XV: 'quinces', CUMPLE: 'otro' };
+        const fechaDisplay = fecha.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1');
+        const inviteConfig = {
+          tipo: inviteTipoMap[tipo] || 'otro',
+          modelo: 'clasico',
+          novios: nombre_display,
+          titulo: '',
+          fecha_display: fechaDisplay,
+          fecha_iso: fecha,
+          recepcion_hora: hora_inicio || '',
+          fin_fiesta_hora: hora_fin || '',
+          lugar_nombre: salon || '',
+          lugar_direccion: direccion || '',
+          lugar_maps: (salon || direccion)
+            ? ('https://maps.google.com/?q=' + encodeURIComponent([salon, direccion].filter(Boolean).join(', ')))
+            : ''
+        };
+        const slug = toSlugW(nombre_display) + (fechaDisplay ? '-' + toSlugW(fechaDisplay) : '') + '-' + inviteId.slice(-4);
+        await env.KUERRE_KV.put('invite_cfg_' + slug, JSON.stringify(inviteConfig));
+
+        const invitesRaw = await env.KUERRE_KV.get('crd_invites');
+        let invitesList = [];
+        try { invitesList = invitesRaw ? JSON.parse(invitesRaw) : []; } catch {}
+        invitesList.push({ id: inviteId, tipo: inviteConfig.tipo, config: inviteConfig });
+        const invitesStr = JSON.stringify(invitesList);
+        await env.KUERRE_KV.put('crd_invites', invitesStr);
+        await env.KUERRE_DB.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').bind('crd_invites', invitesStr).run();
+      } catch (e) {
+        console.log('Auto-crear invitacion fallo para solicitud', id, e.message);
+      }
+
       return json({ ok: true, id });
     } catch (e) {
       if (attempt === 1) throw e;
