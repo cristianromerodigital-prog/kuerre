@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Invitación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&family=Mrs+Saint+Delafield&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --gold:#c9a84c;
+  --gold-rgb:201,168,76;
   --gold2:#e8c97a;
   --black:#0c0c0c;
   --black2:#141414;
@@ -28,17 +29,29 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
 /* HERO */
 #hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
 #hero-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0}
-@media(min-width:769px){#hero-media{object-fit:contain}}
+/* En desktop el hero es un canvas de diseño fijo 390x844 (igual al editor y al
+   celular) escalado uniformemente por JS (fitHeroCanvas): mismos offsets, mismas
+   proporciones de texto, en cualquier navegador/resolución. */
+@media(min-width:769px){
+  /* La foto/video se recorta a un marco de telefono 390x844 escalado
+     (fitHeroCanvas le da el tamano), igual que el object-fit:cover del
+     celular — no contain, que mostraba la foto con otras proporciones. */
+  #hero-media-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);overflow:hidden}
+  /* 342 y no 390: #hero es un <section> con padding lateral 24px, en un
+     viewport 390 (celular/editor) el hero-content queda de 342 — el canvas
+     debe reproducir ese mismo ancho o los textos envuelven distinto. */
+  #hero-content{width:342px;height:844px;flex:none;justify-content:center;transform-origin:center center}
+}
 #hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(12,12,12,0.3) 0%,rgba(12,12,12,0.5) 60%,rgba(12,12,12,0.85) 100%);z-index:1}
 #hero-content{position:relative;z-index:2;padding:0 24px;display:flex;flex-direction:column;align-items:center}
-.hero-eyebrow{font-size:10px;letter-spacing:6px;text-transform:uppercase;color:var(--gold);margin-bottom:24px;opacity:0.9}
-.hero-names{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,10vw,100px);font-weight:300;line-height:1;letter-spacing:-1px;margin-bottom:16px}
+.hero-eyebrow{font-size:calc(10px * var(--ts-scale,1));letter-spacing:6px;text-transform:uppercase;color:var(--gold);margin-bottom:24px;opacity:0.9}
+.hero-names{font-family:'Cormorant Garamond',serif;font-size:calc(clamp(52px,10vw,100px) * var(--ts-scale,1));font-weight:300;line-height:1;letter-spacing:-1px;margin-bottom:16px}
 .hero-names em{font-style:italic;color:var(--gold2)}
 .hero-ampersand{color:var(--gold);font-weight:300;padding:0 8px}
-.hero-date{font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--gray2);margin-top:20px}
+.hero-date{font-size:calc(13px * var(--ts-scale,1));letter-spacing:4px;text-transform:uppercase;color:var(--gray2);margin-top:20px}
 #countdown{display:flex;gap:32px;justify-content:center;margin-top:36px;order:99}
 .cd-unit{text-align:center}
-.cd-num{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:var(--gold);display:block;line-height:1}
+.cd-num{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:var(--gold);display:block;line-height:1;text-shadow:0 0 16px rgba(var(--gold-rgb),0.65),0 0 34px rgba(var(--gold-rgb),0.35)}
 .cd-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gray);margin-top:4px;display:block}
 .hero-scroll{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--gray);font-size:9px;letter-spacing:3px;text-transform:uppercase;animation:float 2s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
@@ -47,9 +60,9 @@ body{background:var(--black);color:var(--white);font-family:'Montserrat',sans-se
 /* SECTIONS */
 section{padding:100px 24px;max-width:780px;margin:0 auto}
 .sec-label{font-size:9px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:block}
-.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,6vw,58px);font-weight:300;line-height:1.1;margin-bottom:24px}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:calc(clamp(36px,6vw,58px) * var(--ts-scale,1));font-weight:300;line-height:1.1;margin-bottom:24px}
 .sec-title em{font-style:italic;color:var(--gold2)}
-.sec-body{font-size:14px;line-height:1.9;color:var(--gray2)}
+.sec-body{font-size:calc(14px * var(--ts-scale,1));line-height:1.9;color:var(--gray2)}
 .divider{width:60px;height:1px;background:var(--gold);opacity:0.4;margin:40px auto}
 .divider-full{width:100%;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.3),transparent);margin:0}
 
@@ -139,7 +152,7 @@ footer small a{color:inherit}
 #placeholder p{font-size:13px;color:var(--gray);max-width:400px;line-height:1.8}
 
 /* TEMA: BLANCO */
-.theme-blanco{--gold:#8b6914;--gold2:#a07820;--black:#f5f5f2;--black2:#eaeae5;--white:#1a1a1a;--gray:#666;--gray2:#333}
+.theme-blanco{--gold:#8b6914;--gold-rgb:139,105,20;--gold2:#a07820;--black:#f5f5f2;--black2:#eaeae5;--white:#1a1a1a;--gray:#666;--gray2:#333}
 .theme-blanco #nav{background:linear-gradient(to bottom,rgba(245,245,242,0.92),transparent)}
 .theme-blanco #nav a{color:rgba(26,26,26,0.55)}
 .theme-blanco #nav a:hover{color:var(--gold)}
@@ -154,7 +167,7 @@ footer small a{color:inherit}
 .theme-blanco .divider-full{background:linear-gradient(to right,transparent,rgba(139,105,20,0.25),transparent)}
 
 /* TEMA: CHAMPAGNE */
-.theme-champagne{--gold:#c4956a;--gold2:#d4a57a;--black:#f5ede0;--black2:#ece3d4;--white:#2a1f14;--gray:#7a6555;--gray2:#4a3525}
+.theme-champagne{--gold:#c4956a;--gold-rgb:196,149,106;--gold2:#d4a57a;--black:#f5ede0;--black2:#ece3d4;--white:#2a1f14;--gray:#7a6555;--gray2:#4a3525}
 .theme-champagne #nav{background:linear-gradient(to bottom,rgba(245,237,224,0.92),transparent)}
 .theme-champagne #nav a{color:rgba(42,31,20,0.55)}
 .theme-champagne #nav a:hover{color:var(--gold)}
@@ -179,8 +192,30 @@ footer small a{color:inherit}
 .theme-champagne.estilo-aero section,.theme-champagne.estilo-aero #regalo{background:rgba(245,237,224,0.55)}
 .theme-champagne.estilo-aero .evento-item{background:transparent}
 
+/* FORMATO WEDDING (portada alternativa) */
+.formato-wedding .hero-eyebrow{font-family:'Montserrat',sans-serif;font-size:calc(clamp(13px,2vw,18px) * var(--ts-scale,1));font-weight:400;letter-spacing:10px;opacity:1;margin-bottom:18px;color:var(--white)}
+.formato-wedding .hero-names{font-family:'Mrs Saint Delafield',cursive;font-size:calc(clamp(80px,18vw,190px) * var(--ts-scale,1));line-height:0.85;letter-spacing:0;margin:4px 0 8px;transform:rotate(-3deg);color:var(--white)}
+.formato-wedding .hero-date{font-family:'Cinzel',serif;font-weight:500;font-size:calc(clamp(20px,3vw,28px) * var(--ts-scale,1));letter-spacing:7px;margin-top:32px;color:var(--white)}
+.formato-wedding .hero-std{font-family:'Cinzel',serif;font-weight:500;font-size:calc(clamp(12px,1.8vw,17px) * var(--ts-scale,1));letter-spacing:9px;margin-top:32px;color:var(--white)}
+.hero-std[hidden]{display:none!important}
+.formato-wedding .hero-std:not([hidden]) ~ .hero-date{margin-top:10px}
+.formato-wedding.fx-glow .hero-eyebrow,.formato-wedding.fx-glow .hero-names,.formato-wedding.fx-glow .hero-std,.formato-wedding.fx-glow .hero-date{text-shadow:0 0 24px rgba(255,255,255,0.55),0 2px 18px rgba(0,0,0,0.75)}
+.formato-wedding.fx-sombra .hero-eyebrow,.formato-wedding.fx-sombra .hero-names,.formato-wedding.fx-sombra .hero-std,.formato-wedding.fx-sombra .hero-date{text-shadow:0 4px 22px rgba(0,0,0,0.85),0 2px 6px rgba(0,0,0,0.9)}
+.formato-wedding.fx-blur .hero-eyebrow,.formato-wedding.fx-blur .hero-names,.formato-wedding.fx-blur .hero-std,.formato-wedding.fx-blur .hero-date{position:relative;display:inline-block}
+.formato-wedding.fx-blur .hero-eyebrow::before,.formato-wedding.fx-blur .hero-names::before,.formato-wedding.fx-blur .hero-std::before,.formato-wedding.fx-blur .hero-date::before{content:'';position:absolute;inset:-14px -24px;background:rgba(0,0,0,0.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;z-index:-1}
+/* Desktop = canvas 390x844: tipografias del hero con el tamano de diseno del
+   celular (sin vw), el canvas escala todo junto. Va DESPUES de las reglas base
+   para ganarles en orden de cascada. */
+@media(min-width:769px){
+  .hero-names{font-size:calc(52px * var(--ts-scale,1))}
+  .formato-wedding .hero-eyebrow{font-size:calc(13px * var(--ts-scale,1))}
+  .formato-wedding .hero-names{font-size:calc(80px * var(--ts-scale,1))}
+  .formato-wedding .hero-std{font-size:calc(12px * var(--ts-scale,1))}
+  .formato-wedding .hero-date{font-size:calc(20px * var(--ts-scale,1))}
+}
+
 /* TEMA: AZUL */
-.theme-azul{--gold:#a8bcd8;--gold2:#c0d4f0;--black:#070e1a;--black2:#0d1828;--white:#e8f0f8;--gray:#5a7090;--gray2:#8aaac8}
+.theme-azul{--gold:#a8bcd8;--gold-rgb:168,188,216;--gold2:#c0d4f0;--black:#070e1a;--black2:#0d1828;--white:#e8f0f8;--gray:#5a7090;--gray2:#8aaac8}
 .theme-azul #nav{background:linear-gradient(to bottom,rgba(7,14,26,0.92),transparent)}
 .theme-azul #nav a{color:rgba(232,240,248,0.5)}
 .theme-azul #nav a:hover{color:var(--gold)}
@@ -286,6 +321,7 @@ footer small a{color:inherit}
   <div id="hero-content">
     <div class="hero-eyebrow" id="hero-eyebrow"></div>
     <div class="hero-names" id="hero-names"></div>
+    <div class="hero-std" id="hero-std" hidden>Save the Date</div>
     <div class="hero-date" id="hero-date"></div>
     <div id="countdown"></div>
   </div>
@@ -333,7 +369,7 @@ footer small a{color:inherit}
 <!-- DRESSCODE -->
 <section id="dresscode">
   <span class="sec-label">Vestimenta</span>
-  <h2 class="sec-title"><em>Dresscode</em></h2>
+  <h2 class="sec-title" id="dresscode-title"><em>Dresscode</em></h2>
   <div class="dresscode-badge" id="dresscode-val"></div>
   <p class="dresscode-nota" id="dresscode-nota"></p>
 </section>
@@ -363,8 +399,8 @@ footer small a{color:inherit}
 <!-- RSVP -->
 <section id="rsvp">
   <span class="sec-label">Confirmá tu asistencia</span>
-  <h2 class="sec-title">¿<em>Venís</em>?</h2>
-  <p class="sec-body">Por favor confirmá antes del <span id="rsvp-fecha-limite" style="color:var(--gold2)"></span>.</p>
+  <h2 class="sec-title" id="rsvp-title">¿<em>Venís</em>?</h2>
+  <p class="sec-body" id="rsvp-body">Por favor confirmá antes del <span id="rsvp-fecha-limite" style="color:var(--gold2)"></span>.</p>
 
   <div id="rsvp-form-wrap" class="rsvp-form">
     <div class="form-row">
@@ -417,8 +453,8 @@ footer small a{color:inherit}
 <!-- SPOTIFY -->
 <section id="spotify">
   <span class="sec-label">La música del momento</span>
-  <h2 class="sec-title">La <em>playlist</em></h2>
-  <p class="sec-body" style="margin:0 auto;max-width:480px">¿Querés que suene tu canción favorita? La playlist es colaborativa — agregá los temas que quieras.</p>
+  <h2 class="sec-title" id="spotify-title">La <em>playlist</em></h2>
+  <p class="sec-body" id="spotify-body" style="margin:0 auto;max-width:480px">¿Querés que suene tu canción favorita? La playlist es colaborativa — agregá los temas que quieras.</p>
   <div id="spotify-embed-wrap"></div>
   <a id="btn-spotify" class="btn-spotify" target="_blank" rel="noopener">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
@@ -559,36 +595,104 @@ function formatFechaLimite(iso) {
   return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
 }
 
-const HERO_BLOCK_IDS = ['eyebrow', 'names', 'date'];
+const HERO_BLOCK_IDS = ['eyebrow', 'names', 'std', 'date', 'countdown'];
+const HERO_REORDERABLE_IDS = ['eyebrow', 'names', 'std', 'date'];
 let heroLayout = null;
+
+function heroBlockEl(id) {
+  return document.getElementById(id === 'countdown' ? 'countdown' : 'hero-' + id);
+}
 
 function defaultHeroLayout(tx, ty) {
   return {
-    order: ['eyebrow', 'names', 'date'],
-    pos: { eyebrow: { x: tx, y: ty }, names: { x: tx, y: ty }, date: { x: tx, y: ty } }
+    order: ['eyebrow', 'names', 'std', 'date'],
+    pos: { eyebrow: { x: tx, y: ty }, names: { x: tx, y: ty }, std: { x: tx, y: ty }, date: { x: tx, y: ty }, countdown: { x: 0, y: 0 } }
   };
 }
 
 function resolveHeroLayout(c) {
-  if (c.hero_layout && Array.isArray(c.hero_layout.order) && c.hero_layout.pos) return c.hero_layout;
-  return defaultHeroLayout(c.hero_text_x || 0, c.hero_text_y || 0);
+  let layout;
+  if (c.hero_layout && Array.isArray(c.hero_layout.order) && c.hero_layout.pos) layout = c.hero_layout;
+  else layout = defaultHeroLayout(c.hero_text_x || 0, c.hero_text_y || 0);
+  // Layouts guardados antes de separar "Save the Date" no conocen el bloque 'std':
+  // insertarlo pegado a la fecha para que el reorden y el drag funcionen.
+  if (!layout.order.includes('std')) {
+    const di = layout.order.indexOf('date');
+    layout.order.splice(di === -1 ? layout.order.length : di, 0, 'std');
+  }
+  if (!layout.pos.std) layout.pos.std = { x: 0, y: 0 };
+  return layout;
 }
 
+// Los offsets se calibran arrastrando dentro del preview del admin, que siempre
+// renderiza a 390x844 (ver HERO_POPUP_NATIVE_W/H en admin.html). Si se aplicaran tal
+// cual en un dispositivo real con otro tamaño de viewport, un offset grande (ej. mover
+// una fecha -260px) queda desproporcionado. Por eso se escalan según el tamaño real de
+// #hero contra esa referencia, para que la posición relativa se mantenga sin importar
+// el dispositivo.
+const HERO_LAYOUT_REF_W = 390, HERO_LAYOUT_REF_H = 844;
+const heroCanvasMQ = window.matchMedia('(min-width:769px)');
+function heroLayoutScale() {
+  // En desktop el hero-content es un canvas fijo 390x844 escalado entero por
+  // fitHeroCanvas, así que los offsets del editor aplican 1:1 dentro del canvas.
+  if (heroCanvasMQ.matches) return { sx: 1, sy: 1 };
+  const hero = document.getElementById('hero');
+  if (!hero) return { sx: 1, sy: 1 };
+  const r = hero.getBoundingClientRect();
+  return { sx: (r.width || HERO_LAYOUT_REF_W) / HERO_LAYOUT_REF_W, sy: (r.height || HERO_LAYOUT_REF_H) / HERO_LAYOUT_REF_H };
+}
+
+function fitHeroCanvas() {
+  const hc = document.getElementById('hero-content');
+  const mw = document.getElementById('hero-media-wrap');
+  if (!heroCanvasMQ.matches) { hc.style.transform = ''; mw.style.width = ''; mw.style.height = ''; return; }
+  const r = document.getElementById('hero').getBoundingClientRect();
+  // Si el hero todavía mide 0x0 (invite-app oculto detrás del sobre) no aplicar
+  // scale(0); se recalcula al mostrar la invitación (init/openEnvelope) o en resize.
+  if (!r.width || !r.height) return;
+  const scale = Math.min(r.width / HERO_LAYOUT_REF_W, r.height / HERO_LAYOUT_REF_H);
+  hc.style.transform = `scale(${scale})`;
+  // Marco de la foto/video: mismo recorte 390x844 que el viewport del celular.
+  mw.style.width = (HERO_LAYOUT_REF_W * scale) + 'px';
+  mw.style.height = (HERO_LAYOUT_REF_H * scale) + 'px';
+}
+
+window.addEventListener('resize', () => {
+  fitHeroCanvas();
+  if (heroLayout) applyHeroLayout(heroLayout); // sx/sy cambian al cruzar el breakpoint
+});
+
+// El countdown participa del offset (pos) pero nunca del reorden -- su `order:99`
+// en CSS lo deja siempre al final del grupo, se mueva a donde se mueva.
 function applyHeroLayout(layout) {
-  HERO_BLOCK_IDS.forEach((id, i) => {
-    const el = document.getElementById('hero-' + id);
+  const { sx, sy } = heroLayoutScale();
+  HERO_REORDERABLE_IDS.forEach((id, i) => {
+    const el = heroBlockEl(id);
     if (!el) return;
     const ord = layout.order.indexOf(id);
     el.style.order = ord === -1 ? i : ord;
     const p = layout.pos[id] || { x: 0, y: 0 };
-    el.style.transform = (p.x || p.y) ? `translate(${p.x}px,${p.y}px)` : '';
+    el.style.transform = (p.x || p.y) ? `translate(${p.x * sx}px,${p.y * sy}px)` : '';
   });
+  const cdEl = heroBlockEl('countdown');
+  if (cdEl) {
+    const p = (layout.pos && layout.pos.countdown) || { x: 0, y: 0 };
+    cdEl.style.transform = (p.x || p.y) ? `translate(${p.x * sx}px,${p.y * sy}px)` : '';
+  }
 }
 
 window.applyHeroPreview = function(c) {
   if (!PREVIEW_MODE) return;
   cfg = c || {};
   renderHero(cfg);
+  renderEvento(cfg);
+  renderLugar(cfg);
+  renderDresscode(cfg);
+  renderRegalo(cfg);
+  renderRSVP(cfg);
+  renderSpotify(cfg);
+  renderNav(cfg);
+  applyAllTextStyles(cfg.text_styles);
 };
 
 window.getHeroLayout = function() {
@@ -598,23 +702,38 @@ window.getHeroLayout = function() {
 let heroDrag = null;
 let heroWheelTimer = null;
 
-function initHeroPreviewInteractions() {
+// Distancia al centro de cada bloque en vez de hit-testing nativo: en formato Wedding
+// los trazos decorativos del script gigante pueden pintar por encima del bloque de
+// arriba y el navegador le asignaría el evento al bloque equivocado.
+function closestHeroBlock(clientX, clientY) {
+  let best = null, bestDist = Infinity;
   HERO_BLOCK_IDS.forEach(id => {
-    const el = document.getElementById('hero-' + id);
-    if (!el) return;
-    el.style.cursor = 'grab';
-    el.addEventListener('mousedown', e => startHeroDrag(e, id));
-    el.addEventListener('wheel', e => wheelHeroNudge(e, id), { passive: false });
+    const el = heroBlockEl(id);
+    if (!el || el.offsetParent === null) return; // oculto (std fuera de STD, countdown sin fecha)
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dist = (clientX - cx) ** 2 + (clientY - cy) ** 2;
+    if (dist < bestDist) { bestDist = dist; best = id; }
   });
+  return best;
+}
+
+function initHeroPreviewInteractions() {
+  const hc = document.getElementById('hero-content');
+  hc.style.cursor = 'grab';
+  hc.addEventListener('mousedown', startHeroDrag);
+  hc.addEventListener('wheel', wheelHeroNudge, { passive: false });
   document.addEventListener('mousemove', onHeroDragMove);
   document.addEventListener('mouseup', endHeroDrag);
 }
 
-function startHeroDrag(e, id) {
+function startHeroDrag(e) {
+  const id = closestHeroBlock(e.clientX, e.clientY);
+  if (!id) return;
   e.preventDefault();
   const p = heroLayout.pos[id] || { x: 0, y: 0 };
   heroDrag = { id, startX: e.clientX, startY: e.clientY, origX: p.x, origY: p.y };
-  document.getElementById('hero-' + id).style.cursor = 'grabbing';
+  document.getElementById('hero-content').style.cursor = 'grabbing';
 }
 
 function onHeroDragMove(e) {
@@ -627,11 +746,13 @@ function onHeroDragMove(e) {
 }
 
 function checkHeroReorder(draggedId) {
-  const draggedEl = document.getElementById('hero-' + draggedId);
+  if (draggedId === 'countdown') return; // el countdown se reposiciona, nunca se reordena
+  const draggedEl = heroBlockEl(draggedId);
   const draggedRect = draggedEl.getBoundingClientRect();
   const draggedMid = draggedRect.top + draggedRect.height / 2;
-  HERO_BLOCK_IDS.filter(id => id !== draggedId).forEach(otherId => {
-    const otherEl = document.getElementById('hero-' + otherId);
+  HERO_REORDERABLE_IDS.filter(id => id !== draggedId).forEach(otherId => {
+    const otherEl = heroBlockEl(otherId);
+    if (!otherEl || otherEl.offsetParent === null) return; // no intercambiar con bloques ocultos
     const r = otherEl.getBoundingClientRect();
     const otherMid = r.top + r.height / 2;
     const draggedOrder = heroLayout.order.indexOf(draggedId);
@@ -648,12 +769,23 @@ function checkHeroReorder(draggedId) {
 
 function endHeroDrag() {
   if (!heroDrag) return;
-  document.getElementById('hero-' + heroDrag.id).style.cursor = 'grab';
+  document.getElementById('hero-content').style.cursor = 'grab';
+  const { id, origX, origY } = heroDrag;
+  const p = heroLayout.pos[id];
+  const moved = Math.hypot(p.x - origX, p.y - origY);
   heroDrag = null;
-  emitHeroLayoutChange();
+  if (moved < 5) {
+    heroLayout.pos[id] = { x: origX, y: origY };
+    applyHeroLayout(heroLayout);
+    if (id !== 'countdown') openTextStylePanel('hero-' + id); // countdown no tiene panel de texto
+  } else {
+    emitHeroLayoutChange();
+  }
 }
 
-function wheelHeroNudge(e, id) {
+function wheelHeroNudge(e) {
+  const id = closestHeroBlock(e.clientX, e.clientY);
+  if (!id) return;
   e.preventDefault();
   const p = heroLayout.pos[id] || { x: 0, y: 0 };
   const dy = e.deltaY > 0 ? 2 : -2;
@@ -667,18 +799,350 @@ function emitHeroLayoutChange() {
   window.dispatchEvent(new CustomEvent('herolayoutchange', { detail: JSON.parse(JSON.stringify(heroLayout)) }));
 }
 
+// ── TEXT STYLES (tamano/grosor/fuente por bloque, todas las secciones) ──
+const TEXT_STYLE_IDS = ['hero-eyebrow', 'hero-names', 'hero-std', 'hero-date', 'ev-title', 'ev-body',
+  'ceremonia-lugar-nombre', 'ceremonia-lugar-dir', 'lugar-nombre', 'lugar-dir', 'dresscode-title',
+  'regalo-titulo', 'regalo-texto', 'rsvp-title', 'rsvp-body', 'spotify-title', 'spotify-body'];
+
+// Pesos verificados uno por uno contra Google Fonts (css2, User-Agent moderno) antes de
+// cargarlos -- una fuente de un solo peso (script/display decorativas) no tiene variantes
+// de grosor reales y el panel debe avisarlo en vez de ofrecer botones sin efecto.
+const FONT_CATALOG = {
+  'Dancing Script':      { category: 'script',  weights: [400,500,600,700] },
+  'Mrs Saint Delafield': { category: 'script',  weights: [400] },
+  'Great Vibes':         { category: 'script',  weights: [400] },
+  'Parisienne':          { category: 'script',  weights: [400] },
+  'Alex Brush':          { category: 'script',  weights: [400] },
+  'Cormorant Garamond':  { category: 'serif',   weights: [300,400,500,600,700] },
+  'Playfair Display':    { category: 'serif',   weights: [400,500,600,700,800,900] },
+  'Cinzel':              { category: 'serif',   weights: [400,500,600,700,800,900] },
+  'EB Garamond':         { category: 'serif',   weights: [400,500,600,700,800] },
+  'Marcellus':           { category: 'serif',   weights: [400] },
+  'Libre Baskerville':   { category: 'serif',   weights: [400,500,600,700] },
+  'Prata':               { category: 'serif',   weights: [400] },
+  'Montserrat':          { category: 'sans',    weights: [100,200,300,400,500,600,700,800,900] },
+  'Poppins':             { category: 'sans',    weights: [100,200,300,400,500,600,700,800,900] },
+  'Raleway':             { category: 'sans',    weights: [100,200,300,400,500,600,700,800,900] },
+  'Josefin Sans':        { category: 'sans',    weights: [100,200,300,400,500,600,700] },
+  'Quicksand':           { category: 'sans',    weights: [300,400,500,600,700] },
+  'Abril Fatface':       { category: 'display', weights: [400] },
+  'Bodoni Moda':         { category: 'display', weights: [400,500,600,700,800,900] },
+  'Italiana':            { category: 'display', weights: [400] },
+  'Cormorant':           { category: 'display', weights: [300,400,500,600,700] },
+  'Yeseva One':          { category: 'display', weights: [400] },
+  // Fuente propia (self-hosted, no es de Google Fonts) -- ver fonts/TheWeddingSignature-Regular.woff2
+  'The Wedding Signature': { category: 'script', weights: [400], custom: true, file: 'fonts/TheWeddingSignature-Regular.woff2' }
+};
+const FONT_CATEGORY_LABELS = { script: 'Script / Manuscrita', serif: 'Serif elegante', sans: 'Sans-serif elegante', display: 'Display / Decorativa' };
+const WEIGHT_LABELS = { 100:'Ultra fina', 200:'Extra fina', 300:'Fina', 400:'Normal', 500:'Medio', 600:'Semi negrita', 700:'Negrita', 800:'Extra negrita', 900:'Ultra negrita' };
+
+const TEXT_STYLE_TITLE_IDS = ['ev-title', 'ceremonia-lugar-nombre', 'lugar-nombre', 'dresscode-title', 'regalo-titulo', 'rsvp-title', 'spotify-title'];
+function originalFontFor(id) {
+  if (id === 'hero-names') return (cfg && cfg.formato === 'wedding') ? 'Mrs Saint Delafield' : 'Cormorant Garamond';
+  if (id === 'hero-date') return (cfg && cfg.formato === 'wedding') ? 'Cinzel' : 'Montserrat';
+  if (id === 'hero-std') return 'Cinzel';
+  if (id === 'hero-eyebrow') return 'Montserrat';
+  if (TEXT_STYLE_TITLE_IDS.includes(id)) return 'Cormorant Garamond';
+  return 'Montserrat';
+}
+
+const loadedFonts = new Set();
+function ensureFontLoaded(fontName) {
+  if (!fontName || loadedFonts.has(fontName) || !FONT_CATALOG[fontName]) return;
+  loadedFonts.add(fontName);
+  const info = FONT_CATALOG[fontName];
+  if (info.custom) {
+    const style = document.createElement('style');
+    style.textContent = `@font-face{font-family:'${fontName}';src:url('${info.file}') format('woff2');font-weight:${info.weights[0]};font-display:swap;}`;
+    document.head.appendChild(style);
+    return;
+  }
+  let link = document.getElementById('dynamic-fonts-link');
+  if (!link) {
+    link = document.createElement('link');
+    link.id = 'dynamic-fonts-link';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }
+  const families = [...loadedFonts].filter(name => !FONT_CATALOG[name].custom).map(name => {
+    const slug = name.replace(/ /g, '+');
+    const i = FONT_CATALOG[name];
+    return i.weights.length > 1 ? `family=${slug}:wght@${i.weights.join(';')}` : `family=${slug}`;
+  }).join('&');
+  if (families) link.href = `https://fonts.googleapis.com/css2?${families}&display=swap`;
+}
+
+let textStyles = {};
+
+// Efectos aplicables a cualquier bloque de texto: 'gold' replica el look del
+// countdown (.cd-num), 'white' el glow del formato Wedding (fx-glow).
+const TEXT_FX = {
+  gold:  { color: 'var(--gold)', shadow: '0 0 16px rgba(var(--gold-rgb),0.65),0 0 34px rgba(var(--gold-rgb),0.35)' },
+  white: { color: '#fff', shadow: '0 0 24px rgba(255,255,255,0.55),0 2px 18px rgba(0,0,0,0.75)' }
+};
+const TEXT_FX_LABELS = { gold: 'Glow dorado', white: 'Glow blanco' };
+
+function applyTextStyle(id, style) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (style && style.size) el.style.setProperty('--ts-scale', style.size / 100);
+  else el.style.removeProperty('--ts-scale');
+  if (style && style.weight) el.style.fontWeight = style.weight;
+  else el.style.removeProperty('font-weight');
+  if (style && style.fx && TEXT_FX[style.fx]) {
+    el.style.color = TEXT_FX[style.fx].color;
+    el.style.textShadow = TEXT_FX[style.fx].shadow;
+  } else {
+    el.style.removeProperty('color');
+    el.style.removeProperty('text-shadow');
+  }
+  if (style && style.font) {
+    const cat = (FONT_CATALOG[style.font] || {}).category || 'sans';
+    const generic = cat === 'script' ? 'cursive' : (cat === 'sans' ? 'sans-serif' : 'serif');
+    el.style.fontFamily = `'${style.font}', ${generic}`;
+  } else {
+    el.style.removeProperty('font-family');
+  }
+}
+
+function applyAllTextStyles(styles) {
+  textStyles = styles || {};
+  TEXT_STYLE_IDS.forEach(id => {
+    const st = textStyles[id];
+    if (st && st.font) ensureFontLoaded(st.font);
+    applyTextStyle(id, st);
+  });
+}
+
+const TEXT_STYLE_LABELS = {
+  'hero-eyebrow': 'Hero — Eyebrow', 'hero-names': 'Hero — Nombres', 'hero-std': 'Hero — Save the Date', 'hero-date': 'Hero — Fecha',
+  'ev-title': 'Cuándo — Título', 'ev-body': 'Cuándo — Texto',
+  'ceremonia-lugar-nombre': 'Ceremonia — Nombre', 'ceremonia-lugar-dir': 'Ceremonia — Dirección',
+  'lugar-nombre': 'Dónde — Nombre', 'lugar-dir': 'Dónde — Dirección',
+  'dresscode-title': 'Dresscode — Título',
+  'regalo-titulo': 'Regalo — Título', 'regalo-texto': 'Regalo — Texto',
+  'rsvp-title': 'RSVP — Título', 'rsvp-body': 'RSVP — Texto',
+  'spotify-title': 'Spotify — Título', 'spotify-body': 'Spotify — Texto'
+};
+
+// Bloques cuyo texto esta hardcodeado en el HTML (sin campo propio en el formulario del admin).
+const TEXT_CONTENT_IDS = ['dresscode-title', 'rsvp-title', 'rsvp-body', 'spotify-title', 'spotify-body'];
+const TEXT_CONTENT_DEFAULTS = {
+  'dresscode-title': 'Dresscode',
+  'rsvp-title': '¿Venís?',
+  'rsvp-body': 'Por favor confirmá antes del {fecha}.',
+  'spotify-title': 'La playlist',
+  'spotify-body': '¿Querés que suene tu canción favorita? La playlist es colaborativa — agregá los temas que quieras.'
+};
+const TEXT_CONTENT_RENDER_FN = {
+  'dresscode-title': c => renderDresscode(c),
+  'rsvp-title': c => renderRSVP(c),
+  'rsvp-body': c => renderRSVP(c),
+  'spotify-title': c => renderSpotify(c),
+  'spotify-body': c => renderSpotify(c)
+};
+
+let tsPanelEl = null;
+let tsActiveId = null;
+let tsChangeTimer = null;
+
+function buildFontSelectOptions() {
+  let html = '<option value="">Original</option>';
+  ['script', 'serif', 'sans', 'display'].forEach(cat => {
+    const names = Object.keys(FONT_CATALOG).filter(n => FONT_CATALOG[n].category === cat);
+    html += `<optgroup label="${FONT_CATEGORY_LABELS[cat]}">` + names.map(n => `<option value="${n}">${n}</option>`).join('') + '</optgroup>';
+  });
+  return html;
+}
+
+function ensureTsPanel() {
+  if (tsPanelEl) return tsPanelEl;
+  tsPanelEl = document.createElement('div');
+  tsPanelEl.id = 'ts-panel';
+  tsPanelEl.style.cssText = 'display:none;position:fixed;z-index:9999;background:#1a1a1a;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:14px 16px;font-family:Montserrat,sans-serif;color:#f5f0e8;font-size:12px;width:230px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
+  tsPanelEl.innerHTML = `
+    <div id="ts-panel-title" style="font-size:11px;letter-spacing:1px;color:#c9a84c;margin-bottom:10px;text-transform:uppercase"></div>
+    <div id="ts-content-wrap" style="display:none;margin-bottom:12px">
+      <label style="display:block;font-size:10px;color:#999;margin-bottom:4px">Texto</label>
+      <textarea id="ts-content-textarea" rows="3" style="width:100%;background:#111;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:6px;font-family:inherit;font-size:11px;resize:vertical"></textarea>
+    </div>
+    <label style="display:block;font-size:10px;color:#999;margin-bottom:4px">Fuente</label>
+    <select id="ts-font-select" style="width:100%;margin-bottom:12px;background:#111;color:#fff;border:1px solid rgba(255,255,255,0.15);padding:6px;border-radius:4px;font-size:11px">${buildFontSelectOptions()}</select>
+    <label style="display:block;font-size:10px;color:#999;margin-bottom:4px">Tamaño: <span id="ts-size-val">100</span>%</label>
+    <input type="range" id="ts-size-slider" min="50" max="180" step="5" value="100" style="width:100%;margin-bottom:12px">
+    <div style="font-size:10px;color:#999;margin-bottom:6px">Grosor</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="ts-weight-buttons"></div>
+    <div style="font-size:10px;color:#999;margin-bottom:6px">Efecto</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px" id="ts-fx-buttons"></div>
+    <button type="button" id="ts-reset-btn" style="width:100%;padding:6px 0;font-size:10px;background:none;border:1px solid rgba(255,255,255,0.2);color:#999;cursor:pointer;border-radius:4px">Restablecer</button>
+  `;
+  document.body.appendChild(tsPanelEl);
+  tsPanelEl.addEventListener('mousedown', e => e.stopPropagation());
+  tsPanelEl.querySelector('#ts-content-textarea').addEventListener('input', e => setTextContentField(tsActiveId, e.target.value));
+  tsPanelEl.querySelector('#ts-font-select').addEventListener('change', e => {
+    const val = e.target.value || null;
+    setTextStyleField(tsActiveId, 'font', val);
+    if (val) ensureFontLoaded(val);
+    renderWeightButtons(val || originalFontFor(tsActiveId));
+  });
+  tsPanelEl.querySelector('#ts-size-slider').addEventListener('input', e => {
+    const v = parseInt(e.target.value);
+    tsPanelEl.querySelector('#ts-size-val').textContent = v;
+    setTextStyleField(tsActiveId, 'size', v);
+  });
+  tsPanelEl.querySelector('#ts-reset-btn').addEventListener('click', () => {
+    delete textStyles[tsActiveId];
+    applyTextStyle(tsActiveId, null);
+    if (TEXT_CONTENT_IDS.includes(tsActiveId)) setTextContentField(tsActiveId, '');
+    closeTsPanel();
+    emitTextStylesChange();
+  });
+  return tsPanelEl;
+}
+
+function renderWeightButtons(fontName) {
+  const wrap = tsPanelEl.querySelector('#ts-weight-buttons');
+  const info = FONT_CATALOG[fontName];
+  const weights = info ? info.weights : [300, 400, 600];
+  if (weights.length <= 1) {
+    wrap.innerHTML = '<div style="font-size:10px;color:#888;font-style:italic">Esta fuente no tiene variantes de grosor.</div>';
+    return;
+  }
+  const cur = (textStyles[tsActiveId] || {}).weight || null;
+  wrap.innerHTML = '<button type="button" data-w="" class="ts-wbtn">Original</button>' +
+    weights.map(w => `<button type="button" data-w="${w}" class="ts-wbtn">${WEIGHT_LABELS[w] || w}</button>`).join('');
+  wrap.querySelectorAll('.ts-wbtn').forEach(btn => {
+    const w = btn.dataset.w ? parseInt(btn.dataset.w) : null;
+    btn.style.cssText = 'flex:1 1 30%;min-width:0;padding:6px 2px;font-size:9px;background:rgba(255,255,255,0.08);border:1px solid ' + (w === cur ? '#c9a84c' : 'rgba(255,255,255,0.15)') + ';color:#fff;cursor:pointer;border-radius:4px';
+    btn.addEventListener('click', () => {
+      setTextStyleField(tsActiveId, 'weight', w);
+      renderWeightButtons(fontName);
+    });
+  });
+}
+
+function renderFxButtons() {
+  const wrap = tsPanelEl.querySelector('#ts-fx-buttons');
+  const cur = (textStyles[tsActiveId] || {}).fx || null;
+  const opts = [[null, 'Original']].concat(Object.keys(TEXT_FX).map(k => [k, TEXT_FX_LABELS[k]]));
+  wrap.innerHTML = opts.map(([v, l]) => `<button type="button" data-fx="${v || ''}" class="ts-fxbtn">${l}</button>`).join('');
+  wrap.querySelectorAll('.ts-fxbtn').forEach(btn => {
+    const v = btn.dataset.fx || null;
+    btn.style.cssText = 'flex:1 1 30%;min-width:0;padding:6px 2px;font-size:9px;background:rgba(255,255,255,0.08);border:1px solid ' + (v === cur ? '#c9a84c' : 'rgba(255,255,255,0.15)') + ';color:#fff;cursor:pointer;border-radius:4px';
+    btn.addEventListener('click', () => {
+      setTextStyleField(tsActiveId, 'fx', v);
+      renderFxButtons();
+    });
+  });
+}
+
+function setTextStyleField(id, field, value) {
+  if (!id) return;
+  if (!textStyles[id]) textStyles[id] = {};
+  if (value === null || value === undefined) delete textStyles[id][field];
+  else textStyles[id][field] = value;
+  if (Object.keys(textStyles[id]).length === 0) delete textStyles[id];
+  applyTextStyle(id, textStyles[id]);
+  clearTimeout(tsChangeTimer);
+  tsChangeTimer = setTimeout(emitTextStylesChange, 150);
+}
+
+function setTextContentField(id, value) {
+  if (!id || !TEXT_CONTENT_RENDER_FN[id]) return;
+  if (!cfg.text_content) cfg.text_content = {};
+  if (value) cfg.text_content[id] = value;
+  else delete cfg.text_content[id];
+  TEXT_CONTENT_RENDER_FN[id](cfg);
+  clearTimeout(tsChangeTimer);
+  tsChangeTimer = setTimeout(emitTextStylesChange, 150);
+}
+
+function emitTextStylesChange() {
+  window.dispatchEvent(new CustomEvent('textstyleschange', {
+    detail: {
+      styles: JSON.parse(JSON.stringify(textStyles)),
+      content: JSON.parse(JSON.stringify((cfg && cfg.text_content) || {}))
+    }
+  }));
+}
+
+function openTextStylePanel(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  tsActiveId = id;
+  const panel = ensureTsPanel();
+  panel.querySelector('#ts-panel-title').textContent = TEXT_STYLE_LABELS[id] || id;
+  const isContent = TEXT_CONTENT_IDS.includes(id);
+  panel.querySelector('#ts-content-wrap').style.display = isContent ? 'block' : 'none';
+  if (isContent) {
+    panel.querySelector('#ts-content-textarea').value = (cfg.text_content && cfg.text_content[id]) || TEXT_CONTENT_DEFAULTS[id] || '';
+  }
+  const cur = textStyles[id] || {};
+  panel.querySelector('#ts-font-select').value = cur.font || '';
+  panel.querySelector('#ts-size-slider').value = cur.size || 100;
+  panel.querySelector('#ts-size-val').textContent = cur.size || 100;
+  renderWeightButtons(cur.font || originalFontFor(id));
+  renderFxButtons();
+  const r = el.getBoundingClientRect();
+  panel.style.display = 'block';
+  let top = r.bottom + 8;
+  if (top + 320 > window.innerHeight) top = Math.max(8, r.top - 328);
+  const left = Math.min(Math.max(8, r.left), window.innerWidth - 246);
+  panel.style.top = top + 'px';
+  panel.style.left = left + 'px';
+}
+
+function closeTsPanel() {
+  if (tsPanelEl) tsPanelEl.style.display = 'none';
+  tsActiveId = null;
+}
+
+function closestTextStyleId(el) {
+  while (el && el !== document.body) {
+    if (TEXT_STYLE_IDS.includes(el.id)) return el.id;
+    el = el.parentElement;
+  }
+  return null;
+}
+
+function initTextStyleClickHandlers() {
+  TEXT_STYLE_IDS.filter(id => !id.startsWith('hero-')).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => openTextStylePanel(id));
+  });
+  document.addEventListener('click', e => {
+    if (tsPanelEl && tsPanelEl.contains(e.target)) return;
+    if (closestTextStyleId(e.target)) return;
+    closeTsPanel();
+  });
+}
+
 function renderHero(c) {
   document.title = c.titulo || (c.novios ? `Invitación — ${c.novios}` : 'Invitación');
-  document.getElementById('hero-eyebrow').textContent = c.tipo === 'save_the_date' ? (c.titulo || 'Save The Date') : (c.titulo || '¡Nos casamos!');
-  const names = c.novios || '';
-  const parts = names.split('&');
-  if (parts.length === 2) {
-    document.getElementById('hero-names').innerHTML = `${parts[0].trim()} <span class="hero-ampersand">&</span> ${parts[1].trim()}`;
+  const isWedding = c.formato === 'wedding';
+  document.body.classList.toggle('formato-wedding', isWedding);
+  document.body.classList.remove('fx-glow', 'fx-blur', 'fx-sombra');
+  // "Save the Date" es un bloque propio, separado de la fecha: se arrastra,
+  // reordena y estiliza independiente (solo visible en formato Wedding + STD).
+  document.getElementById('hero-std').hidden = !(isWedding && c.tipo === 'save_the_date');
+  if (isWedding) {
+    document.body.classList.add('fx-' + (c.wedding_fx || 'glow'));
+    document.getElementById('hero-eyebrow').textContent = (c.novios || '').toUpperCase();
+    document.getElementById('hero-names').textContent = c.wedding_script || 'The Wedding';
+    document.getElementById('hero-date').textContent = c.fecha_display || '';
   } else {
-    document.getElementById('hero-names').textContent = names;
+    document.getElementById('hero-eyebrow').textContent = c.tipo === 'save_the_date' ? (c.titulo || 'Save The Date') : (c.titulo || '¡Nos casamos!');
+    const names = c.novios || '';
+    const parts = names.split('&');
+    if (parts.length === 2) {
+      document.getElementById('hero-names').innerHTML = `${parts[0].trim()} <span class="hero-ampersand">&</span> ${parts[1].trim()}`;
+    } else {
+      document.getElementById('hero-names').textContent = names;
+    }
+    document.getElementById('hero-date').textContent = c.fecha_display || '';
   }
-  document.getElementById('hero-date').textContent = c.fecha_display || '';
   heroLayout = resolveHeroLayout(c);
+  fitHeroCanvas();
   applyHeroLayout(heroLayout);
 
   const wrap = document.getElementById('hero-media-wrap');
@@ -692,7 +1156,7 @@ function renderHero(c) {
     document.getElementById('hero-overlay').style.background = 'rgba(12,12,12,0.6)';
   }
 
-  if (c.fecha_iso) startCountdown(c.fecha_iso);
+  if (c.fecha_iso) { document.getElementById('countdown').style.display = ''; startCountdown(c.fecha_iso); }
   else document.getElementById('countdown').style.display = 'none';
 
   document.getElementById('footer-names').textContent = c.novios || '';
@@ -761,6 +1225,10 @@ function renderLugar(c) {
 }
 
 function renderDresscode(c) {
+  const titleEl = document.getElementById('dresscode-title');
+  const titleCustom = c.text_content && c.text_content['dresscode-title'];
+  if (titleCustom) titleEl.textContent = titleCustom;
+  else titleEl.innerHTML = '<em>Dresscode</em>';
   document.getElementById('dresscode-val').textContent = c.dresscode || 'Formal';
   const nota = document.getElementById('dresscode-nota');
   if (c.dresscode_nota) nota.textContent = c.dresscode_nota;
@@ -790,16 +1258,30 @@ function renderRegalo(c) {
 function renderRSVP(c) {
   const sec = document.getElementById('rsvp');
   if (c.tipo === 'save_the_date' || !c.rsvp_activo) { sec.style.display = 'none'; return; }
-  const fl = document.getElementById('rsvp-fecha-limite');
-  fl.textContent = formatFechaLimite(c.rsvp_limite) || '';
-  document.getElementById('rsvp-alergia').addEventListener('change', function() {
-    document.getElementById('rsvp-alergia-detail-wrap').style.display = this.checked ? 'block' : 'none';
-  });
+  const titleEl = document.getElementById('rsvp-title');
+  const titleCustom = c.text_content && c.text_content['rsvp-title'];
+  if (titleCustom) titleEl.textContent = titleCustom;
+  else titleEl.innerHTML = '¿<em>Venís</em>?';
+  const bodyTpl = (c.text_content && c.text_content['rsvp-body']) || 'Por favor confirmá antes del {fecha}.';
+  const fechaSpan = `<span id="rsvp-fecha-limite" style="color:var(--gold2)">${formatFechaLimite(c.rsvp_limite) || ''}</span>`;
+  document.getElementById('rsvp-body').innerHTML = bodyTpl.includes('{fecha}') ? bodyTpl.replace('{fecha}', fechaSpan) : bodyTpl;
+  const alergiaEl = document.getElementById('rsvp-alergia');
+  if (!alergiaEl.dataset.bound) {
+    alergiaEl.dataset.bound = '1';
+    alergiaEl.addEventListener('change', function() {
+      document.getElementById('rsvp-alergia-detail-wrap').style.display = this.checked ? 'block' : 'none';
+    });
+  }
 }
 
 function renderSpotify(c) {
   const sec = document.getElementById('spotify');
   if (!c.spotify_url) { sec.style.display = 'none'; sec.previousElementSibling.style.display = 'none'; return; }
+  const titleEl = document.getElementById('spotify-title');
+  const titleCustom = c.text_content && c.text_content['spotify-title'];
+  if (titleCustom) titleEl.textContent = titleCustom;
+  else titleEl.innerHTML = 'La <em>playlist</em>';
+  document.getElementById('spotify-body').textContent = (c.text_content && c.text_content['spotify-body']) || '¿Querés que suene tu canción favorita? La playlist es colaborativa — agregá los temas que quieras.';
   document.getElementById('btn-spotify').href = c.spotify_url;
   const embedWrap = document.getElementById('spotify-embed-wrap');
   const embedUrl = c.spotify_url.replace('open.spotify.com/', 'open.spotify.com/embed/');
@@ -808,13 +1290,17 @@ function renderSpotify(c) {
 
 function renderNav(c) {
   const nav = document.getElementById('nav');
+  // En preview se re-ejecuta con cada cambio de config: resetear antes de ocultar
+  // para que un link/nav oculto reaparezca si el campo vuelve a completarse.
+  nav.style.display = '';
+  if (c.tipo === 'save_the_date') { nav.style.display = 'none'; return; }
   const hide = [];
   if (!c.rsvp_activo || c.tipo === 'save_the_date') hide.push('rsvp');
   if (!c.spotify_url) hide.push('spotify');
   if ((!c.alias_mp && !c.cbu) || c.tipo === 'save_the_date') hide.push('regalo');
   nav.querySelectorAll('a').forEach(a => {
     const id = a.getAttribute('href').replace('#', '');
-    if (hide.includes(id)) a.style.display = 'none';
+    a.style.display = hide.includes(id) ? 'none' : '';
   });
 }
 
@@ -880,9 +1366,19 @@ async function init() {
   if (PREVIEW_MODE) {
     cfg = {};
     document.body.style.userSelect = 'none';
+    // El nav (z-index 100) no debe interceptar drags/clicks sobre textos del hero
+    // que queden cerca del borde superior; en el editor es solo decorativo.
+    document.getElementById('nav').style.pointerEvents = 'none';
+    // La barra de scroll del iframe roba ~17px de ancho al hero y los textos
+    // se envuelven distinto que en el celular/PC. Ocultarla (el scroll con
+    // rueda sigue funcionando para clickear textos de otras secciones).
+    const noScrollbar = document.createElement('style');
+    noScrollbar.textContent = 'html{scrollbar-width:none}::-webkit-scrollbar{display:none}';
+    document.head.appendChild(noScrollbar);
     renderHero(cfg);
     document.getElementById('invite-app').style.display = 'block';
     initHeroPreviewInteractions();
+    initTextStyleClickHandlers();
     return;
   }
   if (!cfg) cfg = await parseConfig();
@@ -902,12 +1398,16 @@ async function init() {
   renderRSVP(cfg);
   renderSpotify(cfg);
   renderNav(cfg);
+  applyAllTextStyles(cfg.text_styles);
   const logoSrc = cfg.logo_dark || localStorage.getItem('KUERRE_site_logo');
   if (logoSrc) { const el = document.getElementById('footer-logo'); el.src = logoSrc; el.style.display = 'block'; }
   if (cfg.youtube_audio && cfg.env_mostrar !== false) {
     showEnvelope(cfg);
   } else {
     document.getElementById('invite-app').style.display = 'block';
+    // Recién ahora el hero tiene dimensiones reales: calcular canvas y offsets.
+    fitHeroCanvas();
+    if (heroLayout) applyHeroLayout(heroLayout);
     if (cfg.youtube_audio) initYoutubeAudio(cfg.youtube_audio);
     // sin sobre: unmute en primer scroll/touch/click (manejado dentro de initYoutubeAudio)
   }
@@ -1070,6 +1570,9 @@ function openEnvelope() {
     const app = document.getElementById('invite-app');
     app.style.cssText = 'display:block;opacity:0;transition:opacity 0.6s ease';
     requestAnimationFrame(() => { requestAnimationFrame(() => { app.style.opacity = '1'; }); });
+    // Recién ahora el hero tiene dimensiones reales (estaba detrás del sobre).
+    fitHeroCanvas();
+    if (heroLayout) applyHeroLayout(heroLayout);
     screen.style.transition = 'opacity 0.55s ease';
     screen.style.opacity = '0';
     setTimeout(() => screen.remove(), 650);
