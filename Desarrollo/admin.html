@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.69</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.70</div>
     </div>
   </aside>
 
@@ -10119,9 +10119,12 @@ async function ctCargarSolicitud(sol) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   if (sol.tipo === 'BODA') {
     set('ct-b-novia-nombre', sol.cliente_nombre);
+    set('ct-b-novia-dni',    sol.cliente_dni);
     set('ct-b-novia-tel',    sol.cliente_tel);
     set('ct-b-novia-email',  sol.cliente_email);
     set('ct-b-novio-nombre', sol.cliente2_nombre);
+    set('ct-b-novio-dni',    sol.cliente2_dni);
+    set('ct-b-novio-dom',    sol.cliente2_dom);
     set('ct-b-fiesta-fecha',    sol.fecha);
     set('ct-b-fiesta-hora',     sol.hora_inicio);
     set('ct-b-fiesta-hora-fin', sol.hora_fin);
@@ -10145,6 +10148,7 @@ async function ctCargarSolicitud(sol) {
   } else if (sol.tipo === 'XV') {
     set('ct-x-quince-nombre',  sol.quinceanera_nombre);
     set('ct-x-cliente-nombre', sol.cliente_nombre);
+    set('ct-x-cliente-dni',    sol.cliente_dni);
     set('ct-x-cliente-tel',    sol.cliente_tel);
     set('ct-x-cliente-email',  sol.cliente_email);
     set('ct-x-fecha',          sol.fecha);
@@ -10155,6 +10159,7 @@ async function ctCargarSolicitud(sol) {
     set('ct-x-invitados',      sol.invitados);
   } else if (sol.tipo === 'CUMPLE') {
     set('ct-c-nombre',      sol.cliente_nombre);
+    set('ct-c-dni',         sol.cliente_dni);
     set('ct-c-tel',         sol.cliente_tel);
     set('ct-c-email',       sol.cliente_email);
     set('ct-c-fecha',       sol.fecha);
