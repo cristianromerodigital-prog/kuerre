@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.68</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.69</div>
     </div>
   </aside>
 
@@ -4253,18 +4253,22 @@ async function cmSaveEntregaFolder() {
   } catch(e) { toast('Error de red: ' + e.message, 'error'); }
 }
 
+async function ctCrearCarpetasParaSolicitud(id, codigo) {
+  const r = await fetch(CLIENTES_WORKER + '/solicitudes/' + id + '/carpetas', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ codigoContrato: codigo, driveRoot: '1te7B-sW6T-OzZepaUQe8kD2SiIdQsEzb' })
+  });
+  return r.json();
+}
+
 async function cmCrearCarpetas() {
   if (!_clienteActual) return;
   const codigo = document.getElementById('cm-codigo-contrato').value.trim();
   if (!codigo) { toast('Ingresá el código de contrato primero', 'error'); return; }
   if (!confirm('¿Crear carpetas en Drive para "' + _clienteActual.nombre_display + '" con código ' + codigo + '?')) return;
   try {
-    const r = await fetch(CLIENTES_WORKER + '/solicitudes/' + _clienteActual.id + '/carpetas', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ codigoContrato: codigo, driveRoot: '1te7B-sW6T-OzZepaUQe8kD2SiIdQsEzb' })
-    });
-    const d = await r.json();
+    const d = await ctCrearCarpetasParaSolicitud(_clienteActual.id, codigo);
     if (!d.ok) { toast(d.error || 'Error al crear carpetas', 'error'); return; }
     toast('Carpetas creadas en Drive');
     const idx = _clientes.findIndex(function(x){ return x.id === _clienteActual.id; });
@@ -9813,20 +9817,27 @@ async function ctGenerar() {
       if (!ctEditingNumero && CLIENTES_WORKER) {
         const solId = _ctSolicitudId;
         _ctSolicitudId = null;
-        const patchContrato = function(id, fromForm) {
-          fetch(CLIENTES_WORKER + '/solicitudes/' + id + '/contrato', {
-            method: 'PATCH', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ codigo_contrato: String(json.numero) })
-          }).then(function(){
-            if (fromForm) {
-              fetch(CONFIG.CRCLUB_URL + '/solicitudes/' + id + '/procesada', {
-                method: 'PATCH', headers: { Authorization: 'Bearer ' + getAdminJWT() }
-              }).then(function(){ setTimeout(ctRefreshSolicitudes, 500); }).catch(function(){});
-            }
-            _fetchClientes({ search: _clientesSearch, offset: 0 }).then(function(){
-              if (currentPage === 'clientes') renderClientes();
+        const patchContrato = async function(id, fromForm) {
+          try {
+            await fetch(CLIENTES_WORKER + '/solicitudes/' + id + '/contrato', {
+              method: 'PATCH', headers: { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+              body: JSON.stringify({ codigo_contrato: String(json.numero) })
             });
-          }).catch(function(){});
+          } catch(e) {}
+          if (fromForm) {
+            fetch(CONFIG.CRCLUB_URL + '/solicitudes/' + id + '/procesada', {
+              method: 'PATCH', headers: { Authorization: 'Bearer ' + getAdminJWT() }
+            }).then(function(){ setTimeout(ctRefreshSolicitudes, 500); }).catch(function(){});
+          }
+          try {
+            const d = await ctCrearCarpetasParaSolicitud(id, String(json.numero));
+            if (!d || !d.ok) toast('Contrato generado, pero falló la creación de carpetas en Drive' + (d && d.error ? ': ' + d.error : ''), 'error');
+          } catch(e) {
+            toast('Contrato generado, pero falló la creación de carpetas en Drive', 'error');
+          }
+          _fetchClientes({ search: _clientesSearch, offset: 0 }).then(function(){
+            if (currentPage === 'clientes') renderClientes();
+          });
         };
         if (solId) {
           patchContrato(solId, true);
