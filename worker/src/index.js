@@ -307,11 +307,19 @@ async function handleSolicitudesList(env, request) {
   const limit  = Math.min(parseInt(u.searchParams.get('limit')  || '30', 10), 100);
   const offset = Math.max(parseInt(u.searchParams.get('offset') || '0',  10), 0);
 
+  const nuevas      = u.searchParams.get('nuevas')      === '1';
+  const concontrato = u.searchParams.get('concontrato') === '1';
+
   const likeTerm   = search ? '%' + search + '%' : null;
-  const where      = search
-    ? 'WHERE (e.nombre LIKE ? OR s.cliente_nombre LIKE ? OR s.cliente_tel LIKE ?)'
-    : '';
-  const baseParams = search ? [likeTerm, likeTerm, likeTerm] : [];
+  const conditions = [];
+  const baseParams = [];
+  if (search) {
+    conditions.push('(e.nombre LIKE ? OR s.cliente_nombre LIKE ? OR s.cliente_tel LIKE ?)');
+    baseParams.push(likeTerm, likeTerm, likeTerm);
+  }
+  if (nuevas)      conditions.push('s.procesada = 0');
+  if (concontrato) conditions.push("s.codigo_contrato IS NOT NULL AND s.codigo_contrato != ''");
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
   const countRow = await env.KUERRE_DB.prepare(
     `SELECT COUNT(*) AS n FROM solicitudes s LEFT JOIN eventos e ON e.id = s.evento_id ${where}`
@@ -999,6 +1007,13 @@ export default {
       }
 
       if (path === '/api/health') return json({ ok: true, worker: 'kuerre-worker', ts: new Date().toISOString() });
+
+      const solicitudProcesadaMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/procesada$/);
+      if (solicitudProcesadaMatch && method === 'PATCH') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET procesada=1 WHERE id=?').bind(solicitudProcesadaMatch[1]).run();
+        return json({ ok: true });
+      }
 
       const solicitudDelMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})$/);
       if (solicitudDelMatch && method === 'GET') {
