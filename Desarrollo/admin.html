@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.72</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.73</div>
     </div>
   </aside>
 
@@ -6752,7 +6752,7 @@ function triviaAgregar() {
 function getInvBaseUrl() {
   const saved = (localStorage.getItem('crd_inv_base') || '').trim();
   if (saved) return saved;
-  return location.href.replace(/[^/]*\.html.*$/, 'invite.html');
+  return location.href.replace(/[^/]*$/, 'invite.html');
 }
 
 async function genInviteUrl(inv) {
