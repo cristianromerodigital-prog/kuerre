@@ -73,7 +73,7 @@ function generarContratoCumple(d) {
   _p(body, 'CONTRATO DE SERVICIOS DE FOTOGRAFÍA Y VIDEO', {
     align: DocumentApp.HorizontalAlignment.CENTER, bold: true, size: 13
   });
-  _p(body, 'Cristian Romero Digital', {
+  _p(body, 'Kuerre', {
     align: DocumentApp.HorizontalAlignment.CENTER, size: 11
   });
   _normal(body, '');

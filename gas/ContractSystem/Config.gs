@@ -13,7 +13,7 @@ const CFG = {
   PRESTADOR: {
     nombre:    'Cristian Romero',
     dni:       '31.166.716',
-    empresa:   'CRISTIAN ROMERO DIGITAL',
+    empresa:   'KUERRE',
     domicilio: 'Cuba 1691, Villa Luzuriaga',
     telefono:  '11-6255-7763',
     email:     'cristian.romero.digital@gmail.com',
