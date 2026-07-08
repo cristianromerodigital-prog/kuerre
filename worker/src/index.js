@@ -380,7 +380,9 @@ async function handleCrearCarpetas(id, request, env) {
         fiesta: sol.drive_fiesta_id,
         entrega: sol.drive_entrega_id,
         contrato: sol.drive_contrato_id,
-        invitacion: sol.drive_invitacion_id
+        invitacion: sol.drive_invitacion_id,
+        carrusel1: sol.drive_carrusel1_id,
+        carrusel2: sol.drive_carrusel2_id
       }
     });
   }
@@ -409,9 +411,9 @@ async function handleCrearCarpetas(id, request, env) {
   await env.KUERRE_DB.batch([
     env.KUERRE_DB.prepare(`
       UPDATE solicitudes
-      SET codigo_contrato=?, drive_cliente_id=?, drive_fiesta_id=?, drive_entrega_id=?, drive_contrato_id=?, drive_invitacion_id=?
+      SET codigo_contrato=?, drive_cliente_id=?, drive_fiesta_id=?, drive_entrega_id=?, drive_contrato_id=?, drive_invitacion_id=?, drive_carrusel1_id=?, drive_carrusel2_id=?
       WHERE id=?
-    `).bind(codigoContrato, ids.cliente, ids.fiesta, ids.entrega, ids.contrato || '', ids.invitacion || '', id),
+    `).bind(codigoContrato, ids.cliente, ids.fiesta, ids.entrega, ids.contrato || '', ids.invitacion || '', ids.carrusel1 || '', ids.carrusel2 || '', id),
     env.KUERRE_DB.prepare(`UPDATE eventos_foto SET folder_id=?, estado='activo' WHERE id=?`)
       .bind(ids.fiesta, sol.fiesta_id),
     env.KUERRE_DB.prepare(`UPDATE entrega_configs SET folder_id=? WHERE id=?`)

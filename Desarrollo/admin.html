@@ -417,7 +417,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.71</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.72</div>
     </div>
   </aside>
 
@@ -6672,10 +6672,11 @@ const TRIVIA_DEFAULT = [
 
 let _carouselTarget = null;
 function openDriveBrowserCarousel(target) {
+  const _cf = invClienteFolder('drive_carrusel' + target + '_id');
   _carouselTarget = target;
   document.getElementById('db-btn-portfolio').style.display = 'none';
   document.getElementById('db-btn-carousel').style.display = 'inline-block';
-  openDriveBrowser(null);
+  openDriveBrowser(null, _cf);
 }
 function dbConfirmCarousel() {
   if (!_dbSelected.size) return;
@@ -7344,7 +7345,7 @@ function openInvDriveBrowser() {
     } catch (e) {
       toast('Error descargando el video de Drive', 'error');
     }
-  });
+  }, invClienteFolder('drive_invitacion_id'));
 }
 
 async function openInvBrowser() {
@@ -8108,13 +8109,22 @@ let _dbCurrent = '';
 let pendingPhotoCallback = null;
 const _dbSelected = new Map();
 
-function openDriveBrowser(callback) {
+function openDriveBrowser(callback, startFolder) {
   if(callback) pendingPhotoCallback = callback;
   _dbSelected.clear();
   dbUpdateSelectionBar();
   document.getElementById('drive-browser-modal').style.display = 'block';
+  if (startFolder) { document.getElementById('db-folder-input').value = startFolder; dbLoadFolder(startFolder); return; }
   const last = localStorage.getItem('crd_last_drive_folder');
   if(last && !_dbCurrent) { document.getElementById('db-folder-input').value = last; dbLoadFolder(last); }
+}
+
+// [COMPARTIDA] Carpeta de Drive del cliente vinculado a la invitación en edición
+// (solicitudes.invite_id === invEditingId). null si la invitación no tiene cliente.
+function invClienteFolder(field) {
+  if (!invEditingId || !Array.isArray(_clientes)) return null;
+  const s = _clientes.find(c => c && c.invite_id === invEditingId);
+  return (s && s[field]) || null;
 }
 function closeDriveBrowser() {
   _dbSelected.clear();
