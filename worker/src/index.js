@@ -784,27 +784,6 @@ export default {
         try { return json(JSON.parse(pubVal)); } catch { return new Response(pubVal, { headers: { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' } }); }
       }
 
-      // ── KV directo (branding settings read/write) ─────────────────────────
-      const kvMatch = path.match(/^\/([a-z][a-z0-9_]+)$/);
-      if (kvMatch) {
-        const auth = request.headers.get('Authorization') || '';
-        const key = kvMatch[1];
-        if (method === 'GET') {
-          const cfAuth = env.CF_AUTH_TOKEN || '';
-          if (!cfAuth || auth !== cfAuth) return json({ error: 'Unauthorized' }, 401);
-          const val = await env.KUERRE_KV.get(key);
-          if (val === null) return json({ error: 'Not found' }, 404);
-          try { return json(JSON.parse(val)); } catch { return new Response(val, { headers: { 'Content-Type': 'text/plain' } }); }
-        }
-        if (method === 'POST') {
-          const cfAuth = env.CF_AUTH_TOKEN || '';
-          if (!cfAuth || auth !== cfAuth) return json({ error: 'Unauthorized' }, 401);
-          const body = await request.text();
-          await env.KUERRE_KV.put(key, body);
-          return json({ ok: true });
-        }
-      }
-
       // ── Site config ────────────────────────────────────────────────────────
       if (path === '/site/config' && method === 'GET') {
         const safeJson = (v) => { try { return v ? JSON.parse(v) : null; } catch { return v || null; } };
@@ -1227,6 +1206,29 @@ export default {
       if (contratosDelMatch && method === 'DELETE') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         return await handleContratosDelete(Number(contratosDelMatch[1]), env);
+      }
+
+      // ── KV directo (branding settings read/write) ─────────────────────────
+      // Al final del router: el catch-all /{key} no debe pisar rutas API de un
+      // solo segmento como /contratos o /hub.
+      const kvMatch = path.match(/^\/([a-z][a-z0-9_]+)$/);
+      if (kvMatch) {
+        const auth = request.headers.get('Authorization') || '';
+        const key = kvMatch[1];
+        if (method === 'GET') {
+          const cfAuth = env.CF_AUTH_TOKEN || '';
+          if (!cfAuth || auth !== cfAuth) return json({ error: 'Unauthorized' }, 401);
+          const val = await env.KUERRE_KV.get(key);
+          if (val === null) return json({ error: 'Not found' }, 404);
+          try { return json(JSON.parse(val)); } catch { return new Response(val, { headers: { 'Content-Type': 'text/plain' } }); }
+        }
+        if (method === 'POST') {
+          const cfAuth = env.CF_AUTH_TOKEN || '';
+          if (!cfAuth || auth !== cfAuth) return json({ error: 'Unauthorized' }, 401);
+          const body = await request.text();
+          await env.KUERRE_KV.put(key, body);
+          return json({ ok: true });
+        }
       }
 
       return json({ error: 'Not found' }, 404);
