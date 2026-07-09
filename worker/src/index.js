@@ -329,10 +329,14 @@ async function handleSolicitudesCreate(request, env) {
         const invitesRaw = await env.KUERRE_KV.get('crd_invites');
         let invitesList = [];
         try { invitesList = invitesRaw ? JSON.parse(invitesRaw) : []; } catch {}
-        invitesList.push({ id: inviteId, tipo: inviteConfig.tipo, config: inviteConfig });
+        invitesList.unshift({ id: inviteId, tipo: inviteConfig.tipo, config: inviteConfig, slug, created: now });
         const invitesStr = JSON.stringify(invitesList);
         await env.KUERRE_KV.put('crd_invites', invitesStr);
         await env.KUERRE_DB.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').bind('crd_invites', invitesStr).run();
+
+        // Vincular la invitación al cliente — el admin usa invite_id para el badge
+        // "Invitación lista" y para abrir esta misma invitación desde el modal del cliente.
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET invite_id = ? WHERE id = ?').bind(inviteId, id).run();
       } catch (e) {
         console.log('Auto-crear invitacion fallo para solicitud', id, e.message);
       }
