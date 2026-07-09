@@ -278,26 +278,104 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .inv-gsheet-code{background:var(--black4);border:1px solid rgba(255,255,255,0.08);padding:12px;font-size:11px;color:var(--gray2);font-family:monospace;white-space:pre;overflow-x:auto;margin:10px 0;line-height:1.6;border-radius:2px}
 </style>
 
-<!-- ═══ KUERRE VISUAL OVERRIDE — SOLO COLORES ═══ -->
+<!-- ═══ KUERRE VISUAL OVERRIDE — TEMA CLARO estilo index ═══ -->
 <style>
-#sidebar-logo-img { display: none !important; }
-.sidebar-logo-text { font-size: 0 !important; color: transparent !important; }
-.sidebar-logo-text span { display: none !important; }
-.sidebar-logo-text::before { content: 'KUERRE'; display: block; font-family: 'DM Sans',sans-serif; font-size: 16px; font-weight: 300; letter-spacing: 3px; text-transform: uppercase; color: #9060b8; }
-:root { --gold: #9060b8; --gold2: #00e0a8; }
-.login-logo span        { color: #9060b8 !important; }
-.login-btn              { background: #9060b8 !important; color: #fff !important; }
-.login-btn:hover        { background: #7a4aa0 !important; }
-.login-input:focus      { border-color: #9060b8 !important; }
-.nav-section-label      { color: rgba(192,144,224,.4) !important; }
-.sidebar-item.active    { color: #9060b8 !important; background: rgba(144,96,184,.1) !important; }
-.sidebar-item.active svg { opacity: 1; }
-.tab.active             { color: #9060b8 !important; border-bottom-color: #9060b8 !important; }
-.cnt-tab.active, .cnt-subtab.active { background: #9060b8 !important; color: #fafafa !important; }
-.btn-add                { background: rgba(192,144,224,.18) !important; color: #9060b8 !important; border-color: rgba(192,144,224,.3) !important; }
-.btn-add:hover          { background: rgba(192,144,224,.28) !important; }
-.settings-section-title { color: #9060b8 !important; }
-.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #9060b8 !important; }
+:root {
+  --black:#ffffff; --black2:#f1f1f4; --black3:#ffffff; --black4:#f5f1fa;
+  --cyan:#7b4fff; --violet:#7b4fff; --gold:#9060b8; --gold2:#7a4aa0;
+  --white:#111111; --gray:rgba(0,0,0,.45); --gray2:rgba(0,0,0,.6);
+  --green:#0e9f4e; --red:#cc4444; --orange:#d97706;
+  --card:#ffffff; --border:rgba(0,0,0,.08); --bg:#f1f1f4;
+}
+body{
+  background:#f1f1f4;
+  background-image:
+    radial-gradient(ellipse 70% 55% at 15% 15%, rgba(192,144,224,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 85% 80%, rgba(192,144,224,.14) 0%, transparent 60%);
+  background-attachment:fixed;
+}
+/* LOGIN */
+#login-screen{background:radial-gradient(ellipse 80% 80% at 50% 50%, rgba(144,96,184,.12) 0%, transparent 70%), #f1f1f4;}
+.login-box{background:rgba(255,255,255,.85);border:1px solid rgba(144,96,184,.2);border-radius:20px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 24px 80px rgba(0,0,0,.10);}
+.login-input{background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:8px;}
+.login-btn{border-radius:8px;background:linear-gradient(135deg,#9060b8,#c090e0);color:#fff;box-shadow:0 8px 32px rgba(192,144,224,.35);}
+.login-btn:hover{background:linear-gradient(135deg,#7a4aa0,#b07ad0);}
+/* SIDEBAR */
+.sidebar{background:#fff;border-right:1px solid rgba(0,0,0,.06);}
+.sidebar-logo{border-bottom:1px solid rgba(0,0,0,.06);}
+#sidebar-logo-img{display:none;}
+.sidebar-logo-text{font-size:0;color:transparent;}
+.sidebar-logo-text span{display:none;}
+.sidebar-logo-text::before{content:'KUERRE';display:block;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:400;letter-spacing:3px;text-transform:uppercase;color:#9060b8;}
+.nav-section-label{color:rgba(144,96,184,.55);}
+.sidebar-item:hover{color:#111;background:rgba(144,96,184,.06);}
+.sidebar-item.active{color:#9060b8;background:rgba(144,96,184,.10);}
+.sidebar-item.active svg{opacity:1;}
+.sidebar-footer{border-top:1px solid rgba(0,0,0,.06);}
+.ct-tipo-btn{background:#fff;border:1px solid rgba(0,0,0,.1);}
+.ct-tipo-btn.active{background:rgba(144,96,184,.06);}
+/* TOOLTIPS */
+.tip{background:rgba(0,0,0,.08);}
+/* TOPBAR / MAIN */
+.topbar-admin{background:rgba(241,241,244,.94);border-bottom:1px solid rgba(0,0,0,.06);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+.view-site-btn{border:1px solid rgba(0,0,0,.12);border-radius:6px;}
+.view-site-btn:hover{border-color:#9060b8;color:#9060b8;}
+/* CARDS */
+.stat-card{background:#fff;border:1px solid rgba(0,0,0,.06);}
+.stat-card:hover{border-color:rgba(144,96,184,.3);background:#fff;box-shadow:0 8px 24px rgba(144,96,184,.12);}
+.stat-card-icon{background:rgba(144,96,184,.10);}
+/* BOTONES */
+.btn-add{background:#9060b8;color:#fff;}
+.btn-add:hover{background:#7a4aa0;}
+.btn-sec{background:rgba(0,0,0,.05);color:rgba(0,0,0,.55);border:1px solid rgba(0,0,0,.1);}
+.btn-sec:hover{background:rgba(0,0,0,.1);color:#111;}
+.btn-edit{background:rgba(123,79,255,.08);border-color:rgba(123,79,255,.25);}
+.btn-pub{background:rgba(14,159,78,.08);border-color:rgba(14,159,78,.25);}
+.btn-pub:hover{color:#fff;}
+.btn-danger{background:rgba(204,68,68,.08);border-color:rgba(204,68,68,.25);}
+/* TABS */
+.tabs{border-bottom:1px solid rgba(0,0,0,.08);}
+/* TABLA */
+th{border-bottom:1px solid rgba(0,0,0,.08);}
+td{border-bottom:1px solid rgba(0,0,0,.05);}
+tr:hover td{background:rgba(144,96,184,.03);}
+.tag-c{background:rgba(144,96,184,.12);}
+.tag-r{background:rgba(123,79,255,.10);}
+.tag-draft{background:rgba(0,0,0,.06);}
+/* MODAL */
+.modal-bg{background:rgba(30,15,50,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+.modal{background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 24px 80px rgba(0,0,0,.18);}
+.modal-header{border-bottom:1px solid rgba(0,0,0,.06);}
+.modal-footer{border-top:1px solid rgba(0,0,0,.06);}
+/* FORMS */
+.form-input,.form-textarea,.form-select{background:#fff;border:1px solid rgba(0,0,0,.1);}
+.form-input::placeholder,.form-textarea::placeholder{color:rgba(0,0,0,.3);}
+/* UPLOAD / GRILLAS */
+.img-upload{border:1px dashed rgba(0,0,0,.18);}
+.db-item{background:#f0ecf5;}
+.db-item:hover{border-color:rgba(144,96,184,.4);}
+.db-check{color:#fff;}
+.portfolio-admin-item{background:#f0ecf5;border:1px solid rgba(0,0,0,.06);}
+/* MENSAJES */
+.msg-card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;}
+.msg-card:hover{border-color:rgba(0,0,0,.15);}
+.msg-wa:hover{color:#fff;}
+/* SETTINGS */
+.settings-section{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;}
+/* ANALYTICS */
+.chart-card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;}
+/* TOAST */
+#toast{background:#fff;border:1px solid rgba(14,159,78,.35);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);}
+#toast.error{border-color:rgba(204,68,68,.35);}
+/* CONTENT TABS / CARDS */
+.cnt-tab.active,.cnt-subtab.active{background:#9060b8;color:#fff;}
+.cnt-svc-card,.cnt-pkg-card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;}
+/* INVITES */
+.inv-card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;}
+.inv-card-badge{background:rgba(144,96,184,.12);}
+.inv-modal-section{border-bottom:1px solid rgba(0,0,0,.06);}
+.inv-media-preview{border:1px solid rgba(0,0,0,.08);}
+.inv-gsheet-code{background:#f5f1fa;border:1px solid rgba(0,0,0,.08);}
 </style>
 <!-- ═══ / KUERRE VISUAL OVERRIDE ═══ -->
 <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
@@ -417,7 +495,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.77</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.78</div>
     </div>
   </aside>
 
