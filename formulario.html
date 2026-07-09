@@ -6,44 +6,47 @@
 <title>Solicitud de Servicio — Kuerre</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#0d0d0d;color:#e0e0e0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:32px 16px}
-  body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:0}
+  body{background:#f6f6f8;color:#111;font-family:'Segoe UI',sans-serif;min-height:100vh;padding:32px 16px}
+  body::before{content:'';position:fixed;inset:0;z-index:0;background:
+    radial-gradient(ellipse 70% 55% at 15% 15%, rgba(192,144,224,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 85% 80%, rgba(192,144,224,.14) 0%, transparent 60%),
+    rgba(246,246,248,.85)}
   .wrap{position:relative;z-index:1}
   .wrap{max-width:560px;margin:0 auto}
   .logo{text-align:center;margin-bottom:32px}
-  .logo-name{font-size:22px;letter-spacing:4px;text-transform:uppercase;font-weight:300}
-  .logo-name span{color:#00c896}
-  .logo-sub{font-size:10px;letter-spacing:3px;color:#666;margin-top:6px;text-transform:uppercase}
-  h2{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#00c896;margin-bottom:24px;text-align:center}
+  .logo-name{font-size:22px;letter-spacing:4px;text-transform:uppercase;font-weight:300;color:#111}
+  .logo-name span{color:#9060b8}
+  .logo-sub{font-size:10px;letter-spacing:3px;color:rgba(0,0,0,.45);margin-top:6px;text-transform:uppercase}
+  h2{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#9060b8;margin-bottom:24px;text-align:center}
   .tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
-  .tipo-btn{padding:18px 8px;border:1px solid rgba(255,255,255,0.08);background:#161616;color:#888;cursor:pointer;text-align:center;transition:all 0.2s;border-radius:3px}
-  .tipo-btn:hover{border-color:#00c896;color:#fff}
-  .tipo-btn.active{border-color:#00c896;background:rgba(0,200,150,0.06);color:#00c896}
-  .tipo-btn .linea{width:20px;height:1px;background:#00c896;opacity:.5;margin:0 auto;transition:opacity .2s}
-  .tipo-btn .label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:300;color:#aaa;transition:color .2s;padding:2px 0}
+  .tipo-btn{padding:18px 8px;border:1px solid rgba(0,0,0,.1);background:#ebebef;color:rgba(0,0,0,.55);cursor:pointer;text-align:center;transition:all 0.2s;border-radius:6px}
+  .tipo-btn:hover{border-color:#9060b8;color:#111}
+  .tipo-btn.active{border-color:#9060b8;background:rgba(144,96,184,.08);color:#9060b8}
+  .tipo-btn .linea{width:20px;height:1px;background:#9060b8;opacity:.5;margin:0 auto;transition:opacity .2s}
+  .tipo-btn .label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:300;color:rgba(0,0,0,.55);transition:color .2s;padding:2px 0}
   .tipo-btn:hover .linea,.tipo-btn.active .linea{opacity:1}
-  .tipo-btn:hover .label,.tipo-btn.active .label{color:#00c896}
-  .section{background:#131313;border:1px solid rgba(255,255,255,0.06);padding:20px;margin-bottom:16px}
-  .section-title{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#00c896;margin-bottom:16px;font-weight:600}
+  .tipo-btn:hover .label,.tipo-btn.active .label{color:#9060b8}
+  .section{background:#ebebef;border:1px solid rgba(0,0,0,.06);padding:20px;margin-bottom:16px;border-radius:12px}
+  .section-title{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#9060b8;margin-bottom:16px;font-weight:600}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .grid1{display:grid;grid-template-columns:1fr;gap:12px}
   .field{display:flex;flex-direction:column;gap:5px}
-  .field label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#666}
-  .field input,.field select,.field textarea{background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);color:#e0e0e0;padding:10px 12px;font-size:16px;outline:none;transition:border-color 0.2s;font-family:inherit;border-radius:2px}
-  .field input:focus,.field select:focus,.field textarea:focus{border-color:#00c896}
+  .field label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(0,0,0,.45)}
+  .field input,.field select,.field textarea{background:#fff;border:1px solid rgba(0,0,0,.1);color:#111;padding:10px 12px;font-size:16px;outline:none;transition:border-color 0.2s;font-family:inherit;border-radius:6px}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:#9060b8}
   .field textarea{resize:vertical;min-height:80px}
   .col-full{grid-column:1/-1}
-  .btn-submit{width:100%;padding:16px;background:#00c896;color:#0d0d0d;border:none;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity 0.2s}
+  .btn-submit{width:100%;padding:16px;background:linear-gradient(135deg,#9060b8,#c090e0);color:#fff;border:none;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity 0.2s;border-radius:8px;box-shadow:0 8px 32px rgba(192,144,224,.35)}
   .btn-submit:hover{opacity:0.85}
   .btn-submit:disabled{opacity:0.5;cursor:not-allowed}
-  .spinner{text-align:center;padding:20px;color:#666;font-size:11px;letter-spacing:2px;display:none}
-  .success{display:none;text-align:center;padding:40px 20px;background:rgba(0,200,150,0.05);border:1px solid rgba(0,200,150,0.2)}
+  .spinner{text-align:center;padding:20px;color:rgba(0,0,0,.45);font-size:11px;letter-spacing:2px;display:none}
+  .success{display:none;text-align:center;padding:40px 20px;background:rgba(14,159,78,.06);border:1px solid rgba(14,159,78,.25);border-radius:12px}
   .success-icon{font-size:2.5rem;margin-bottom:12px}
-  .success-title{font-size:14px;letter-spacing:2px;color:#00c896;margin-bottom:8px;text-transform:uppercase}
-  .success-msg{font-size:12px;color:#666;line-height:1.6}
-  .hint{font-size:10px;color:#555;margin-top:4px;font-style:italic}
+  .success-title{font-size:14px;letter-spacing:2px;color:#0e9f4e;margin-bottom:8px;text-transform:uppercase}
+  .success-msg{font-size:12px;color:rgba(0,0,0,.5);line-height:1.6}
+  .hint{font-size:10px;color:rgba(0,0,0,.4);margin-top:4px;font-style:italic}
   .field input.finvalid,.field select.finvalid,.field textarea.finvalid{border-color:#e74c3c!important}
-  .field input.fvalid{border-color:rgba(37,211,102,0.45)!important}
+  .field input.fvalid{border-color:rgba(14,159,78,.5)!important}
   @media(max-width:480px){.grid2{grid-template-columns:1fr}.tipo-grid{gap:8px}}
 </style>
 </head>
@@ -96,16 +99,16 @@
       <div class="section">
         <div class="section-title">Ceremonias (opcional)</div>
         <div>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#888"><input type="checkbox" id="b-tiene-civil" onchange="togBodaField('b-sub-civil',this.checked)" style="accent-color:#c9a84c;width:15px;height:15px"> Ceremonia Civil</label>
-          <div id="b-sub-civil" style="display:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:12px;margin-bottom:12px;border-radius:2px">
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(0,0,0,.55)"><input type="checkbox" id="b-tiene-civil" onchange="togBodaField('b-sub-civil',this.checked)" style="accent-color:#9060b8;width:15px;height:15px"> Ceremonia Civil</label>
+          <div id="b-sub-civil" style="display:none;background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.06);padding:12px;margin-bottom:12px;border-radius:2px">
             <div class="grid2">
               <div class="field"><label>Fecha</label><input id="b-civil-fecha" type="date"></div>
               <div class="field"><label>Horario</label><input id="b-civil-hora" type="text" placeholder="10:50"></div>
               <div class="field col-full"><label>Dirección</label><input id="b-civil-dir" type="text"></div>
             </div>
           </div>
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#888"><input type="checkbox" id="b-tiene-reli" onchange="togBodaField('b-sub-reli',this.checked)" style="accent-color:#c9a84c;width:15px;height:15px"> Ceremonia Religiosa</label>
-          <div id="b-sub-reli" style="display:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);padding:12px;border-radius:2px">
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(0,0,0,.55)"><input type="checkbox" id="b-tiene-reli" onchange="togBodaField('b-sub-reli',this.checked)" style="accent-color:#9060b8;width:15px;height:15px"> Ceremonia Religiosa</label>
+          <div id="b-sub-reli" style="display:none;background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.06);padding:12px;border-radius:2px">
             <div class="grid2">
               <div class="field"><label>Fecha</label><input id="b-reli-fecha" type="date"></div>
               <div class="field"><label>Horario</label><input id="b-reli-hora" type="text" placeholder="17:30"></div>
