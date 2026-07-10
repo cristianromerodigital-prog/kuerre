@@ -831,6 +831,59 @@ export default {
         return json({ ok: true });
       }
 
+      // ── Estilos: estado del formulario del cliente (estilos.html) ──────────
+      const invEstadoMatch = path.match(/^\/invite\/([a-z0-9][a-z0-9-]{1,79})\/estado$/);
+      if (invEstadoMatch && method === 'GET') {
+        const raw = await env.KUERRE_KV.get('invite_cfg_' + invEstadoMatch[1]);
+        if (!raw) return json({ error: 'Not found' }, 404);
+        let c; try { c = JSON.parse(raw); } catch { return json({ error: 'Config inválida' }, 500); }
+        return json({
+          existe: true,
+          form_completado: !!c.form_completado,
+          nombre: c.novios || '',
+          tipo: c.tipo || 'otro',
+          estilo_elegido: c.estilo_elegido || null
+        });
+      }
+
+      // ── Estilos: el cliente completa estilo + datos (un solo uso) ──────────
+      const invCompletarMatch = path.match(/^\/invite\/([a-z0-9][a-z0-9-]{1,79})\/completar$/);
+      if (invCompletarMatch && method === 'POST') {
+        const cSlug = invCompletarMatch[1];
+        const raw = await env.KUERRE_KV.get('invite_cfg_' + cSlug);
+        if (!raw) return json({ error: 'Invitación no encontrada' }, 404);
+        let existing; try { existing = JSON.parse(raw); } catch { return json({ error: 'Config inválida' }, 500); }
+        if (existing.form_completado) return json({ error: 'Ya completado' }, 409);
+        const body = await request.json().catch(() => null);
+        if (!body || typeof body.config !== 'object' || !body.config || !body.estilo_id) return json({ error: 'Body inválido' }, 400);
+        // El cliente no puede pisar la identidad del slug (el admin lo recalcula desde
+        // novios+fecha) ni flags/credenciales del sistema.
+        const incoming = { ...body.config };
+        ['novios', 'fecha_display', 'fecha_iso', 'tipo', 'form_completado', 'form_completado_at', 'estilo_elegido',
+         'logo_dark', 'logo_light', 'logo_filter', 'emailjs_key', 'emailjs_service', 'gsheet_url'].forEach(k => delete incoming[k]);
+        const merged = {
+          ...existing, ...incoming,
+          form_completado: true,
+          form_completado_at: new Date().toISOString(),
+          estilo_elegido: String(body.estilo_id)
+        };
+        await env.KUERRE_KV.put('invite_cfg_' + cSlug, JSON.stringify(merged));
+        // Reflejar en crd_invites para que el admin lo vea (entrada matcheada por slug)
+        try {
+          const invitesRaw = await env.KUERRE_KV.get('crd_invites');
+          const invitesList = invitesRaw ? JSON.parse(invitesRaw) : [];
+          const entry = invitesList.find(x => x.slug === cSlug);
+          if (entry) {
+            entry.config = merged;
+            entry.tipo = merged.tipo || entry.tipo;
+            const invitesStr = JSON.stringify(invitesList);
+            await env.KUERRE_KV.put('crd_invites', invitesStr);
+            await env.KUERRE_DB.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').bind('crd_invites', invitesStr).run();
+          }
+        } catch (e) { console.log('completar: no se pudo reflejar en crd_invites', e.message); }
+        return json({ ok: true });
+      }
+
       // ── KV públicas de solo lectura (consumidas por premiere/invite/fiestas) ─
       const pubKvMatch = path.match(/^\/(crd_settings|crd_contratos_cfg|crd_entregas|crd_pm_[A-Za-z0-9_-]{1,70})$/);
       if (pubKvMatch && method === 'GET') {
