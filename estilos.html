@@ -109,7 +109,7 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 80px}
 </div>
 <div id="toast"></div>
 <script>
-// KUERRE estilos.html V1.01
+// KUERRE estilos.html V1.02
 const WORKER = 'https://kuerre-worker.cristian-romero-digital.workers.dev';
 const WA_LINK = 'https://wa.me/5491162557763?text=' + encodeURIComponent('Hola! Quiero mi invitación digital ✦');
 const state = { catalogo: null, slug: null, estado: null, estiloElegido: null, uploads: { portada: null, carrusel1: [], carrusel2: [] }, triviaSel: [], _triviaResto: [] };
@@ -189,9 +189,11 @@ function cerrarFullscreen() {
 }
 
 function irPaso(n) {
-  document.getElementById('paso-1').style.display = n === 1 ? '' : 'none';
-  document.getElementById('paso-2').style.display = n === 2 ? '' : 'none';
-  document.getElementById('paso-3').style.display = n === 3 ? '' : 'none';
+  // 'block' explícito: #paso-2/#paso-3 tienen display:none en el CSS, y '' solo
+  // borra el inline style (volvería a caer en el none de la hoja de estilos).
+  document.getElementById('paso-1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('paso-2').style.display = n === 2 ? 'block' : 'none';
+  document.getElementById('paso-3').style.display = n === 3 ? 'block' : 'none';
   [1, 2, 3].forEach(i => document.getElementById('st-' + i).classList.toggle('on', i <= n));
   window.scrollTo({ top: 0 });
 }
