@@ -841,6 +841,7 @@ export default {
           existe: true,
           form_completado: !!c.form_completado,
           nombre: c.novios || '',
+          fecha: c.fecha_display || c.fecha_iso || '',
           tipo: c.tipo || 'otro',
           estilo_elegido: c.estilo_elegido || null
         });
