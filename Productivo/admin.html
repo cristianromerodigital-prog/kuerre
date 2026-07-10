@@ -527,7 +527,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.80</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.81</div>
     </div>
   </aside>
 
@@ -767,6 +767,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div style="display:flex;gap:12px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.08)">
               <button id="inv-modelo-clasico" onclick="setInvModelo('clasico')" style="flex:1;padding:14px;border:2px solid var(--gold);color:var(--gold);background:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.2s">CLÁSICO</button>
               <button id="inv-modelo-social" onclick="setInvModelo('social')" style="flex:1;padding:14px;border:2px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);background:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all 0.2s">SOCIAL ✦</button>
+            </div>
+            <div class="form-group" id="inv-estilo-preset-wrap" style="display:none;margin-bottom:24px">
+              <label class="form-label">Estilo del catálogo ✦ <i class="tip" data-tip="Aplica un preset del catálogo de estilos (estilos.html). Solo pisa el diseño — los datos del evento quedan intactos.">?</i></label>
+              <select class="form-input" id="inv-estilo-preset" onchange="applyEstiloPreset(this.value)"></select>
             </div>
             <div id="inv-campos-clasico">
 
@@ -6809,6 +6813,58 @@ function setInvModelo(modelo) {
   }
 }
 
+// ── CATÁLOGO DE ESTILOS (estilos.html — solo marcas que lo tengan deployado) ──
+let _estilosCatalogo = null;
+function getEstilosBase() { return getInvBaseUrl().replace(/invite\.html.*$/, ''); }
+async function loadEstilosCatalogo() {
+  if (_estilosCatalogo !== null) return _estilosCatalogo;
+  try {
+    const r = await fetch(getEstilosBase() + 'estilos-catalogo.json?t=' + Date.now());
+    _estilosCatalogo = r.ok ? await r.json() : false;
+  } catch (e) { _estilosCatalogo = false; }
+  const sel = document.getElementById('inv-estilo-preset');
+  if (sel && _estilosCatalogo) {
+    sel.innerHTML = '<option value="">— Elegir preset del catálogo —</option>' +
+      _estilosCatalogo.estilos.map(e => `<option value="${e.id}">${e.nombre} (${e.modelo === 'social' ? 'Social ✦' : 'Clásico'})</option>`).join('');
+    document.getElementById('inv-estilo-preset-wrap').style.display = '';
+  }
+  return _estilosCatalogo;
+}
+function applyEstiloPreset(id) {
+  if (!id || !_estilosCatalogo) return;
+  const estilo = _estilosCatalogo.estilos.find(x => x.id === id);
+  if (!estilo) return;
+  const c = estilo.config;
+  setInvModelo(estilo.modelo);
+  if (estilo.modelo === 'social') {
+    if (c.color_tema) selectColorTema(c.color_tema);
+    if (c.hero_emoji) document.getElementById('inv-hero-emoji').value = c.hero_emoji;
+  } else {
+    if (c.color_esquema) document.getElementById('inv-color-esquema').value = c.color_esquema;
+    document.getElementById('inv-estilo-aero').checked = !!c.estilo_aero;
+    if (c.formato) { document.getElementById('inv-formato').value = c.formato; invFormatoChange(); }
+    if (c.wedding_fx) document.getElementById('inv-wedding-fx').value = c.wedding_fx;
+    if (c.wedding_script) document.getElementById('inv-wedding-script').value = c.wedding_script;
+    if (c.env_color) selectEnvColor(c.env_color);
+    if (c.env_particulas) document.getElementById('inv-env-particulas').value = c.env_particulas;
+    if (c.env_particulas_tam) {
+      document.getElementById('inv-env-particulas-tam').value = c.env_particulas_tam;
+      document.getElementById('inv-env-particulas-tam-val').textContent = c.env_particulas_tam;
+    }
+    if (c.text_styles) _textStyles = { ..._textStyles, ...c.text_styles };
+  }
+  toast('Estilo "' + estilo.nombre + '" aplicado — guardá para confirmar');
+}
+function copyEstilosLink(invId) {
+  const inv = getInvites().find(i => i.id === invId);
+  if (!inv) return;
+  const nombre = toSlug(inv.config.novios || inv.config.titulo || 'invitacion');
+  const fecha = toSlug(inv.config.fecha_display || inv.config.fecha_iso || '');
+  const slug = nombre + (fecha ? '-' + fecha : '') + '-' + String(inv.id).slice(-4);
+  navigator.clipboard.writeText(getEstilosBase() + 'estilos.html?i=' + slug);
+  toast('Link de estilos copiado — mandáselo al cliente');
+}
+
 let _invCarousel1 = [];
 let _invCarousel2 = [];
 let _invTrivia = [];
@@ -6925,6 +6981,7 @@ async function genInviteUrl(inv) {
 }
 
 function renderInvitesPage() {
+  loadEstilosCatalogo().then(c => { if (c && !window._estilosCatRendered) { window._estilosCatRendered = true; renderInvitesPage(); } });
   const baseInput = document.getElementById('inv-base-url');
   if (baseInput) baseInput.value = localStorage.getItem('crd_inv_base') || '';
   const socialBaseInput = document.getElementById('inv-social-base-url');
@@ -7000,15 +7057,20 @@ function renderInvitesPage() {
     const slug = nombre + (fecha ? '-' + fecha : '') + '-' + suffix;
     const base = inv.config.modelo === 'social' ? getInvSocialBaseUrl() : getInvBaseUrl();
     const url = base + '?i=' + slug;
+    const estiloNombre = inv.config.estilo_elegido
+      ? (((_estilosCatalogo && _estilosCatalogo.estilos || []).find(x => x.id === inv.config.estilo_elegido) || {}).nombre || inv.config.estilo_elegido)
+      : '';
     return `<div class="inv-card">
       <div>
         <div class="inv-card-badge">${tipos[inv.tipo] || 'Evento'}</div>
+        ${inv.config.form_completado ? `<div class="inv-card-badge" style="background:rgba(14,159,78,0.15);color:var(--green)">✦ Cliente completó${estiloNombre ? ' — ' + estiloNombre : ''}</div>` : ''}
         <div class="inv-card-name">${inv.config.novios || inv.config.titulo || 'Sin título'}</div>
         <div class="inv-card-date">${inv.config.fecha_display || ''}</div>
         <div style="font-size:11px;color:var(--gold);opacity:0.8;margin-bottom:4px">${slug}</div>
         <div class="inv-card-url">${url}</div>
         <div class="inv-card-actions">
           <button class="btn-sm" onclick="copyInviteUrl('${inv.id}')">Copiar URL</button>
+          <button class="btn-sm" onclick="copyEstilosLink('${inv.id}')" title="Link del catálogo de estilos para que el cliente elija y complete sus datos">Link estilos ✦</button>
           <button class="btn-sm" style="color:#25D366;border-color:#25D366" onclick="copyInviteWa('${inv.id}')" title="URL optimizada para WhatsApp (con preview del nombre y foto)">WhatsApp 📲</button>
           <button class="btn-sm" onclick="previewInvite('${inv.id}')">Previsualizar</button>
           <button class="btn-sm" onclick="openInviteModal('${inv.id}')">Editar</button>
@@ -7023,6 +7085,9 @@ function renderInvitesPage() {
 
 function openInviteModal(id) {
   invEditingId = id || null;
+  loadEstilosCatalogo();
+  const selPreset = document.getElementById('inv-estilo-preset');
+  if (selPreset) selPreset.value = '';
   const modal = document.getElementById('inv-modal');
   document.getElementById('inv-modal-title').textContent = id ? 'Editar Invitación' : 'Nueva Invitación';
   if (id) {
