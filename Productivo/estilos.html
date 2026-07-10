@@ -109,7 +109,7 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 80px}
 </div>
 <div id="toast"></div>
 <script>
-// KUERRE estilos.html V1.00
+// KUERRE estilos.html V1.01
 const WORKER = 'https://kuerre-worker.cristian-romero-digital.workers.dev';
 const WA_LINK = 'https://wa.me/5491162557763?text=' + encodeURIComponent('Hola! Quiero mi invitación digital ✦');
 const state = { catalogo: null, slug: null, estado: null, estiloElegido: null, uploads: { portada: null, carrusel1: [], carrusel2: [] }, triviaSel: [], _triviaResto: [] };
@@ -127,7 +127,9 @@ function demoUrl(estilo, opts) {
   const cfg = { ...base, ...estilo.config };
   if (!(opts && opts.fullscreen)) cfg.env_mostrar = false; // miniaturas muestran la portada, no el sobre
   const page = estilo.modelo === 'social' ? 'invite-social.html' : 'invite.html';
-  return page + '?c=' + b64Cfg(cfg) + '&preview=1';
+  // OJO: nunca pasar preview=1 — es el modo del editor hero del admin (ignora ?c= y
+  // espera config por postMessage); acá la demo debe renderizar la config inline.
+  return page + '?c=' + b64Cfg(cfg);
 }
 
 function filtrar(f) {
@@ -161,7 +163,10 @@ function renderCatalogo() {
       const ifr = document.createElement('iframe');
       ifr.loading = 'lazy';
       ifr.src = demoUrl(estilo);
-      en.target.prepend(ifr);
+      // append (no prepend): el iframe debe quedar DESPUÉS de .ph en el DOM para
+      // dibujarse encima; la lupa sigue visible por su z-index:2.
+      en.target.appendChild(ifr);
+      ifr.addEventListener('load', () => { const ph = en.target.querySelector('.ph'); if (ph) ph.style.display = 'none'; });
       const fit = () => { ifr.style.transform = 'scale(' + (en.target.clientWidth / 390) + ')'; };
       fit(); new ResizeObserver(fit).observe(en.target);
     });
