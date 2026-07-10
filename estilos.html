@@ -109,7 +109,7 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 80px}
 </div>
 <div id="toast"></div>
 <script>
-// KUERRE estilos.html V1.03
+// KUERRE estilos.html V1.04
 const WORKER = 'https://kuerre-worker.cristian-romero-digital.workers.dev';
 const WA_LINK = 'https://wa.me/5491162557763?text=' + encodeURIComponent('Hola! Quiero mi invitación digital ✦');
 const state = { catalogo: null, slug: null, estado: null, estiloElegido: null, uploads: { portada: null, carrusel1: [], carrusel2: [] }, triviaSel: [], _triviaResto: [] };
@@ -291,6 +291,39 @@ function renderFormulario() {
   html += `<button class="btn" onclick="irResumen()">Continuar → Revisar y confirmar</button>`;
   document.getElementById('paso-2').innerHTML = html;
   if (social) initTrivia();
+  prefillFormulario(social);
+}
+
+// Precarga el formulario con los datos que ya existen en el sistema (solicitud/admin)
+function prefillFormulario(social) {
+  const c = state.cfg || {};
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  set('f-hora', c.recepcion_hora); set('f-hora-fin', c.fin_fiesta_hora);
+  set('f-lugar', c.lugar_nombre); set('f-lugar-dir', c.lugar_direccion); set('f-maps', c.lugar_maps);
+  set('f-dresscode', c.dresscode); set('f-dresscode-nota', c.dresscode_nota);
+  set('f-regalo-texto', c.regalo_texto); set('f-alias', c.alias_mp); set('f-alias-banco', c.alias_banco);
+  set('f-alias-titular', c.alias_titular); set('f-cbu', c.cbu);
+  set('f-rsvp-limite', c.rsvp_limite); set('f-youtube', c.youtube_audio);
+  if (social) {
+    set('f-frase', c.frase_emotiva);
+    ['carrusel1', 'carrusel2'].forEach((t, i) => {
+      const imgs = c['carousel_images_' + (i + 1)];
+      if (Array.isArray(imgs) && imgs.length) {
+        state.uploads[t] = [...imgs];
+        document.getElementById('prev-' + t).innerHTML = imgs.map(u => `<img src="${u}">`).join('');
+      }
+    });
+  } else {
+    set('f-presentacion', c.presentacion); set('f-spotify', c.spotify_url);
+    set('f-cer-hora', c.ceremonia_hora); set('f-cer-lugar', c.ceremonia_lugar); set('f-cer-dir', c.ceremonia_direccion);
+  }
+  if (c.media_url) {
+    state.uploads.portada = { url: c.media_url, media_type: c.media_type || 'image' };
+    const zone = document.getElementById('up-portada');
+    zone.classList.add('ok');
+    zone.textContent = '✓ Ya tenemos tu ' + (c.media_type === 'video' ? 'video' : 'foto') + ' de portada — tocá para cambiarla';
+    if (c.media_type !== 'video') document.getElementById('prev-portada').innerHTML = `<img src="${c.media_url}">`;
+  }
 }
 
 // ── TRIVIA ──────────────────────────────────────────────────────────────────
@@ -447,6 +480,8 @@ async function init() {
       else {
         state.estado = await er.json();
         if (state.estado.form_completado) { mostrarBloqueada(); return; }
+        // Config completa para precargar el formulario con lo que ya existe en el sistema
+        try { state.cfg = await (await fetch(WORKER + '/invite/' + state.slug)).json(); } catch (e) { state.cfg = {}; }
         document.getElementById('steps').style.display = '';
         document.getElementById('titulo-h1').textContent = 'Hola' + (state.estado.nombre ? ', ' + state.estado.nombre : '') + ' ✦';
         document.getElementById('sub-h1').textContent = 'Elegí el estilo de tu invitación y después completá los datos de tu evento. Nosotros nos encargamos del resto.';
