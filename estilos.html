@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="robots" content="noindex">
+<title>Elegí el estilo de tu invitación — KUERRE</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--acc:#9060b8;--acc2:#7a4aa0;--bg:#f6f6f8;--card:#ffffff;--txt:#1a1a1a;--soft:rgba(0,0,0,.55);--border:rgba(0,0,0,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;
+  background-image:radial-gradient(ellipse 70% 55% at 15% 15%, rgba(192,144,224,.16) 0%, transparent 60%),radial-gradient(ellipse 55% 45% at 85% 80%, rgba(192,144,224,.12) 0%, transparent 60%);background-attachment:fixed}
+header{padding:28px 20px;text-align:center}
+.logo{font-size:18px;letter-spacing:6px;text-transform:uppercase;color:var(--acc);font-weight:400}
+h1{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(28px,5vw,44px);margin-top:14px}
+.sub{font-size:13px;color:var(--soft);margin-top:8px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7}
+.steps{display:flex;justify-content:center;gap:8px;margin:22px 0 8px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--soft);flex-wrap:wrap}
+.steps .st{padding:6px 12px;border-radius:20px;border:1px solid var(--border)}
+.steps .st.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+main{max-width:1100px;margin:0 auto;padding:10px 16px 80px}
+.filtros{display:flex;justify-content:center;gap:10px;margin:18px 0 26px}
+.filtros button{padding:10px 22px;border:1px solid var(--border);background:var(--card);border-radius:22px;font-family:inherit;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;color:var(--soft)}
+.filtros button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.05);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(144,96,184,.18)}
+.frame-wrap{position:relative;width:100%;aspect-ratio:390/700;overflow:hidden;background:#111;cursor:pointer}
+.frame-wrap iframe{width:390px;height:700px;border:0;transform-origin:0 0;pointer-events:none;position:absolute;top:0;left:0}
+.frame-wrap .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Cormorant Garamond',serif;font-size:20px;background:linear-gradient(135deg,#2a2040,#4a3068)}
+.frame-wrap .lupa{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.45);color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;z-index:2}
+.card-body{padding:14px}
+.card-nombre{font-family:'Cormorant Garamond',serif;font-size:20px}
+.card-desc{font-size:11px;color:var(--soft);margin:4px 0 12px}
+.card-tag{display:inline-block;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);border:1px solid rgba(144,96,184,.3);padding:3px 8px;border-radius:12px;margin-bottom:8px}
+.btn{display:inline-block;width:100%;padding:12px;text-align:center;background:var(--acc);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+.btn:hover{background:var(--acc2)}
+.btn:disabled{opacity:.6;cursor:default}
+.btn-sec{background:none;color:var(--acc);border:1px solid var(--acc)}
+.btn-sec:hover{background:rgba(144,96,184,.08)}
+#fullscreen{display:none;position:fixed;inset:0;z-index:100;background:rgba(20,10,35,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#fullscreen.open{display:flex;flex-direction:column;align-items:center;padding:16px}
+#fullscreen .fs-bar{display:flex;gap:12px;align-items:center;margin-bottom:12px;width:100%;max-width:420px;justify-content:space-between;flex-wrap:wrap}
+#fullscreen .fs-nombre{color:#fff;font-family:'Cormorant Garamond',serif;font-size:22px}
+#fullscreen iframe{width:min(420px,100%);flex:1;border:0;border-radius:14px;background:#000}
+#fullscreen .fs-cerrar{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-family:inherit;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+#fullscreen .fs-elegir{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-family:inherit;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+.pantalla{max-width:560px;margin:60px auto;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:48px 32px}
+.pantalla h2{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:30px;margin-bottom:14px}
+.pantalla p{font-size:13px;color:var(--soft);line-height:1.8}
+.wa{display:inline-block;margin-top:22px;padding:12px 26px;background:#25D366;color:#fff;border-radius:8px;text-decoration:none;font-size:11px;letter-spacing:2px;text-transform:uppercase}
+#paso-2,#paso-3{display:none;max-width:680px;margin:0 auto}
+.form-sec{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:18px}
+.form-sec h3{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:20px;margin-bottom:16px;color:var(--acc2)}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--soft);margin-bottom:6px}
+.fg input,.fg textarea,.fg select{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:16px;background:#fff;color:var(--txt)}
+.fg textarea{min-height:70px;resize:vertical}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.f2{grid-template-columns:1fr}}
+.hint{font-size:10px;color:var(--soft);margin-top:4px;line-height:1.6}
+.ro{background:#f2eef7 !important;color:var(--soft)}
+.up-zone{border:2px dashed rgba(144,96,184,.4);border-radius:10px;padding:22px;text-align:center;font-size:12px;color:var(--soft);cursor:pointer}
+.up-zone.ok{border-color:#0e9f4e;color:#0e9f4e}
+.up-prev{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.up-prev img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+.trivia-row{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.trivia-row .tq{font-size:13px;font-weight:500;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.trivia-row .tq button{background:none;border:none;color:var(--acc);cursor:pointer;font-size:16px;flex-shrink:0}
+.trivia-row input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:16px}
+.resumen-item{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px}
+.resumen-item b{color:var(--soft);font-weight:500;flex-shrink:0}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid rgba(144,96,184,.4);border-radius:10px;padding:14px 22px;font-size:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;max-width:90vw}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Kuerre ✦</div>
+  <h1 id="titulo-h1">Elegí el estilo de tu invitación</h1>
+  <div class="sub" id="sub-h1">Cada estilo es una línea estética completa. Tocá una tarjeta para verla en vivo, y cuando encuentres la tuya, elegila.</div>
+  <div class="steps" id="steps" style="display:none">
+    <span class="st on" id="st-1">1 · Estilo</span><span class="st" id="st-2">2 · Tus datos</span><span class="st" id="st-3">3 · Confirmar</span>
+  </div>
+</header>
+<main>
+  <div id="paso-1">
+    <div class="filtros">
+      <button class="on" data-f="todos" onclick="filtrar('todos')">Todos</button>
+      <button data-f="clasico" onclick="filtrar('clasico')">Clásicos</button>
+      <button data-f="social" onclick="filtrar('social')">Social ✦</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div id="paso-2"></div>
+  <div id="paso-3"></div>
+  <div id="pantalla-final" class="pantalla" style="display:none"></div>
+  <div id="pantalla-bloqueada" class="pantalla" style="display:none"></div>
+</main>
+<div id="fullscreen">
+  <div class="fs-bar">
+    <span class="fs-nombre" id="fs-nombre"></span>
+    <div style="display:flex;gap:8px">
+      <button class="fs-elegir" id="fs-elegir">Elegir este estilo</button>
+      <button class="fs-cerrar" onclick="cerrarFullscreen()">✕ Cerrar</button>
+    </div>
+  </div>
+  <iframe id="fs-iframe"></iframe>
+</div>
+<div id="toast"></div>
+<script>
+// KUERRE estilos.html V1.00
+const WORKER = 'https://kuerre-worker.cristian-romero-digital.workers.dev';
+const WA_LINK = 'https://wa.me/5491162557763?text=' + encodeURIComponent('Hola! Quiero mi invitación digital ✦');
+const state = { catalogo: null, slug: null, estado: null, estiloElegido: null, uploads: { portada: null, carrusel1: [], carrusel2: [] }, triviaSel: [], _triviaResto: [] };
+
+function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3200); }
+
+function b64Cfg(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b));
+  return encodeURIComponent(btoa(bin));
+}
+
+function demoUrl(estilo, opts) {
+  const base = state.catalogo.demo[estilo.demo];
+  const cfg = { ...base, ...estilo.config };
+  if (!(opts && opts.fullscreen)) cfg.env_mostrar = false; // miniaturas muestran la portada, no el sobre
+  const page = estilo.modelo === 'social' ? 'invite-social.html' : 'invite.html';
+  return page + '?c=' + b64Cfg(cfg) + '&preview=1';
+}
+
+function filtrar(f) {
+  document.querySelectorAll('.filtros button').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+  document.querySelectorAll('.card').forEach(c => { c.style.display = (f === 'todos' || c.dataset.modelo === f) ? '' : 'none'; });
+}
+
+function renderCatalogo() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = state.catalogo.estilos.map(e => `
+    <div class="card" data-modelo="${e.modelo}" data-id="${e.id}">
+      <div class="frame-wrap" onclick="abrirFullscreen('${e.id}')">
+        <div class="ph">${e.nombre}</div>
+        <span class="lupa">🔍</span>
+      </div>
+      <div class="card-body">
+        <span class="card-tag">${e.modelo === 'social' ? 'Social ✦' : 'Clásico'}</span>
+        <div class="card-nombre">${e.nombre}</div>
+        <div class="card-desc">${e.descripcion}</div>
+        ${state.slug ? `<button class="btn" onclick="elegirEstilo('${e.id}')">Elegir este estilo</button>`
+                     : `<a class="btn" style="text-decoration:none" href="${WA_LINK}" target="_blank" rel="noopener">Lo quiero ✦</a>`}
+      </div>
+    </div>`).join('');
+  // Lazy-mount de iframes al entrar al viewport
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      io.unobserve(en.target);
+      const id = en.target.closest('.card').dataset.id;
+      const estilo = state.catalogo.estilos.find(x => x.id === id);
+      const ifr = document.createElement('iframe');
+      ifr.loading = 'lazy';
+      ifr.src = demoUrl(estilo);
+      en.target.prepend(ifr);
+      const fit = () => { ifr.style.transform = 'scale(' + (en.target.clientWidth / 390) + ')'; };
+      fit(); new ResizeObserver(fit).observe(en.target);
+    });
+  }, { rootMargin: '200px' });
+  document.querySelectorAll('.frame-wrap').forEach(w => io.observe(w));
+}
+
+function abrirFullscreen(id) {
+  const estilo = state.catalogo.estilos.find(x => x.id === id);
+  document.getElementById('fs-nombre').textContent = estilo.nombre;
+  document.getElementById('fs-iframe').src = demoUrl(estilo, { fullscreen: true });
+  const btn = document.getElementById('fs-elegir');
+  btn.style.display = state.slug ? '' : 'none';
+  btn.onclick = () => { cerrarFullscreen(); elegirEstilo(id); };
+  document.getElementById('fullscreen').classList.add('open');
+}
+function cerrarFullscreen() {
+  document.getElementById('fullscreen').classList.remove('open');
+  document.getElementById('fs-iframe').src = 'about:blank';
+}
+
+function irPaso(n) {
+  document.getElementById('paso-1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('paso-2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('paso-3').style.display = n === 3 ? '' : 'none';
+  [1, 2, 3].forEach(i => document.getElementById('st-' + i).classList.toggle('on', i <= n));
+  window.scrollTo({ top: 0 });
+}
+
+function elegirEstilo(id) {
+  state.estiloElegido = state.catalogo.estilos.find(x => x.id === id);
+  renderFormulario();
+  irPaso(2);
+}
+
+// ── PASO 2: FORMULARIO ──────────────────────────────────────────────────────
+function fg(id, label, ph, tipo, hint) {
+  const inner = tipo === 'ta'
+    ? `<textarea id="${id}" placeholder="${ph || ''}"></textarea>`
+    : `<input id="${id}" ${tipo === 'date' ? 'type="date"' : ''} placeholder="${ph || ''}">`;
+  return `<div class="fg"><label>${label}</label>${inner}${hint ? `<div class="hint">${hint}</div>` : ''}</div>`;
+}
+
+function renderFormulario() {
+  const social = state.estiloElegido.modelo === 'social';
+  const esBoda = state.estado.tipo === 'casamiento';
+  let html = `<div class="form-sec"><h3>Estilo elegido: ${state.estiloElegido.nombre} ✦</h3>
+    <div style="font-size:12px;color:var(--soft)">Podés volver a <a href="#" onclick="irPaso(1);return false" style="color:var(--acc)">cambiar el estilo</a> antes de confirmar.</div></div>`;
+
+  html += `<div class="form-sec"><h3>Tu evento</h3>
+    <div class="f2">
+      <div class="fg"><label>Nombre</label><input class="ro" value="${state.estado.nombre}" readonly></div>
+      <div class="fg"><label>Fecha</label><input class="ro" value="(la de tu contrato)" readonly></div>
+    </div>
+    <div class="hint" style="margin-bottom:14px">El nombre y la fecha ya los tenemos de tu contrato. Si hay que corregirlos, escribinos.</div>
+    <div class="f2">${fg('f-hora', 'Hora de inicio', '21:00')}${fg('f-hora-fin', 'Hora de fin', '04:00')}</div>
+    ${fg('f-lugar', 'Nombre del salón / lugar', 'Salón Los Álamos')}
+    ${fg('f-lugar-dir', 'Dirección completa', 'Av. Libertador 1234, Buenos Aires')}
+    ${fg('f-maps', 'Link de Google Maps (opcional)', 'https://maps.google.com/...', null, 'Buscá el lugar en Google Maps → Compartir → Copiar link')}
+  </div>`;
+
+  if (!social && esBoda) {
+    html += `<div class="form-sec"><h3>Ceremonia (opcional)</h3>
+      <div class="f2">${fg('f-cer-hora', 'Hora', '18:00')}${fg('f-cer-lugar', 'Lugar', 'Iglesia San José')}</div>
+      ${fg('f-cer-dir', 'Dirección', 'Av. Rivadavia 1234, CABA')}
+    </div>`;
+  }
+
+  html += `<div class="form-sec"><h3>Foto o video de portada</h3>
+    <div class="hint" style="margin-bottom:10px">Es lo primero que van a ver tus invitados. Foto vertical o video corto (máx 50 MB).</div>
+    <div class="up-zone" id="up-portada" onclick="document.getElementById('file-portada').click()">📷 Tocá para subir tu foto o video</div>
+    <input type="file" id="file-portada" accept="image/*,video/mp4,video/quicktime" style="display:none" onchange="subirMedia(this, 'portada')">
+    <div class="up-prev" id="prev-portada"></div>
+  </div>`;
+
+  html += `<div class="form-sec"><h3>Dresscode</h3>
+    <div class="f2">${fg('f-dresscode', 'Vestimenta', 'Elegante / Formal')}${fg('f-dresscode-nota', 'Aclaración (opcional)', social ? 'El color ROSA se reserva para la quinceañera' : 'Evitar el color blanco')}</div>
+  </div>`;
+
+  html += `<div class="form-sec"><h3>Regalo (opcional)</h3>
+    ${fg('f-regalo-texto', 'Texto', 'Tu presencia es el mejor regalo. Pero si insistís...', 'ta')}
+    <div class="f2">${fg('f-alias', 'Alias (MP / banco)', 'mi.alias')}${fg('f-alias-banco', 'Banco / plataforma', 'Mercado Pago')}</div>
+    <div class="f2">${fg('f-alias-titular', 'Titular', 'Nombre Apellido')}${fg('f-cbu', 'CBU (opcional)', '')}</div>
+  </div>`;
+
+  html += `<div class="form-sec"><h3>Confirmación de asistencia</h3>
+    ${fg('f-rsvp-limite', 'Tus invitados pueden confirmar hasta el', '', 'date')}
+  </div>`;
+
+  html += `<div class="form-sec"><h3>Música (opcional)</h3>
+    ${fg('f-youtube', 'Canción de fondo — link de YouTube', 'https://youtu.be/...', null, 'Suena mientras miran tu invitación.')}
+    ${social ? '' : fg('f-spotify', 'Playlist colaborativa de Spotify', 'https://open.spotify.com/playlist/...', null, 'Tus invitados pueden sumar canciones.')}
+  </div>`;
+
+  if (!social) {
+    html += `<div class="form-sec"><h3>Textos</h3>
+      ${fg('f-presentacion', 'Texto de presentación', 'Con inmensa alegría los invitamos a celebrar...', 'ta')}
+    </div>`;
+  } else {
+    html += `<div class="form-sec"><h3>Frase emotiva</h3>
+      ${fg('f-frase', 'Una frase que te represente', 'Hay momentos que no se pueden borrar...', 'ta')}
+    </div>`;
+    html += `<div class="form-sec"><h3>Trivia — ¿Cuánto me conocés? ✦</h3>
+      <div class="hint" style="margin-bottom:12px">Respondé estas 5 preguntas (solo la respuesta correcta — nosotros armamos las opciones). Tocá ↻ para cambiar una pregunta.</div>
+      <div id="trivia-wrap"></div>
+    </div>`;
+    html += `<div class="form-sec"><h3>Tus fotos — carruseles (opcional)</h3>
+      <div class="hint" style="margin-bottom:10px">Elegí tus fotos favoritas: se muestran en dos carruseles dentro de la invitación.</div>
+      <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--soft)">Carrusel 1</label>
+      <div class="up-zone" style="margin:6px 0 4px" onclick="document.getElementById('file-c1').click()">🖼 Subir fotos</div>
+      <input type="file" id="file-c1" accept="image/*" multiple style="display:none" onchange="subirMedia(this, 'carrusel1')">
+      <div class="up-prev" id="prev-carrusel1"></div>
+      <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--soft);display:block;margin-top:14px">Carrusel 2</label>
+      <div class="up-zone" style="margin:6px 0 4px" onclick="document.getElementById('file-c2').click()">🖼 Subir fotos</div>
+      <input type="file" id="file-c2" accept="image/*" multiple style="display:none" onchange="subirMedia(this, 'carrusel2')">
+      <div class="up-prev" id="prev-carrusel2"></div>
+    </div>`;
+  }
+
+  html += `<button class="btn" onclick="irResumen()">Continuar → Revisar y confirmar</button>`;
+  document.getElementById('paso-2').innerHTML = html;
+  if (social) initTrivia();
+}
+
+// ── TRIVIA ──────────────────────────────────────────────────────────────────
+function initTrivia() {
+  const pool = [...state.catalogo.trivia_pool].sort(() => Math.random() - 0.5);
+  state.triviaSel = pool.slice(0, 5).map(p => ({ ...p, respuesta: '' }));
+  state._triviaResto = pool.slice(5);
+  renderTrivia();
+}
+function renderTrivia() {
+  document.getElementById('trivia-wrap').innerHTML = state.triviaSel.map((p, i) => `
+    <div class="trivia-row">
+      <div class="tq"><span>${i + 1}. ${p.pregunta}</span><button type="button" title="Cambiar pregunta" onclick="rotarTrivia(${i})">↻</button></div>
+      <input placeholder="Tu respuesta" value="${p.respuesta.replace(/"/g, '&quot;')}" oninput="state.triviaSel[${i}].respuesta = this.value">
+    </div>`).join('');
+}
+function rotarTrivia(i) {
+  if (!state._triviaResto.length) { toast('No quedan más preguntas para rotar'); return; }
+  state._triviaResto.push(state.triviaSel[i]);
+  state.triviaSel[i] = { ...state._triviaResto.shift(), respuesta: '' };
+  renderTrivia();
+}
+function armarTriviaPreguntas() {
+  return state.triviaSel.filter(p => p.respuesta.trim()).map(p => {
+    const resp = p.respuesta.trim();
+    const dist = p.distractores.filter(d => d.toLowerCase() !== resp.toLowerCase()).sort(() => Math.random() - 0.5).slice(0, 3);
+    const opciones = [resp, ...dist].sort(() => Math.random() - 0.5);
+    return { pregunta: p.pregunta, opciones, correcta: opciones.indexOf(resp), activa: true };
+  });
+}
+
+// ── UPLOADS ─────────────────────────────────────────────────────────────────
+async function subirMedia(input, tipo) {
+  const files = [...input.files];
+  if (!files.length) return;
+  for (const file of files) {
+    const isVideo = file.type.startsWith('video/');
+    if (file.size > (isVideo ? 50 : 15) * 1024 * 1024) { toast(`"${file.name}" supera el máximo (${isVideo ? 50 : 15} MB)`); continue; }
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('tipo', tipo);
+    toast('Subiendo ' + file.name + '…');
+    try {
+      const r = await fetch(WORKER + '/invite/' + state.slug + '/media', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (!r.ok || !j.ok) throw new Error(j.error || 'Error al subir');
+      if (tipo === 'portada') {
+        state.uploads.portada = { url: j.url, media_type: isVideo ? 'video' : 'image' };
+        const zone = document.getElementById('up-portada');
+        zone.classList.add('ok');
+        zone.textContent = '✓ ' + file.name + ' — tocá para cambiar';
+        document.getElementById('prev-portada').innerHTML = isVideo ? '' : `<img src="${j.url}">`;
+      } else {
+        state.uploads[tipo].push(j.url);
+        document.getElementById('prev-' + tipo).innerHTML = state.uploads[tipo].map(u => `<img src="${u}">`).join('');
+      }
+      toast('✓ ' + file.name + ' subido');
+    } catch (e) { toast('No se pudo subir ' + file.name + ': ' + e.message + '. Probá de nuevo.'); }
+  }
+  input.value = '';
+}
+
+// ── PASO 3: RESUMEN + GENERAR ───────────────────────────────────────────────
+function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function armarConfig() {
+  const social = state.estiloElegido.modelo === 'social';
+  const cfg = { ...state.estiloElegido.config };
+  cfg.recepcion_hora = v('f-hora'); cfg.fin_fiesta_hora = v('f-hora-fin');
+  cfg.lugar_nombre = v('f-lugar'); cfg.lugar_direccion = v('f-lugar-dir');
+  cfg.lugar_maps = v('f-maps') || ((v('f-lugar') || v('f-lugar-dir')) ? 'https://maps.google.com/?q=' + encodeURIComponent([v('f-lugar'), v('f-lugar-dir')].filter(Boolean).join(', ')) : '');
+  cfg.dresscode = v('f-dresscode'); cfg.dresscode_nota = v('f-dresscode-nota');
+  cfg.regalo_texto = v('f-regalo-texto'); cfg.alias_mp = v('f-alias'); cfg.alias_banco = v('f-alias-banco');
+  cfg.alias_titular = v('f-alias-titular'); cfg.cbu = v('f-cbu');
+  cfg.rsvp_activo = true; cfg.rsvp_limite = v('f-rsvp-limite');
+  cfg.youtube_audio = v('f-youtube');
+  if (state.uploads.portada) { cfg.media_url = state.uploads.portada.url; cfg.media_type = state.uploads.portada.media_type; }
+  if (social) {
+    cfg.frase_emotiva = v('f-frase');
+    cfg.trivia_preguntas = armarTriviaPreguntas();
+    if (state.uploads.carrusel1.length) cfg.carousel_images_1 = state.uploads.carrusel1;
+    if (state.uploads.carrusel2.length) cfg.carousel_images_2 = state.uploads.carrusel2;
+  } else {
+    cfg.presentacion = v('f-presentacion');
+    cfg.spotify_url = v('f-spotify');
+    if (state.estado.tipo === 'casamiento') {
+      cfg.ceremonia_hora = v('f-cer-hora'); cfg.ceremonia_lugar = v('f-cer-lugar'); cfg.ceremonia_direccion = v('f-cer-dir');
+    }
+  }
+  return cfg;
+}
+
+function irResumen() {
+  if (!state.uploads.portada) { toast('Falta la foto o video de portada'); return; }
+  if (!v('f-hora') || !v('f-lugar')) { toast('Completá al menos la hora y el lugar del evento'); return; }
+  const cfg = armarConfig();
+  const items = [
+    ['Estilo', state.estiloElegido.nombre],
+    ['Horario', cfg.recepcion_hora + (cfg.fin_fiesta_hora ? ' a ' + cfg.fin_fiesta_hora : '')],
+    ['Lugar', [cfg.lugar_nombre, cfg.lugar_direccion].filter(Boolean).join(' — ')],
+    ['Dresscode', [cfg.dresscode, cfg.dresscode_nota].filter(Boolean).join(' · ') || '—'],
+    ['Portada', state.uploads.portada.media_type === 'video' ? 'Video subido ✓' : 'Foto subida ✓'],
+    ['Regalo', cfg.alias_mp ? 'Alias: ' + cfg.alias_mp : '—'],
+    ['Música', cfg.youtube_audio ? 'Sí ✓' : '—']
+  ];
+  if (state.estiloElegido.modelo === 'social') {
+    items.push(['Trivia', cfg.trivia_preguntas.length + ' preguntas']);
+    items.push(['Carruseles', (state.uploads.carrusel1.length + state.uploads.carrusel2.length) + ' fotos']);
+  }
+  document.getElementById('paso-3').innerHTML = `
+    <div class="form-sec"><h3>Revisá antes de confirmar</h3>
+      ${items.map(x => `<div class="resumen-item"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('')}
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-sec" onclick="irPaso(2)" style="flex:1">← Corregir algo</button>
+      <button class="btn" id="btn-generar" onclick="generar()" style="flex:2">Generar mi invitación ✦</button>
+    </div>
+    <div class="hint" style="text-align:center;margin-top:12px">Después de confirmar no vas a poder editar desde acá — cualquier cambio, escribinos.</div>`;
+  irPaso(3);
+}
+
+async function generar() {
+  const btn = document.getElementById('btn-generar');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  try {
+    const r = await fetch(WORKER + '/invite/' + state.slug + '/completar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estilo_id: state.estiloElegido.id, config: armarConfig() })
+    });
+    const j = await r.json();
+    if (r.status === 409) { mostrarBloqueada(); return; }
+    if (!r.ok || !j.ok) throw new Error(j.error || 'Error al enviar');
+    document.getElementById('paso-3').style.display = 'none';
+    document.getElementById('steps').style.display = 'none';
+    document.getElementById('titulo-h1').textContent = '';
+    document.getElementById('sub-h1').textContent = '';
+    const p = document.getElementById('pantalla-final');
+    p.style.display = '';
+    p.innerHTML = '<h2>✦</h2><p style="font-size:16px;line-height:1.9">' + state.catalogo.textos.final.replace('{nombre}', state.estado.nombre || '') + '</p>';
+  } catch (e) {
+    toast(e.message + ' — probá de nuevo');
+    btn.disabled = false; btn.textContent = 'Generar mi invitación ✦';
+  }
+}
+
+async function init() {
+  const res = await fetch('estilos-catalogo.json?t=' + Date.now());
+  state.catalogo = await res.json();
+  state.slug = new URLSearchParams(location.search).get('i');
+  if (state.slug) {
+    try {
+      const er = await fetch(WORKER + '/invite/' + state.slug + '/estado');
+      if (!er.ok) { state.slug = null; }
+      else {
+        state.estado = await er.json();
+        if (state.estado.form_completado) { mostrarBloqueada(); return; }
+        document.getElementById('steps').style.display = '';
+        document.getElementById('titulo-h1').textContent = 'Hola' + (state.estado.nombre ? ', ' + state.estado.nombre : '') + ' ✦';
+        document.getElementById('sub-h1').textContent = 'Elegí el estilo de tu invitación y después completá los datos de tu evento. Nosotros nos encargamos del resto.';
+      }
+    } catch (e) { state.slug = null; }
+  }
+  renderCatalogo();
+}
+
+function mostrarBloqueada() {
+  document.getElementById('paso-1').style.display = 'none';
+  document.getElementById('paso-2').style.display = 'none';
+  document.getElementById('paso-3').style.display = 'none';
+  document.getElementById('steps').style.display = 'none';
+  const p = document.getElementById('pantalla-bloqueada');
+  p.style.display = '';
+  p.innerHTML = '<h2>¡Ya recibimos tus datos! ✦</h2><p>' + state.catalogo.textos.bloqueada + '</p><a class="wa" href="' + WA_LINK + '" target="_blank" rel="noopener">Escribinos</a>';
+}
+
+init();
+</script>
+</body>
+</html>
