@@ -527,7 +527,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.82</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.83</div>
     </div>
   </aside>
 
@@ -1338,6 +1338,25 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <button class="btn-sm" onclick="saveAndPreviewInvite()">Guardar y previsualizar</button>
               <button class="btn-add" onclick="saveInvite()">Guardar invitación</button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REABRIR ESTILOS MODAL -->
+      <div class="modal-bg" id="reabrir-modal" style="z-index:650">
+        <div class="modal" style="max-width:440px">
+          <div class="modal-header">
+            <span>Reabrir elección de estilo</span>
+            <button class="modal-close" onclick="closeReabrirModal()">✕</button>
+          </div>
+          <div class="modal-body" style="padding:24px">
+            <p style="font-size:13px;line-height:1.8;color:var(--gray2);margin-bottom:12px">Vas a reiniciar la elección de estilo de <strong id="reabrir-nombre" style="color:var(--white)"></strong>.</p>
+            <p style="font-size:13px;line-height:1.8;color:var(--gray2);margin-bottom:12px">El cliente va a poder entrar de nuevo con su link de estilos para elegir otro formato y revisar sus datos.</p>
+            <p style="font-size:13px;line-height:1.8;color:var(--green)">✓ Todo lo que ya cargó (fotos, textos, trivia, regalo) se conserva y aparece precargado.</p>
+          </div>
+          <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px">
+            <button class="btn-sm" onclick="closeReabrirModal()">Cancelar</button>
+            <button class="btn-add" onclick="confirmReabrirEstilos()" id="reabrir-btn-ok">Sí, reabrir</button>
           </div>
         </div>
       </div>
@@ -6855,13 +6874,23 @@ function applyEstiloPreset(id) {
   }
   toast('Estilo "' + estilo.nombre + '" aplicado — guardá para confirmar');
 }
-async function reabrirEstilos(invId) {
+let _reabrirInvId = null;
+function reabrirEstilos(invId) {
   const inv = getInvites().find(i => i.id === invId);
   if (!inv) return;
-  const ok = confirm('Vas a REINICIAR la elección de estilo de "' + (inv.config.novios || inv.config.titulo || 'esta invitación') + '".\n\n' +
-    'El cliente va a poder entrar de nuevo con su link de estilos para elegir otro formato y revisar sus datos.\n' +
-    'Todo lo que ya cargó (fotos, textos, trivia, regalo) SE CONSERVA y aparece precargado.\n\n¿Continuar?');
-  if (!ok) return;
+  _reabrirInvId = invId;
+  document.getElementById('reabrir-nombre').textContent = inv.config.novios || inv.config.titulo || 'esta invitación';
+  document.getElementById('reabrir-modal').classList.add('open');
+}
+function closeReabrirModal() {
+  document.getElementById('reabrir-modal').classList.remove('open');
+  _reabrirInvId = null;
+}
+async function confirmReabrirEstilos() {
+  const inv = getInvites().find(i => i.id === _reabrirInvId);
+  if (!inv) { closeReabrirModal(); return; }
+  const btn = document.getElementById('reabrir-btn-ok');
+  btn.disabled = true; btn.textContent = 'Reabriendo…';
   const nombre = toSlug(inv.config.novios || inv.config.titulo || 'invitacion');
   const fecha = toSlug(inv.config.fecha_display || inv.config.fecha_iso || '');
   const slug = nombre + (fecha ? '-' + fecha : '') + '-' + String(inv.id).slice(-4);
@@ -6876,6 +6905,10 @@ async function reabrirEstilos(invId) {
     toast('Formulario de estilos rehabilitado — reenviale el link al cliente');
   } catch (e) {
     toast('No se pudo rehabilitar: ' + e.message);
+  } finally {
+    const btn = document.getElementById('reabrir-btn-ok');
+    btn.disabled = false; btn.textContent = 'Sí, reabrir';
+    closeReabrirModal();
   }
 }
 
