@@ -197,7 +197,237 @@ function elegirEstilo(id) {
   irPaso(2);
 }
 
-function renderFormulario() {} // se implementa en el paso 2 del wizard (Task 7)
+// ── PASO 2: FORMULARIO ──────────────────────────────────────────────────────
+function fg(id, label, ph, tipo, hint) {
+  const inner = tipo === 'ta'
+    ? `<textarea id="${id}" placeholder="${ph || ''}"></textarea>`
+    : `<input id="${id}" ${tipo === 'date' ? 'type="date"' : ''} placeholder="${ph || ''}">`;
+  return `<div class="fg"><label>${label}</label>${inner}${hint ? `<div class="hint">${hint}</div>` : ''}</div>`;
+}
+
+function renderFormulario() {
+  const social = state.estiloElegido.modelo === 'social';
+  const esBoda = state.estado.tipo === 'casamiento';
+  let html = `<div class="form-sec"><h3>Estilo elegido: ${state.estiloElegido.nombre} ✦</h3>
+    <div style="font-size:12px;color:var(--soft)">Podés volver a <a href="#" onclick="irPaso(1);return false" style="color:var(--acc)">cambiar el estilo</a> antes de confirmar.</div></div>`;
+
+  html += `<div class="form-sec"><h3>Tu evento</h3>
+    <div class="f2">
+      <div class="fg"><label>Nombre</label><input class="ro" value="${state.estado.nombre}" readonly></div>
+      <div class="fg"><label>Fecha</label><input class="ro" value="(la de tu contrato)" readonly></div>
+    </div>
+    <div class="hint" style="margin-bottom:14px">El nombre y la fecha ya los tenemos de tu contrato. Si hay que corregirlos, escribinos.</div>
+    <div class="f2">${fg('f-hora', 'Hora de inicio', '21:00')}${fg('f-hora-fin', 'Hora de fin', '04:00')}</div>
+    ${fg('f-lugar', 'Nombre del salón / lugar', 'Salón Los Álamos')}
+    ${fg('f-lugar-dir', 'Dirección completa', 'Av. Libertador 1234, Buenos Aires')}
+    ${fg('f-maps', 'Link de Google Maps (opcional)', 'https://maps.google.com/...', null, 'Buscá el lugar en Google Maps → Compartir → Copiar link')}
+  </div>`;
+
+  if (!social && esBoda) {
+    html += `<div class="form-sec"><h3>Ceremonia (opcional)</h3>
+      <div class="f2">${fg('f-cer-hora', 'Hora', '18:00')}${fg('f-cer-lugar', 'Lugar', 'Iglesia San José')}</div>
+      ${fg('f-cer-dir', 'Dirección', 'Av. Rivadavia 1234, CABA')}
+    </div>`;
+  }
+
+  html += `<div class="form-sec"><h3>Foto o video de portada</h3>
+    <div class="hint" style="margin-bottom:10px">Es lo primero que van a ver tus invitados. Foto vertical o video corto (máx 50 MB).</div>
+    <div class="up-zone" id="up-portada" onclick="document.getElementById('file-portada').click()">📷 Tocá para subir tu foto o video</div>
+    <input type="file" id="file-portada" accept="image/*,video/mp4,video/quicktime" style="display:none" onchange="subirMedia(this, 'portada')">
+    <div class="up-prev" id="prev-portada"></div>
+  </div>`;
+
+  html += `<div class="form-sec"><h3>Dresscode</h3>
+    <div class="f2">${fg('f-dresscode', 'Vestimenta', 'Elegante / Formal')}${fg('f-dresscode-nota', 'Aclaración (opcional)', social ? 'El color ROSA se reserva para la quinceañera' : 'Evitar el color blanco')}</div>
+  </div>`;
+
+  html += `<div class="form-sec"><h3>Regalo (opcional)</h3>
+    ${fg('f-regalo-texto', 'Texto', 'Tu presencia es el mejor regalo. Pero si insistís...', 'ta')}
+    <div class="f2">${fg('f-alias', 'Alias (MP / banco)', 'mi.alias')}${fg('f-alias-banco', 'Banco / plataforma', 'Mercado Pago')}</div>
+    <div class="f2">${fg('f-alias-titular', 'Titular', 'Nombre Apellido')}${fg('f-cbu', 'CBU (opcional)', '')}</div>
+  </div>`;
+
+  html += `<div class="form-sec"><h3>Confirmación de asistencia</h3>
+    ${fg('f-rsvp-limite', 'Tus invitados pueden confirmar hasta el', '', 'date')}
+  </div>`;
+
+  html += `<div class="form-sec"><h3>Música (opcional)</h3>
+    ${fg('f-youtube', 'Canción de fondo — link de YouTube', 'https://youtu.be/...', null, 'Suena mientras miran tu invitación.')}
+    ${social ? '' : fg('f-spotify', 'Playlist colaborativa de Spotify', 'https://open.spotify.com/playlist/...', null, 'Tus invitados pueden sumar canciones.')}
+  </div>`;
+
+  if (!social) {
+    html += `<div class="form-sec"><h3>Textos</h3>
+      ${fg('f-presentacion', 'Texto de presentación', 'Con inmensa alegría los invitamos a celebrar...', 'ta')}
+    </div>`;
+  } else {
+    html += `<div class="form-sec"><h3>Frase emotiva</h3>
+      ${fg('f-frase', 'Una frase que te represente', 'Hay momentos que no se pueden borrar...', 'ta')}
+    </div>`;
+    html += `<div class="form-sec"><h3>Trivia — ¿Cuánto me conocés? ✦</h3>
+      <div class="hint" style="margin-bottom:12px">Respondé estas 5 preguntas (solo la respuesta correcta — nosotros armamos las opciones). Tocá ↻ para cambiar una pregunta.</div>
+      <div id="trivia-wrap"></div>
+    </div>`;
+    html += `<div class="form-sec"><h3>Tus fotos — carruseles (opcional)</h3>
+      <div class="hint" style="margin-bottom:10px">Elegí tus fotos favoritas: se muestran en dos carruseles dentro de la invitación.</div>
+      <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--soft)">Carrusel 1</label>
+      <div class="up-zone" style="margin:6px 0 4px" onclick="document.getElementById('file-c1').click()">🖼 Subir fotos</div>
+      <input type="file" id="file-c1" accept="image/*" multiple style="display:none" onchange="subirMedia(this, 'carrusel1')">
+      <div class="up-prev" id="prev-carrusel1"></div>
+      <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--soft);display:block;margin-top:14px">Carrusel 2</label>
+      <div class="up-zone" style="margin:6px 0 4px" onclick="document.getElementById('file-c2').click()">🖼 Subir fotos</div>
+      <input type="file" id="file-c2" accept="image/*" multiple style="display:none" onchange="subirMedia(this, 'carrusel2')">
+      <div class="up-prev" id="prev-carrusel2"></div>
+    </div>`;
+  }
+
+  html += `<button class="btn" onclick="irResumen()">Continuar → Revisar y confirmar</button>`;
+  document.getElementById('paso-2').innerHTML = html;
+  if (social) initTrivia();
+}
+
+// ── TRIVIA ──────────────────────────────────────────────────────────────────
+function initTrivia() {
+  const pool = [...state.catalogo.trivia_pool].sort(() => Math.random() - 0.5);
+  state.triviaSel = pool.slice(0, 5).map(p => ({ ...p, respuesta: '' }));
+  state._triviaResto = pool.slice(5);
+  renderTrivia();
+}
+function renderTrivia() {
+  document.getElementById('trivia-wrap').innerHTML = state.triviaSel.map((p, i) => `
+    <div class="trivia-row">
+      <div class="tq"><span>${i + 1}. ${p.pregunta}</span><button type="button" title="Cambiar pregunta" onclick="rotarTrivia(${i})">↻</button></div>
+      <input placeholder="Tu respuesta" value="${p.respuesta.replace(/"/g, '&quot;')}" oninput="state.triviaSel[${i}].respuesta = this.value">
+    </div>`).join('');
+}
+function rotarTrivia(i) {
+  if (!state._triviaResto.length) { toast('No quedan más preguntas para rotar'); return; }
+  state._triviaResto.push(state.triviaSel[i]);
+  state.triviaSel[i] = { ...state._triviaResto.shift(), respuesta: '' };
+  renderTrivia();
+}
+function armarTriviaPreguntas() {
+  return state.triviaSel.filter(p => p.respuesta.trim()).map(p => {
+    const resp = p.respuesta.trim();
+    const dist = p.distractores.filter(d => d.toLowerCase() !== resp.toLowerCase()).sort(() => Math.random() - 0.5).slice(0, 3);
+    const opciones = [resp, ...dist].sort(() => Math.random() - 0.5);
+    return { pregunta: p.pregunta, opciones, correcta: opciones.indexOf(resp), activa: true };
+  });
+}
+
+// ── UPLOADS ─────────────────────────────────────────────────────────────────
+async function subirMedia(input, tipo) {
+  const files = [...input.files];
+  if (!files.length) return;
+  for (const file of files) {
+    const isVideo = file.type.startsWith('video/');
+    if (file.size > (isVideo ? 50 : 15) * 1024 * 1024) { toast(`"${file.name}" supera el máximo (${isVideo ? 50 : 15} MB)`); continue; }
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('tipo', tipo);
+    toast('Subiendo ' + file.name + '…');
+    try {
+      const r = await fetch(WORKER + '/invite/' + state.slug + '/media', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (!r.ok || !j.ok) throw new Error(j.error || 'Error al subir');
+      if (tipo === 'portada') {
+        state.uploads.portada = { url: j.url, media_type: isVideo ? 'video' : 'image' };
+        const zone = document.getElementById('up-portada');
+        zone.classList.add('ok');
+        zone.textContent = '✓ ' + file.name + ' — tocá para cambiar';
+        document.getElementById('prev-portada').innerHTML = isVideo ? '' : `<img src="${j.url}">`;
+      } else {
+        state.uploads[tipo].push(j.url);
+        document.getElementById('prev-' + tipo).innerHTML = state.uploads[tipo].map(u => `<img src="${u}">`).join('');
+      }
+      toast('✓ ' + file.name + ' subido');
+    } catch (e) { toast('No se pudo subir ' + file.name + ': ' + e.message + '. Probá de nuevo.'); }
+  }
+  input.value = '';
+}
+
+// ── PASO 3: RESUMEN + GENERAR ───────────────────────────────────────────────
+function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function armarConfig() {
+  const social = state.estiloElegido.modelo === 'social';
+  const cfg = { ...state.estiloElegido.config };
+  cfg.recepcion_hora = v('f-hora'); cfg.fin_fiesta_hora = v('f-hora-fin');
+  cfg.lugar_nombre = v('f-lugar'); cfg.lugar_direccion = v('f-lugar-dir');
+  cfg.lugar_maps = v('f-maps') || ((v('f-lugar') || v('f-lugar-dir')) ? 'https://maps.google.com/?q=' + encodeURIComponent([v('f-lugar'), v('f-lugar-dir')].filter(Boolean).join(', ')) : '');
+  cfg.dresscode = v('f-dresscode'); cfg.dresscode_nota = v('f-dresscode-nota');
+  cfg.regalo_texto = v('f-regalo-texto'); cfg.alias_mp = v('f-alias'); cfg.alias_banco = v('f-alias-banco');
+  cfg.alias_titular = v('f-alias-titular'); cfg.cbu = v('f-cbu');
+  cfg.rsvp_activo = true; cfg.rsvp_limite = v('f-rsvp-limite');
+  cfg.youtube_audio = v('f-youtube');
+  if (state.uploads.portada) { cfg.media_url = state.uploads.portada.url; cfg.media_type = state.uploads.portada.media_type; }
+  if (social) {
+    cfg.frase_emotiva = v('f-frase');
+    cfg.trivia_preguntas = armarTriviaPreguntas();
+    if (state.uploads.carrusel1.length) cfg.carousel_images_1 = state.uploads.carrusel1;
+    if (state.uploads.carrusel2.length) cfg.carousel_images_2 = state.uploads.carrusel2;
+  } else {
+    cfg.presentacion = v('f-presentacion');
+    cfg.spotify_url = v('f-spotify');
+    if (state.estado.tipo === 'casamiento') {
+      cfg.ceremonia_hora = v('f-cer-hora'); cfg.ceremonia_lugar = v('f-cer-lugar'); cfg.ceremonia_direccion = v('f-cer-dir');
+    }
+  }
+  return cfg;
+}
+
+function irResumen() {
+  if (!state.uploads.portada) { toast('Falta la foto o video de portada'); return; }
+  if (!v('f-hora') || !v('f-lugar')) { toast('Completá al menos la hora y el lugar del evento'); return; }
+  const cfg = armarConfig();
+  const items = [
+    ['Estilo', state.estiloElegido.nombre],
+    ['Horario', cfg.recepcion_hora + (cfg.fin_fiesta_hora ? ' a ' + cfg.fin_fiesta_hora : '')],
+    ['Lugar', [cfg.lugar_nombre, cfg.lugar_direccion].filter(Boolean).join(' — ')],
+    ['Dresscode', [cfg.dresscode, cfg.dresscode_nota].filter(Boolean).join(' · ') || '—'],
+    ['Portada', state.uploads.portada.media_type === 'video' ? 'Video subido ✓' : 'Foto subida ✓'],
+    ['Regalo', cfg.alias_mp ? 'Alias: ' + cfg.alias_mp : '—'],
+    ['Música', cfg.youtube_audio ? 'Sí ✓' : '—']
+  ];
+  if (state.estiloElegido.modelo === 'social') {
+    items.push(['Trivia', cfg.trivia_preguntas.length + ' preguntas']);
+    items.push(['Carruseles', (state.uploads.carrusel1.length + state.uploads.carrusel2.length) + ' fotos']);
+  }
+  document.getElementById('paso-3').innerHTML = `
+    <div class="form-sec"><h3>Revisá antes de confirmar</h3>
+      ${items.map(x => `<div class="resumen-item"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('')}
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-sec" onclick="irPaso(2)" style="flex:1">← Corregir algo</button>
+      <button class="btn" id="btn-generar" onclick="generar()" style="flex:2">Generar mi invitación ✦</button>
+    </div>
+    <div class="hint" style="text-align:center;margin-top:12px">Después de confirmar no vas a poder editar desde acá — cualquier cambio, escribinos.</div>`;
+  irPaso(3);
+}
+
+async function generar() {
+  const btn = document.getElementById('btn-generar');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  try {
+    const r = await fetch(WORKER + '/invite/' + state.slug + '/completar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estilo_id: state.estiloElegido.id, config: armarConfig() })
+    });
+    const j = await r.json();
+    if (r.status === 409) { mostrarBloqueada(); return; }
+    if (!r.ok || !j.ok) throw new Error(j.error || 'Error al enviar');
+    document.getElementById('paso-3').style.display = 'none';
+    document.getElementById('steps').style.display = 'none';
+    document.getElementById('titulo-h1').textContent = '';
+    document.getElementById('sub-h1').textContent = '';
+    const p = document.getElementById('pantalla-final');
+    p.style.display = '';
+    p.innerHTML = '<h2>✦</h2><p style="font-size:16px;line-height:1.9">' + state.catalogo.textos.final.replace('{nombre}', state.estado.nombre || '') + '</p>';
+  } catch (e) {
+    toast(e.message + ' — probá de nuevo');
+    btn.disabled = false; btn.textContent = 'Generar mi invitación ✦';
+  }
+}
 
 async function init() {
   const res = await fetch('estilos-catalogo.json?t=' + Date.now());
