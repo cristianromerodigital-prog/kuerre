@@ -884,6 +884,45 @@ export default {
         return json({ ok: true });
       }
 
+      // ── Estilos: upload de portada/carruseles del cliente → R2 + Drive ─────
+      const invMediaUpMatch = path.match(/^\/invite\/([a-z0-9][a-z0-9-]{1,79})\/media$/);
+      if (invMediaUpMatch && method === 'POST') {
+        const mSlug = invMediaUpMatch[1];
+        const rawM = await env.KUERRE_KV.get('invite_cfg_' + mSlug);
+        if (!rawM) return json({ error: 'Invitación no encontrada' }, 404);
+        let mCfg; try { mCfg = JSON.parse(rawM); } catch { return json({ error: 'Config inválida' }, 500); }
+        if (mCfg.form_completado) return json({ error: 'Formulario ya enviado' }, 409);
+        const mForm = await request.formData();
+        const mFile = mForm.get('file');
+        const tipoMedia = String(mForm.get('tipo') || '');
+        if (!mFile || typeof mFile.arrayBuffer !== 'function') return json({ error: 'No se recibió archivo' }, 400);
+        if (!['portada', 'carrusel1', 'carrusel2'].includes(tipoMedia)) return json({ error: 'Tipo inválido' }, 400);
+        const isVideo = (mFile.type || '').startsWith('video/');
+        const maxBytes = (isVideo ? 50 : 15) * 1024 * 1024;
+        const mBuffer = await mFile.arrayBuffer();
+        if (mBuffer.byteLength > maxBytes) return json({ error: `Archivo demasiado grande (máx ${isVideo ? 50 : 15}MB)` }, 400);
+        const mExt = ((mFile.name || (isVideo ? 'video.mp4' : 'foto.jpg')).split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase();
+        const mKey = `invite-media/${mSlug}/${tipoMedia}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${mExt}`;
+        await env.MEDIA.put(mKey, mBuffer, { httpMetadata: { contentType: mFile.type || 'image/jpeg' } });
+        // Drive en background: carpeta según tipo, solicitud vinculada por crd_invites entry.id
+        try {
+          const invitesRaw = await env.KUERRE_KV.get('crd_invites');
+          const entry = (invitesRaw ? JSON.parse(invitesRaw) : []).find(x => x.slug === mSlug);
+          if (entry && entry.id) {
+            const sol = await env.KUERRE_DB.prepare(
+              'SELECT drive_invitacion_id, drive_carrusel1_id, drive_carrusel2_id FROM solicitudes WHERE LOWER(id) = ?'
+            ).bind(String(entry.id).toLowerCase()).first();
+            const folderId = sol && { portada: sol.drive_invitacion_id, carrusel1: sol.drive_carrusel1_id, carrusel2: sol.drive_carrusel2_id }[tipoMedia];
+            if (folderId) {
+              const gasUrl = await env.KUERRE_KV.get('fiestas_gas_url');
+              if (gasUrl) ctx.waitUntil(gasUploadBackground(gasUrl, folderId, mBuffer, mFile.name || mKey.split('/').pop(), mFile.type || 'image/jpeg', 'invmedia_' + mSlug, env));
+            }
+          }
+        } catch (e) { console.log('media: Drive background skip', e.message); }
+        const mOrigin = new URL(request.url).origin;
+        return json({ ok: true, url: `${mOrigin}/api/fotos/${encodeURIComponent(mKey)}` });
+      }
+
       // ── KV públicas de solo lectura (consumidas por premiere/invite/fiestas) ─
       const pubKvMatch = path.match(/^\/(crd_settings|crd_contratos_cfg|crd_entregas|crd_pm_[A-Za-z0-9_-]{1,70})$/);
       if (pubKvMatch && method === 'GET') {
