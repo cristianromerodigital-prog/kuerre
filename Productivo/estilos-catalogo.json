@@ -26,8 +26,8 @@
       "config": { "modelo": "clasico", "color_esquema": "azul", "estilo_aero": true, "formato": "clasico", "env_mostrar": true, "env_color": "azul", "env_particulas": "puntos", "env_particulas_tam": 3 } },
     { "id": "the-wedding", "nombre": "The Wedding", "modelo": "clasico", "demo": "clasico_boda", "descripcion": "Portada wedding con glow",
       "config": { "modelo": "clasico", "color_esquema": "negro", "estilo_aero": false, "formato": "wedding", "wedding_fx": "glow", "wedding_script": "The Wedding", "env_mostrar": true, "env_color": "negro", "env_particulas": "estrellas", "env_particulas_tam": 3 } },
-    { "id": "wedding-blanc", "nombre": "Wedding Blanc", "modelo": "clasico", "demo": "clasico_boda", "descripcion": "Wedding luminoso con blur",
-      "config": { "modelo": "clasico", "color_esquema": "blanco", "estilo_aero": false, "formato": "wedding", "wedding_fx": "blur", "wedding_script": "The Wedding", "env_mostrar": true, "env_color": "dorado", "env_particulas": "puntos", "env_particulas_tam": 3 } },
+    { "id": "wedding-blanc", "nombre": "Wedding Blanc", "modelo": "clasico", "demo": "clasico_boda", "descripcion": "Wedding luminoso y delicado",
+      "config": { "modelo": "clasico", "color_esquema": "blanco", "estilo_aero": false, "formato": "wedding", "wedding_fx": "glow", "wedding_script": "The Wedding", "env_mostrar": true, "env_color": "dorado", "env_particulas": "puntos", "env_particulas_tam": 3 } },
     { "id": "wedding-champagne", "nombre": "Wedding Champagne", "modelo": "clasico", "demo": "clasico_boda", "descripcion": "Wedding cálido dorado",
       "config": { "modelo": "clasico", "color_esquema": "champagne", "estilo_aero": false, "formato": "wedding", "wedding_fx": "glow", "wedding_script": "The Wedding", "env_mostrar": true, "env_color": "dorado", "env_particulas": "estrellas", "env_particulas_tam": 3 } },
     { "id": "wedding-azul", "nombre": "Wedding Azul", "modelo": "clasico", "demo": "clasico_boda", "descripcion": "Wedding nocturno sobrio",
@@ -59,7 +59,8 @@
       "lugar_nombre": "Salón Los Álamos", "lugar_direccion": "Av. Libertador 1234, Buenos Aires", "lugar_maps": "",
       "dresscode": "Elegante", "dresscode_nota": "",
       "regalo_texto": "Tu presencia es el mejor regalo. Pero si insistís, acá está el dato:", "alias_mp": "valen.quince", "alias_banco": "Mercado Pago", "alias_titular": "Familia García",
-      "env_slogan": "Compartí este momento especial", "rsvp_activo": false, "youtube_audio": "", "spotify_url": ""
+      "env_slogan": "Compartí este momento especial", "rsvp_activo": false, "youtube_audio": "", "spotify_url": "",
+      "hero_layout": { "order": ["eyebrow", "names", "std", "date"], "pos": { "eyebrow": { "x": 0, "y": -170 }, "names": { "x": 0, "y": -170 }, "std": { "x": 0, "y": 0 }, "date": { "x": 0, "y": -170 }, "countdown": { "x": 0, "y": 70 } } }
     },
     "clasico_boda": {
       "tipo": "casamiento", "modelo": "clasico", "novios": "Sofía & Nicolás", "titulo": "¡Nos casamos!",
@@ -71,12 +72,13 @@
       "lugar_nombre": "Salón Los Álamos", "lugar_direccion": "Av. Libertador 1234, Buenos Aires", "lugar_maps": "",
       "dresscode": "Formal", "dresscode_nota": "Evitar el color blanco",
       "regalo_texto": "Tu presencia es el mejor regalo. Pero si insistís, acá está el dato:", "alias_mp": "sofi.nico", "alias_banco": "Mercado Pago", "alias_titular": "Sofía Pérez",
-      "env_slogan": "Compartí este momento especial con nosotros", "rsvp_activo": false, "youtube_audio": "", "spotify_url": ""
+      "env_slogan": "Compartí este momento especial con nosotros", "rsvp_activo": false, "youtube_audio": "", "spotify_url": "",
+      "hero_layout": { "order": ["eyebrow", "names", "std", "date"], "pos": { "eyebrow": { "x": 0, "y": -90 }, "names": { "x": 0, "y": -90 }, "std": { "x": 0, "y": 0 }, "date": { "x": 0, "y": -90 }, "countdown": { "x": 0, "y": 70 } } }
     },
     "social": {
       "modelo": "social", "tipo": "quinces", "novios": "Valentina", "titulo": "MIS 15",
       "fecha_display": "14 DE NOVIEMBRE 2026", "fecha_iso": "2026-11-14",
-      "media_url": "estilos-demo/demo-social.jpg", "media_type": "image",
+      "media_url": "estilos-demo/demo-social2.jpg", "media_type": "image",
       "recepcion_hora": "21:00", "lugar_nombre": "Salón Los Álamos", "lugar_direccion": "Av. Libertador 1234, Buenos Aires", "lugar_maps": "",
       "dresscode": "Elegante", "dresscode_nota": "El color ROSA se reserva para la quinceañera",
       "frase_emotiva": "Hay momentos que no se pueden borrar, y este quiero vivirlo con vos.",
