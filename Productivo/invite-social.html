@@ -411,7 +411,12 @@ async function parseConfig() {
   }
   const raw = params.get('c');
   if (!raw) return null;
-  try { return JSON.parse(atob(decodeURIComponent(raw))); } catch(e) { return null; }
+  try {
+    const bin = atob(decodeURIComponent(raw));
+    // Nuevo formato: bytes UTF-8 (emojis/tildes); fatal:true dispara el fallback legacy latin1.
+    try { return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bin, ch => ch.charCodeAt(0)))); }
+    catch(e2) { return JSON.parse(bin); }
+  } catch(e) { return null; }
 }
 
 function toast(msg) {
