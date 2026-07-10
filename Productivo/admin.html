@@ -527,7 +527,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.81</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.82</div>
     </div>
   </aside>
 
@@ -6855,6 +6855,30 @@ function applyEstiloPreset(id) {
   }
   toast('Estilo "' + estilo.nombre + '" aplicado — guardá para confirmar');
 }
+async function reabrirEstilos(invId) {
+  const inv = getInvites().find(i => i.id === invId);
+  if (!inv) return;
+  const ok = confirm('Vas a REINICIAR la elección de estilo de "' + (inv.config.novios || inv.config.titulo || 'esta invitación') + '".\n\n' +
+    'El cliente va a poder entrar de nuevo con su link de estilos para elegir otro formato y revisar sus datos.\n' +
+    'Todo lo que ya cargó (fotos, textos, trivia, regalo) SE CONSERVA y aparece precargado.\n\n¿Continuar?');
+  if (!ok) return;
+  const nombre = toSlug(inv.config.novios || inv.config.titulo || 'invitacion');
+  const fecha = toSlug(inv.config.fecha_display || inv.config.fecha_iso || '');
+  const slug = nombre + (fecha ? '-' + fecha : '') + '-' + String(inv.id).slice(-4);
+  try {
+    const res = await fetch(CONFIG.CF_URL + '/invite/' + slug + '/reabrir', {
+      method: 'POST',
+      headers: { 'Authorization': CONFIG.CF_AUTH }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    await refreshInvitesFromCloud();
+    renderInvitesPage();
+    toast('Formulario de estilos rehabilitado — reenviale el link al cliente');
+  } catch (e) {
+    toast('No se pudo rehabilitar: ' + e.message);
+  }
+}
+
 function copyEstilosLink(invId) {
   const inv = getInvites().find(i => i.id === invId);
   if (!inv) return;
@@ -7071,6 +7095,7 @@ function renderInvitesPage() {
         <div class="inv-card-actions">
           <button class="btn-sm" onclick="copyInviteUrl('${inv.id}')">Copiar URL</button>
           <button class="btn-sm" onclick="copyEstilosLink('${inv.id}')" title="Link del catálogo de estilos para que el cliente elija y complete sus datos">Link estilos ✦</button>
+          ${inv.config.form_completado ? `<button class="btn-sm" style="color:var(--orange)" onclick="reabrirEstilos('${inv.id}')" title="Reabre el formulario de estilos para que el cliente elija otro formato. Sus datos cargados se conservan.">Reabrir estilos ⟳</button>` : ''}
           <button class="btn-sm" style="color:#25D366;border-color:#25D366" onclick="copyInviteWa('${inv.id}')" title="URL optimizada para WhatsApp (con preview del nombre y foto)">WhatsApp 📲</button>
           <button class="btn-sm" onclick="previewInvite('${inv.id}')">Previsualizar</button>
           <button class="btn-sm" onclick="openInviteModal('${inv.id}')">Editar</button>

@@ -885,6 +885,32 @@ export default {
         return json({ ok: true });
       }
 
+      // ── Estilos: reabrir formulario (solo admin) — conserva todos los datos ─
+      const invReabrirMatch = path.match(/^\/invite\/([a-z0-9][a-z0-9-]{1,79})\/reabrir$/);
+      if (invReabrirMatch && method === 'POST') {
+        const auth = request.headers.get('Authorization') || '';
+        if (!env.CF_AUTH_TOKEN || auth !== env.CF_AUTH_TOKEN) return json({ error: 'Unauthorized' }, 401);
+        const rSlug = invReabrirMatch[1];
+        const raw = await env.KUERRE_KV.get('invite_cfg_' + rSlug);
+        if (!raw) return json({ error: 'Invitación no encontrada' }, 404);
+        let rCfg; try { rCfg = JSON.parse(raw); } catch { return json({ error: 'Config inválida' }, 500); }
+        delete rCfg.form_completado;
+        delete rCfg.form_completado_at;
+        await env.KUERRE_KV.put('invite_cfg_' + rSlug, JSON.stringify(rCfg));
+        try {
+          const invitesRaw = await env.KUERRE_KV.get('crd_invites');
+          const invitesList = invitesRaw ? JSON.parse(invitesRaw) : [];
+          const entry = invitesList.find(x => x.slug === rSlug);
+          if (entry) {
+            entry.config = rCfg;
+            const invitesStr = JSON.stringify(invitesList);
+            await env.KUERRE_KV.put('crd_invites', invitesStr);
+            await env.KUERRE_DB.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').bind('crd_invites', invitesStr).run();
+          }
+        } catch (e) { console.log('reabrir: no se pudo reflejar en crd_invites', e.message); }
+        return json({ ok: true });
+      }
+
       // ── Estilos: upload de portada/carruseles del cliente → R2 + Drive ─────
       const invMediaUpMatch = path.match(/^\/invite\/([a-z0-9][a-z0-9-]{1,79})\/media$/);
       if (invMediaUpMatch && method === 'POST') {
