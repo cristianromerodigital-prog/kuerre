@@ -419,6 +419,36 @@ async function parseConfig() {
   } catch(e) { return null; }
 }
 
+// ── Portada adaptable: si la orientación del media no coincide con la del viewport
+// (foto vertical en pantalla horizontal o viceversa), se muestra entera (contain)
+// con un fondo desenfocado de la misma imagen/video rellenando los costados. ──
+let _heroMediaAR = null;
+function fitHeroMedia(w, h) {
+  if (w && h) _heroMediaAR = w / h;
+  applyHeroFit();
+}
+function applyHeroFit() {
+  const media = document.getElementById('hero-bg-media');
+  if (!media || !_heroMediaAR) return;
+  const hero = document.getElementById('hero');
+  const vpAR = hero.clientWidth / Math.max(1, hero.clientHeight);
+  const mismatch = (_heroMediaAR < 1) !== (vpAR < 1);
+  media.style.objectFit = mismatch ? 'contain' : 'cover';
+  let blur = document.getElementById('hero-bg-blur');
+  if (mismatch && !blur) {
+    // Capa blur creada recién cuando hace falta (en celular con foto vertical nunca
+    // se crea — evita descargar/decodificar el video dos veces sin necesidad).
+    blur = media.cloneNode(true);
+    blur.id = 'hero-bg-blur';
+    blur.style.objectFit = 'cover';
+    blur.style.filter = 'blur(26px) brightness(0.55)';
+    blur.style.transform = 'scale(1.15)';
+    media.parentNode.insertBefore(blur, media);
+    if (blur.tagName === 'VIDEO') { blur.muted = true; blur.play().catch(() => {}); }
+  }
+  if (blur) blur.style.display = mismatch ? '' : 'none';
+}
+
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -467,13 +497,19 @@ function renderHero(c) {
   const wrap = document.getElementById('hero-bg-wrap');
   if (c.media_url) {
     if (c.media_type === 'video') {
-      wrap.innerHTML = `<video autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover"><source src="${c.media_url}"></video>`;
+      wrap.innerHTML = `<video id="hero-bg-media" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><source src="${c.media_url}"></video>`;
+      const v = document.getElementById('hero-bg-media');
+      v.addEventListener('loadedmetadata', () => fitHeroMedia(v.videoWidth, v.videoHeight));
     } else {
-      wrap.innerHTML = `<img src="${c.media_url}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+      wrap.innerHTML = `<img id="hero-bg-media" src="${c.media_url}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`;
+      const im = document.getElementById('hero-bg-media');
+      if (im.complete && im.naturalWidth) fitHeroMedia(im.naturalWidth, im.naturalHeight);
+      else im.addEventListener('load', () => fitHeroMedia(im.naturalWidth, im.naturalHeight));
     }
   }
   if (c.fecha_iso) startCountdown(c.fecha_iso);
   else document.getElementById('countdown').style.display = 'none';
+  window.addEventListener('resize', applyHeroFit);
   const primerNombre = (c.novios || c.titulo || '').split('&')[0].trim();
   document.getElementById('cierre-nombre').textContent = primerNombre;
   document.getElementById('footer-names').textContent = c.novios || '';
