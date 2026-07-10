@@ -109,7 +109,7 @@ main{max-width:1100px;margin:0 auto;padding:10px 16px 80px}
 </div>
 <div id="toast"></div>
 <script>
-// KUERRE estilos.html V1.04
+// KUERRE estilos.html V1.05
 const WORKER = 'https://kuerre-worker.cristian-romero-digital.workers.dev';
 const WA_LINK = 'https://wa.me/5491162557763?text=' + encodeURIComponent('Hola! Quiero mi invitación digital ✦');
 const state = { catalogo: null, slug: null, estado: null, estiloElegido: null, uploads: { portada: null, carrusel1: [], carrusel2: [] }, triviaSel: [], _triviaResto: [] };
@@ -329,8 +329,23 @@ function prefillFormulario(social) {
 // ── TRIVIA ──────────────────────────────────────────────────────────────────
 function initTrivia() {
   const pool = [...state.catalogo.trivia_pool].sort(() => Math.random() - 0.5);
-  state.triviaSel = pool.slice(0, 5).map(p => ({ ...p, respuesta: '' }));
-  state._triviaResto = pool.slice(5);
+  // Precargar las preguntas ya respondidas (config existente): la respuesta correcta
+  // se reconstruye desde opciones[correcta]; los distractores salen del pool o, si la
+  // pregunta no está en el pool, de las opciones guardadas sin la correcta.
+  const saved = Array.isArray((state.cfg || {}).trivia_preguntas) ? state.cfg.trivia_preguntas.filter(p => p.activa !== false) : [];
+  const usadas = new Set();
+  state.triviaSel = saved.slice(0, 5).map(p => {
+    usadas.add(p.pregunta);
+    const poolItem = state.catalogo.trivia_pool.find(x => x.pregunta === p.pregunta);
+    const respuesta = (p.opciones || [])[p.correcta] || '';
+    const distractores = poolItem ? poolItem.distractores : (p.opciones || []).filter((_, i) => i !== p.correcta);
+    return { pregunta: p.pregunta, distractores, respuesta };
+  });
+  const resto = pool.filter(p => !usadas.has(p.pregunta));
+  while (state.triviaSel.length < 5 && resto.length) {
+    state.triviaSel.push({ ...resto.shift(), respuesta: '' });
+  }
+  state._triviaResto = resto;
   renderTrivia();
 }
 function renderTrivia() {
