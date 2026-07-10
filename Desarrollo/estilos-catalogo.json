@@ -54,7 +54,7 @@
       "tipo": "quinces", "modelo": "clasico", "novios": "Valentina", "titulo": "¡Mis 15!",
       "fecha_display": "14 de Noviembre, 2026", "fecha_iso": "2026-11-14",
       "presentacion": "Con todo nuestro amor te invitamos a celebrar sus quince años",
-      "media_url": "estilos-demo/demo-xv.jpg", "media_type": "image",
+      "media_url": "estilos-demo/demo-xv2.jpg", "media_type": "image",
       "recepcion_hora": "21:00", "fin_fiesta_hora": "04:00",
       "lugar_nombre": "Salón Los Álamos", "lugar_direccion": "Av. Libertador 1234, Buenos Aires", "lugar_maps": "",
       "dresscode": "Elegante", "dresscode_nota": "",
@@ -78,7 +78,7 @@
     "social": {
       "modelo": "social", "tipo": "quinces", "novios": "Valentina", "titulo": "MIS 15",
       "fecha_display": "14 DE NOVIEMBRE 2026", "fecha_iso": "2026-11-14",
-      "media_url": "estilos-demo/demo-social2.jpg", "media_type": "image",
+      "media_url": "estilos-demo/demo-social3.jpg", "media_type": "image",
       "recepcion_hora": "21:00", "lugar_nombre": "Salón Los Álamos", "lugar_direccion": "Av. Libertador 1234, Buenos Aires", "lugar_maps": "",
       "dresscode": "Elegante", "dresscode_nota": "El color ROSA se reserva para la quinceañera",
       "frase_emotiva": "Hay momentos que no se pueden borrar, y este quiero vivirlo con vos.",
