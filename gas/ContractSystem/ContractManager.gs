@@ -81,6 +81,7 @@ function generarContratoCumple(d) {
   const tablaData = [
     ['Evento',             'Cumpleaños'],
     ['Festejado/a',        d.cliente.nombre],
+    ['Edad que cumple',    String(d.cliente.edad || '')],
     ['Fecha del evento',   fechaLarga(d.evento.fecha)],
     ['Horario',            `${d.evento.horaInicio} hs a ${d.evento.horaFin} hs`],
     ['Salón',              d.evento.salon],
@@ -102,7 +103,7 @@ function generarContratoCumple(d) {
   _normal(body, '');
   const [y, m, dia] = d.diaFirma.split('-');
   body.appendParagraph(
-    `En la ciudad de ${CFG.PRESTADOR.ciudad.split(',')[0]}, Provincia de Buenos Aires, a los ${parseInt(dia, 10)} días del mes de ${CFG.MESES[parseInt(m, 10) - 1]} de ${y}, ` +
+    `En la ciudad de ${d.ciudad}, a los ${parseInt(dia, 10)} días del mes de ${CFG.MESES[parseInt(m, 10) - 1]} de ${y}, ` +
     `se celebra el presente contrato de servicios entre ${CFG.PRESTADOR.nombre}, DNI ${CFG.PRESTADOR.dni}, titular de ${CFG.PRESTADOR.empresa}, en adelante EL PRESTADOR; ` +
     `y ${d.cliente.nombre}, DNI ${d.cliente.dni}, en adelante EL CLIENTE.`
   ).editAsText().setBold(false).setForegroundColor('#000000');

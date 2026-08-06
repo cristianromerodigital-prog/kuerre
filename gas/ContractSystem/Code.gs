@@ -53,14 +53,14 @@ function doGet(e) {
   if (action === 'form') {
     return HtmlService
       .createHtmlOutputFromFile('FormCliente')
-      .setTitle('Solicitud de Servicio — Cristian Romero Digital')
+      .setTitle('Solicitud de Servicio — KUERRE')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
   // Sin action → formulario de solicitud para clientes
   return HtmlService
     .createHtmlOutputFromFile('FormCliente')
-    .setTitle('Solicitud de Servicio — Cristian Romero Digital')
+    .setTitle('Solicitud de Servicio — KUERRE')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 

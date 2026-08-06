@@ -44,12 +44,15 @@ function generarContratoBoda(d) {
     ['Evento',            'Boda / Casamiento'],
     ['Novia',             d.novia.nombre],
     ['DNI Novia',         d.novia.dni],
-    ['Teléfono Novia',    d.novia.telefono],
-    ['Email Novia',       d.novia.email],
-    ['Novio',             d.novio.nombre],
-    ['DNI Novio',         d.novio.dni],
   ];
-  if (d.novio.domicilio) tablaData.push(['Domicilio',           d.novio.domicilio]);
+  if (d.novia.domicilio) tablaData.push(['Domicilio Novia', d.novia.domicilio]);
+  tablaData.push(
+    ['Teléfono Novia', d.novia.telefono],
+    ['Email Novia',    d.novia.email],
+    ['Novio',          d.novio.nombre],
+    ['DNI Novio',      d.novio.dni]
+  );
+  if (d.novio.domicilio) tablaData.push(['Domicilio Novio', d.novio.domicilio]);
   tablaData.push(
     ['Teléfono Novio',    d.novio.telefono],
     ['Email Novio',       d.novio.email]

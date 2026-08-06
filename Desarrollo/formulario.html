@@ -82,6 +82,7 @@
         <div class="grid2">
           <div class="field"><label>Nombre y Apellido *</label><input id="b-novia-nombre" type="text" autocomplete="name"></div>
           <div class="field"><label>DNI *</label><input id="b-novia-dni" type="text" inputmode="numeric"></div>
+          <div class="field col-full"><label>Domicilio *</label><input id="b-novia-dom" type="text" autocomplete="street-address"></div>
           <div class="field"><label>Teléfono *</label><input id="b-novia-tel" type="tel" inputmode="tel"></div>
           <div class="field"><label>Email *</label><input id="b-novia-email" type="email" inputmode="email"></div>
         </div>
@@ -91,9 +92,9 @@
         <div class="grid2">
           <div class="field"><label>Nombre y Apellido *</label><input id="b-novio-nombre" type="text"></div>
           <div class="field"><label>DNI *</label><input id="b-novio-dni" type="text" inputmode="numeric"></div>
-          <div class="field"><label>Domicilio</label><input id="b-novio-dom" type="text"></div>
-          <div class="field"><label>Teléfono</label><input id="b-novio-tel" type="tel"></div>
-          <div class="field col-full"><label>Email</label><input id="b-novio-email" type="email"></div>
+          <div class="field col-full"><label>Domicilio *</label><input id="b-novio-dom" type="text" autocomplete="street-address"></div>
+          <div class="field"><label>Teléfono *</label><input id="b-novio-tel" type="tel" inputmode="tel"></div>
+          <div class="field"><label>Email *</label><input id="b-novio-email" type="email" inputmode="email"></div>
         </div>
       </div>
       <div class="section">
@@ -141,9 +142,10 @@
     <!-- XV -->
     <div id="f-xv" style="display:none">
       <div class="section">
-        <div class="section-title">La Quinceañera</div>
+        <div class="section-title">La o las Quinceañeras</div>
         <div class="grid2">
-          <div class="field"><label>Nombre completo *</label><input id="x-quince-nombre" type="text"></div>
+          <div class="field"><label>Primera quinceañera *</label><input id="x-quince-nombre" type="text"></div>
+          <div class="field"><label>Segunda quinceañera (si son mellizas)</label><input id="x-quince-nombre-2" type="text"></div>
           <div class="field"><label>Fecha de nacimiento *</label><input id="x-quince-nac" type="date"></div>
         </div>
       </div>
@@ -175,6 +177,7 @@
         <div class="section-title">Datos del Cliente</div>
         <div class="grid2">
           <div class="field"><label>Nombre y Apellido *</label><input id="c-nombre" type="text"></div>
+          <div class="field"><label>Edad que cumple *</label><input id="c-edad" type="number" inputmode="numeric" min="1" max="120"></div>
           <div class="field"><label>DNI *</label><input id="c-dni" type="text" inputmode="numeric"></div>
           <div class="field"><label>Teléfono *</label><input id="c-tel" type="tel"></div>
           <div class="field"><label>Email *</label><input id="c-email" type="email"></div>
@@ -218,7 +221,7 @@
 <script>
 const CONFIG = {
   CF_URL:   'https://kuerre-worker.cristian-romero-digital.workers.dev',
-  APPS_URL: 'https://script.google.com/macros/s/AKfycbzaEpe1VKm_utQBHLg7U_7FCuMSGv0X1158zUZxlGFFIW3GsPVI0ej7sdBr9PQciedt/exec',
+  APPS_URL: 'https://script.google.com/macros/s/AKfycbzv5KvBkbFwoJDEmfi0sxANJiGNufPFAQH5FyjGbtHK9f9b54qE32RF6EIMJo6aZLv6/exec',
   SYSTEM_SHEET_ID: '1n5pHVgqVuyfx587KsbLrLy-MGoqkRlvchVqffvpbbQ0'
 };
 
@@ -231,6 +234,7 @@ const VRULES = {
   hora:  v => /^\d{1,2}:\d{2}$/.test(v),
   dir:   v => /\d/.test(v),
   text:  v => v.trim().length >= 2,
+  edad:  v => /^\d{1,3}$/.test(v) && Number(v) >= 1 && Number(v) <= 120,
 };
 function vf(id, type, req) {
   const el = document.getElementById(id);
@@ -275,12 +279,14 @@ function enviar() {
   if (tipo === 'BODA') {
     chk('b-novia-nombre','text',true,'Nombre de la novia (mín. 2 letras)',errores);
     chk('b-novia-dni','dni',true,'DNI de la novia (7 u 8 dígitos)',errores);
+    chk('b-novia-dom','dir',true,'Domicilio de la novia (debe incluir número)',errores);
     chk('b-novia-tel','tel',true,'Teléfono de la novia (mín. 8 dígitos)',errores);
-    if (v('b-novia-email')) chk('b-novia-email','email',false,'Email de la novia inválido (debe tener @)',errores);
+    chk('b-novia-email','email',true,'Email de la novia inválido (debe tener @)',errores);
     chk('b-novio-nombre','text',true,'Nombre del novio (mín. 2 letras)',errores);
     chk('b-novio-dni','dni',true,'DNI del novio (7 u 8 dígitos)',errores);
-    if (v('b-novio-tel')) chk('b-novio-tel','tel',false,'Teléfono del novio inválido (mín. 8 dígitos)',errores);
-    if (v('b-novio-email')) chk('b-novio-email','email',false,'Email del novio inválido',errores);
+    chk('b-novio-dom','dir',true,'Domicilio del novio (debe incluir número)',errores);
+    chk('b-novio-tel','tel',true,'Teléfono del novio inválido (mín. 8 dígitos)',errores);
+    chk('b-novio-email','email',true,'Email del novio inválido',errores);
     if (!v('b-fecha')) errores.push('Fecha estimada del evento');
     chk('b-salon','text',true,'Salón / Lugar (mín. 2 caracteres)',errores);
     chk('b-hora','hora',true,'Hora de inicio inválida (usar formato HH:MM)',errores);
@@ -300,7 +306,7 @@ function enviar() {
       if (v('b-reli-hora')) chk('b-reli-hora','hora',false,'Horario religioso inválido (formato HH:MM)',errores);
       if (v('b-reli-dir')) chk('b-reli-dir','dir',false,'Dirección religiosa debe incluir número',errores);
     }
-    data.novia    = { nombre: v('b-novia-nombre'), dni: v('b-novia-dni'), telefono: v('b-novia-tel'), email: v('b-novia-email') };
+    data.novia    = { nombre: v('b-novia-nombre'), dni: v('b-novia-dni'), domicilio: v('b-novia-dom'), telefono: v('b-novia-tel'), email: v('b-novia-email') };
     data.novio    = { nombre: v('b-novio-nombre'), dni: v('b-novio-dni'), domicilio: v('b-novio-dom'), telefono: v('b-novio-tel'), email: v('b-novio-email') };
     data.fiesta   = { fecha: v('b-fecha'), horaInicio: v('b-hora'), horaFin: v('b-hora-fin'), salon: v('b-salon'), direccion: v('b-dir'), invitados: v('b-invitados') };
     data.contacto = { nombre: v('b-contacto-nombre'), relacion: v('b-contacto-rel'), telefono: v('b-contacto-tel') };
@@ -310,6 +316,7 @@ function enviar() {
       data.religiosa = { fecha: v('b-reli-fecha'), horario: v('b-reli-hora'), direccion: v('b-reli-dir') };
   } else if (tipo === 'XV') {
     chk('x-quince-nombre','text',true,'Nombre de la quinceañera (mín. 2 letras)',errores);
+    if (v('x-quince-nombre-2')) chk('x-quince-nombre-2','text',false,'Nombre de la segunda quinceañera (mín. 2 letras)',errores);
     if (!v('x-quince-nac')) errores.push('Fecha de nacimiento de la quinceañera');
     chk('x-cliente-nombre','text',true,'Nombre del cliente',errores);
     chk('x-cliente-dni','dni',true,'DNI del cliente (7 u 8 dígitos)',errores);
@@ -321,11 +328,14 @@ function enviar() {
     chk('x-salon','text',true,'Salón / Lugar (mín. 2 caracteres)',errores);
     chk('x-dir','dir',true,'Dirección del salón (debe incluir número)',errores);
     if (!v('x-invitados') || Number(v('x-invitados')) < 1) errores.push('Cantidad de invitados (número mayor a 0)');
-    data.quinceanera = { nombre: v('x-quince-nombre'), fechaNacimiento: v('x-quince-nac') };
+    const nombresQuinceaneras = [v('x-quince-nombre'), v('x-quince-nombre-2')].filter(Boolean);
+    data.quinceanera = { nombre: nombresQuinceaneras.join(' y '), fechaNacimiento: v('x-quince-nac') };
+    data.quinceaneras = nombresQuinceaneras.map(nombre => ({ nombre, fechaNacimiento: v('x-quince-nac') }));
     data.cliente     = { nombre: v('x-cliente-nombre'), dni: v('x-cliente-dni'), telefono: v('x-cliente-tel'), email: v('x-cliente-email') };
     data.evento      = { fecha: v('x-fecha'), horaInicio: v('x-hora'), horaFin: v('x-hora-fin'), salon: v('x-salon'), direccion: v('x-dir'), invitados: v('x-invitados') };
   } else if (tipo === 'CUMPLE') {
     chk('c-nombre','text',true,'Nombre del cliente',errores);
+    chk('c-edad','edad',true,'Edad que cumple (entre 1 y 120)',errores);
     chk('c-dni','dni',true,'DNI del cliente (7 u 8 dígitos)',errores);
     chk('c-tel','tel',true,'Teléfono del cliente (mín. 8 dígitos)',errores);
     chk('c-email','email',true,'Email del cliente inválido (debe tener @)',errores);
@@ -335,7 +345,7 @@ function enviar() {
     chk('c-salon','text',true,'Salón / Lugar (mín. 2 caracteres)',errores);
     chk('c-dir','dir',true,'Dirección del salón (debe incluir número)',errores);
     if (!v('c-invitados') || Number(v('c-invitados')) < 1) errores.push('Cantidad de invitados (número mayor a 0)');
-    data.cliente = { nombre: v('c-nombre'), dni: v('c-dni'), telefono: v('c-tel'), email: v('c-email') };
+    data.cliente = { nombre: v('c-nombre'), edad: Number(v('c-edad')), dni: v('c-dni'), telefono: v('c-tel'), email: v('c-email') };
     data.evento  = { fecha: v('c-fecha'), horaInicio: v('c-hora'), horaFin: v('c-hora-fin'), salon: v('c-salon'), direccion: v('c-dir'), invitados: v('c-invitados') };
   }
 
@@ -404,8 +414,8 @@ fetch(CONFIG.CF_URL + '/site/config')
   .catch(function(){});
 
 const _BLUR = {
-  'b-novia-nombre':['text',true], 'b-novia-dni':['dni',true], 'b-novia-tel':['tel',true], 'b-novia-email':['email',false],
-  'b-novio-nombre':['text',true], 'b-novio-dni':['dni',true], 'b-novio-dom':['text',false], 'b-novio-tel':['tel',false], 'b-novio-email':['email',false],
+  'b-novia-nombre':['text',true], 'b-novia-dni':['dni',true], 'b-novia-dom':['dir',true], 'b-novia-tel':['tel',true], 'b-novia-email':['email',true],
+  'b-novio-nombre':['text',true], 'b-novio-dni':['dni',true], 'b-novio-dom':['dir',true], 'b-novio-tel':['tel',true], 'b-novio-email':['email',true],
   'b-civil-hora':['hora',false], 'b-civil-dir':['dir',false],
   'b-reli-hora':['hora',false], 'b-reli-dir':['dir',false],
   'b-salon':['text',true], 'b-dir':['dir',true],
@@ -413,7 +423,7 @@ const _BLUR = {
   'x-quince-nombre':['text',true], 'x-cliente-nombre':['text',true], 'x-cliente-dni':['dni',true],
   'x-cliente-tel':['tel',true], 'x-cliente-email':['email',true], 'x-hora':['hora',true], 'x-hora-fin':['hora',false],
   'x-salon':['text',true], 'x-dir':['dir',true],
-  'c-nombre':['text',true], 'c-dni':['dni',true], 'c-tel':['tel',true], 'c-email':['email',true],
+  'c-nombre':['text',true], 'c-edad':['edad',true], 'c-dni':['dni',true], 'c-tel':['tel',true], 'c-email':['email',true],
   'c-hora':['hora',true], 'c-hora-fin':['hora',false], 'c-salon':['text',true], 'c-dir':['dir',true],
 };
 Object.entries(_BLUR).forEach(([id,[type,req]])=>{
