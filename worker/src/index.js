@@ -235,14 +235,16 @@ async function handleSolicitudesCreate(request, env) {
   let civil_fecha = '', civil_hora = '', civil_dir = '';
   let reli_fecha = '', reli_hora = '', reli_dir = '';
   let cliente_dni = '', cliente2_dni = '', cliente2_dom = '', quinceanera_nac = '';
+  let cliente2_tel = '', cliente2_email = '', contacto_nombre = '', contacto_rel = '', contacto_tel = '';
 
   if (tipo === 'BODA') {
-    const { novia, novio, fiesta, civil, religiosa } = body;
+    const { novia, novio, fiesta, civil, religiosa, contacto } = body;
     nombre_display = `${novia?.nombre || ''} & ${novio?.nombre || ''}`;
     fecha = fiesta?.fecha || ''; salon = fiesta?.salon || ''; direccion = fiesta?.direccion || '';
     cliente_nombre = novia?.nombre || ''; cliente_tel = novia?.telefono || ''; cliente_email = novia?.email || '';
     cliente_dni = novia?.dni || ''; cliente2_dni = novio?.dni || ''; cliente2_dom = novio?.domicilio || '';
-    cliente2_nombre = novio?.nombre || '';
+    cliente2_nombre = novio?.nombre || ''; cliente2_tel = novio?.telefono || ''; cliente2_email = novio?.email || '';
+    if (contacto) { contacto_nombre = contacto.nombre||''; contacto_rel = contacto.relacion||''; contacto_tel = contacto.telefono||''; }
     hora_inicio = fiesta?.horaInicio || ''; hora_fin = fiesta?.horaFin || ''; invitados = fiesta?.invitados || '';
     if (civil) { civil_fecha = civil.fecha||''; civil_hora = civil.horario||''; civil_dir = civil.direccion||''; }
     if (religiosa) { reli_fecha = religiosa.fecha||''; reli_hora = religiosa.horario||''; reli_dir = religiosa.direccion||''; }
@@ -286,12 +288,14 @@ async function handleSolicitudesCreate(request, env) {
            cliente2_nombre, quinceanera_nombre, hora_inicio, hora_fin, invitados,
            civil_fecha, civil_hora, civil_dir, reli_fecha, reli_hora, reli_dir,
            cliente_dni, cliente2_dni, cliente2_dom, quinceanera_nac,
+           cliente2_tel, cliente2_email, contacto_nombre, contacto_rel, contacto_tel,
            data_json, fiesta_id, invite_slug, evento_id, created_at)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
           .bind(id, salon, direccion, cliente_nombre, cliente_tel, cliente_email,
             cliente2_nombre, quinceanera_nombre, hora_inicio, hora_fin, invitados,
             civil_fecha, civil_hora, civil_dir, reli_fecha, reli_hora, reli_dir,
             cliente_dni, cliente2_dni, cliente2_dom, quinceanera_nac,
+            cliente2_tel, cliente2_email, contacto_nombre, contacto_rel, contacto_tel,
             JSON.stringify(body), fiesta_id, id, eventoId, now),
         env.KUERRE_DB.prepare(`INSERT INTO eventos_foto (id,cierre_auto,folder_id,portada,estado,moderacion,storage,evento_id,created_at) VALUES (?,NULL,'',NULL,'pendiente',0,'r2',?,?)`)
           .bind(fiesta_id, eventoId, now),
