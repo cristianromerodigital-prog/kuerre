@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS solicitudes (
   drive_contrato_id   TEXT,
   drive_invitacion_id TEXT,
   evento_id        INTEGER DEFAULT NULL,
+  partner_id TEXT NOT NULL DEFAULT 'kuerre',
   created_at       TEXT NOT NULL
 );
 
@@ -99,3 +100,17 @@ CREATE TABLE IF NOT EXISTS rsvp_responses (
   created_at  TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_rsvp_slug ON rsvp_responses(slug);
+
+-- Marca blanca: tabla de partners + dueño de marca por cliente.
+CREATE TABLE IF NOT EXISTS partners (
+  id         TEXT PRIMARY KEY,
+  slug       TEXT NOT NULL UNIQUE,
+  nombre     TEXT NOT NULL,
+  slogan     TEXT DEFAULT '',
+  logo_key   TEXT DEFAULT '',
+  whatsapp   TEXT DEFAULT '',
+  instagram  TEXT DEFAULT '',
+  web        TEXT DEFAULT '',
+  activo     INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
