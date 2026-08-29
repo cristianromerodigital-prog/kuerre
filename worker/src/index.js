@@ -218,7 +218,7 @@ function generateEventId() {
 
 function toSlugW(str) {
   return (str || '').toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
@@ -268,7 +268,7 @@ async function handleSolicitudesCreate(request, env) {
   if (!fecha) return json({ error: 'Fecha del evento requerida' }, 400);
   const now = nowISO();
   const eventoSlug = nombre_display.toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
     + '-' + fecha;
 
@@ -677,6 +677,31 @@ async function partnerPublic(db, partnerId, origin) {
   };
 }
 
+const PARTNER_LOGO_MIME = {
+  'image/png':     'png',
+  'image/jpeg':    'jpg',
+  'image/webp':    'webp',
+  'image/svg+xml': 'svg'
+};
+
+function partnerSlugify(nombre) {
+  return String(nombre || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '').slice(0, 60) || 'partner';
+}
+
+// Devuelve un slug libre agregando -2, -3, ... si hace falta.
+async function partnerFreeSlug(db, base) {
+  let slug = base;
+  for (let i = 2; i < 100; i++) {
+    const taken = await db.prepare('SELECT id FROM partners WHERE slug = ?').bind(slug).first();
+    if (!taken) return slug;
+    slug = `${base}-${i}`;
+  }
+  return `${base}-${Date.now()}`;
+}
+
 export default {
   async fetch(request, env, ctx) {
     if (request.method === 'OPTIONS') return corsHeaders();
@@ -704,6 +729,7 @@ export default {
           invitaciones: true,
           premiere:     true,
           contratos:    true,
+          partners:     true,
           crclub:       false,
           presupuesto:  false,
           portfolio:    false,
@@ -1253,6 +1279,94 @@ export default {
       }
 
       if (path === '/api/health') return json({ ok: true, worker: 'kuerre-worker', ts: new Date().toISOString() });
+
+      // ── Partners (marca blanca) — ABM admin ───────────────────────────────
+      if (path === '/partners' && method === 'GET') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const { results } = await env.KUERRE_DB.prepare(
+          'SELECT id, slug, nombre, slogan, logo_key, whatsapp, instagram, web, activo, created_at FROM partners ORDER BY (id = \'kuerre\') DESC, nombre ASC'
+        ).all();
+        return json(results || []);
+      }
+
+      if (path === '/partners' && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const b = await request.json().catch(() => ({}));
+        const nombre = String(b.nombre || '').trim();
+        if (!nombre) return json({ error: 'nombre requerido' }, 400);
+        const pid  = crypto.randomUUID();
+        const slug = await partnerFreeSlug(env.KUERRE_DB, partnerSlugify(nombre));
+        await env.KUERRE_DB.prepare(
+          'INSERT INTO partners (id, slug, nombre, slogan, whatsapp, instagram, web) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        ).bind(pid, slug, nombre, String(b.slogan || '').trim(), String(b.whatsapp || '').trim(),
+               String(b.instagram || '').trim(), String(b.web || '').trim()).run();
+        return json({ ok: true, id: pid, slug });
+      }
+
+      const partnerIdMatch = path.match(/^\/partners\/([A-Za-z0-9-]{1,64})$/);
+      if (partnerIdMatch && method === 'PATCH') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const b = await request.json().catch(() => ({}));
+        const sets = [], vals = [];
+        for (const col of ['nombre', 'slogan', 'whatsapp', 'instagram', 'web']) {
+          if (b[col] !== undefined) { sets.push(`${col} = ?`); vals.push(String(b[col]).trim()); }
+        }
+        if (b.activo !== undefined) { sets.push('activo = ?'); vals.push(b.activo ? 1 : 0); }
+        if (!sets.length) return json({ error: 'nada para actualizar' }, 400);
+        vals.push(partnerIdMatch[1]);
+        await env.KUERRE_DB.prepare(`UPDATE partners SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();
+        return json({ ok: true });
+      }
+
+      if (partnerIdMatch && method === 'DELETE') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const pid = partnerIdMatch[1];
+        if (pid === PARTNER_DEFAULT) return json({ error: 'La marca propia no se puede borrar' }, 400);
+        const row = await env.KUERRE_DB.prepare('SELECT logo_key FROM partners WHERE id = ?').bind(pid).first();
+        if (!row) return json({ error: 'Not found' }, 404);
+        // Los clientes que apuntaban a este partner vuelven a la marca propia:
+        // si quedaran colgados, sus piezas mostrarían una marca inexistente.
+        const re = await env.KUERRE_DB.prepare(
+          'UPDATE solicitudes SET partner_id = ? WHERE partner_id = ?'
+        ).bind(PARTNER_DEFAULT, pid).run();
+        await env.KUERRE_DB.prepare('DELETE FROM partners WHERE id = ?').bind(pid).run();
+        if (row.logo_key) { try { await env.MEDIA.delete(row.logo_key); } catch (e) { console.log('logo delete:', e.message); } }
+        return json({ ok: true, reasignados: (re.meta && re.meta.changes) || 0 });
+      }
+
+      const partnerLogoUpMatch = path.match(/^\/partners\/([A-Za-z0-9-]{1,64})\/logo$/);
+      if (partnerLogoUpMatch && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const b  = await request.json().catch(() => ({}));
+        const ct = String(b.content_type || '').toLowerCase();
+        const ext = PARTNER_LOGO_MIME[ct];
+        // No se confía en lo que declara el browser: si no está en el allowlist, se rechaza.
+        if (!ext) return json({ error: 'Formato no permitido: usar PNG, JPG, WEBP o SVG' }, 400);
+        let bytes;
+        try {
+          bytes = Uint8Array.from(atob(String(b.data_base64 || '')), c => c.charCodeAt(0));
+        } catch (e) { return json({ error: 'data_base64 inválido' }, 400); }
+        if (!bytes.length || bytes.length > 2 * 1024 * 1024) return json({ error: 'El logo debe pesar menos de 2 MB' }, 400);
+        const pid = partnerLogoUpMatch[1];
+        const exists = await env.KUERRE_DB.prepare('SELECT id FROM partners WHERE id = ?').bind(pid).first();
+        if (!exists) return json({ error: 'Not found' }, 404);
+        const key = `partners/${pid}/logo.${ext}`;
+        await env.MEDIA.put(key, bytes, { httpMetadata: { contentType: ct } });
+        await env.KUERRE_DB.prepare('UPDATE partners SET logo_key = ? WHERE id = ?').bind(key, pid).run();
+        return json({ ok: true, logo_key: key });
+      }
+
+      const partnerAsignMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/partner$/);
+      if (partnerAsignMatch && method === 'PATCH') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const { partner_id } = await request.json().catch(() => ({}));
+        const pid = String(partner_id || PARTNER_DEFAULT);
+        const ok = await env.KUERRE_DB.prepare('SELECT id FROM partners WHERE id = ? AND activo = 1').bind(pid).first();
+        if (!ok) return json({ error: 'Marca inexistente o inactiva' }, 400);
+        await env.KUERRE_DB.prepare('UPDATE solicitudes SET partner_id = ? WHERE id = ?')
+          .bind(pid, partnerAsignMatch[1]).run();
+        return json({ ok: true });
+      }
 
       const solicitudProcesadaMatch = path.match(/^\/solicitudes\/([A-Z2-9]{6})\/procesada$/);
       if (solicitudProcesadaMatch && method === 'PATCH') {
