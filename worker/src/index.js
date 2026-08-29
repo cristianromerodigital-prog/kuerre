@@ -637,6 +637,46 @@ async function handleContratosDelete(numero, env) {
   return json({ ok: true });
 }
 
+// ── Marca blanca (partners) ─────────────────────────────────────────────────
+const PARTNER_DEFAULT = 'kuerre';
+
+// Sube desde una pieza pública hasta el cliente y devuelve su partner_id.
+// Nunca falla: sin match, devuelve el partner por defecto.
+async function resolvePartnerId(db, scope, id) {
+  if (!id) return PARTNER_DEFAULT;
+  let row = null;
+  try {
+    if (scope === 'invite') {
+      row = await db.prepare('SELECT partner_id FROM solicitudes WHERE invite_slug = ?').bind(id).first();
+    } else if (scope === 'fiesta') {
+      row = await db.prepare('SELECT partner_id FROM solicitudes WHERE fiesta_id = ?').bind(id).first();
+    } else if (scope === 'entrega') {
+      row = await db.prepare(
+        'SELECT s.partner_id AS partner_id FROM entrega_configs ec JOIN solicitudes s ON s.id = ec.id WHERE ec.folder_id = ?'
+      ).bind(id).first();
+    }
+  } catch (e) {
+    console.log('resolvePartnerId:', e.message);
+  }
+  return (row && row.partner_id) || PARTNER_DEFAULT;
+}
+
+// Solo campos públicos: nunca devolver activo, logo_key ni ids internos.
+async function partnerPublic(db, partnerId, origin) {
+  const cols = 'slug, nombre, slogan, logo_key, whatsapp, instagram, web';
+  let p = await db.prepare(`SELECT ${cols} FROM partners WHERE id = ? AND activo = 1`).bind(partnerId).first();
+  if (!p) p = await db.prepare(`SELECT ${cols} FROM partners WHERE id = ?`).bind(PARTNER_DEFAULT).first();
+  if (!p) return { nombre: '', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: '' };
+  return {
+    nombre:    p.nombre    || '',
+    slogan:    p.slogan    || '',
+    logo_url:  p.logo_key ? `${origin}/api/partners/${encodeURIComponent(p.slug)}/logo` : '',
+    whatsapp:  p.whatsapp  || '',
+    instagram: p.instagram || '',
+    web:       p.web       || ''
+  };
+}
+
 export default {
   async fetch(request, env, ctx) {
     if (request.method === 'OPTIONS') return corsHeaders();
@@ -960,6 +1000,42 @@ export default {
         const pubVal = await env.KUERRE_KV.get(pubKvMatch[1]);
         if (pubVal === null) return json({ error: 'Not found' }, 404);
         try { return json(JSON.parse(pubVal)); } catch { return new Response(pubVal, { headers: { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' } }); }
+      }
+
+      // ── Marca pública de una pieza (invitación / fiesta / entrega) ─────────
+      if (path === '/brand' && method === 'GET') {
+        const bScope = url.searchParams.get('scope') || '';
+        const bId    = url.searchParams.get('id')    || '';
+        const bPid   = await resolvePartnerId(env.KUERRE_DB, bScope, bId);
+        const brand  = await partnerPublic(env.KUERRE_DB, bPid, url.origin);
+        return new Response(JSON.stringify(brand), {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'public, max-age=300'
+          }
+        });
+      }
+
+      // ── Logo del partner desde R2 ─────────────────────────────────────────
+      const partnerLogoMatch = path.match(/^\/api\/partners\/([a-z0-9-]{1,60})\/logo$/);
+      if (partnerLogoMatch && method === 'GET') {
+        const pRow = await env.KUERRE_DB.prepare('SELECT logo_key FROM partners WHERE slug = ?')
+          .bind(partnerLogoMatch[1]).first();
+        if (!pRow || !pRow.logo_key) return new Response('Not found', { status: 404 });
+        const pObj = await env.MEDIA.get(pRow.logo_key);
+        if (!pObj) return new Response('Not found', { status: 404 });
+        return new Response(pObj.body, {
+          headers: {
+            'Content-Type': (pObj.httpMetadata && pObj.httpMetadata.contentType) || 'image/png',
+            'Cache-Control': 'public, max-age=86400',
+            'X-Content-Type-Options': 'nosniff',
+            // Un SVG servido desde el origen del worker podría ejecutar script:
+            // esta CSP lo neutraliza sin bloquear el render de la imagen.
+            'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'",
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
       }
 
       // ── Site config ────────────────────────────────────────────────────────
