@@ -218,7 +218,7 @@ function generateEventId() {
 
 function toSlugW(str) {
   return (str || '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
@@ -268,7 +268,7 @@ async function handleSolicitudesCreate(request, env) {
   if (!fecha) return json({ error: 'Fecha del evento requerida' }, 400);
   const now = nowISO();
   const eventoSlug = nombre_display.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
     + '-' + fecha;
 
