@@ -4503,12 +4503,15 @@ async function partnersGuardar() {
   let id = _partnerEdit ? _partnerEdit.id : '';
   try {
     if (id) {
-      await fetch(CLIENTES_WORKER + '/partners/' + id, { method: 'PATCH', headers: hdrs, body: JSON.stringify(body) });
+      const r = await fetch(CLIENTES_WORKER + '/partners/' + id, { method: 'PATCH', headers: hdrs, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (!d.ok) { err.textContent = d.error || 'No se pudo guardar'; err.style.display = 'block'; return; }
     } else {
       const r = await fetch(CLIENTES_WORKER + '/partners', { method: 'POST', headers: hdrs, body: JSON.stringify(body) });
       const d = await r.json();
       if (!d.ok) { err.textContent = d.error || 'No se pudo crear'; err.style.display = 'block'; return; }
       id = d.id;
+      _partnerEdit = Object.assign({ id: id, slug: d.slug }, body);
     }
     const file = document.getElementById('pm-logo-file').files[0];
     if (file) {
