@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Panel del estudio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --purple:#9060b8;
+    --purple2:#a878cc;
+    --bg:#f7f5fa;
+    --card:#ffffff;
+    --border:rgba(144,96,184,0.16);
+    --text:#2b2530;
+    --text2:#8a8493;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:400;min-height:100vh;}
+  input,button{font-family:'DM Sans',sans-serif;}
+
+  /* ---- login ---- */
+  #login-view{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .login-box{width:100%;max-width:360px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 28px;box-shadow:0 12px 40px rgba(144,96,184,0.12);}
+  .login-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;text-align:center;color:var(--purple);margin:0 0 4px;}
+  .login-sub{text-align:center;color:var(--text2);font-size:12px;margin:0 0 24px;letter-spacing:0.5px;text-transform:uppercase;}
+  .login-field{display:block;width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:13px 14px;font-size:14px;border-radius:10px;outline:none;margin-bottom:12px;transition:border-color .2s;}
+  .login-field:focus{border-color:var(--purple);}
+  #login-error{display:none;background:rgba(200,60,60,0.08);color:#c23c3c;font-size:12px;padding:10px 12px;border-radius:8px;margin-bottom:12px;}
+  .login-btn{width:100%;border:none;border-radius:10px;padding:14px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;font-size:14px;font-weight:500;letter-spacing:0.5px;cursor:pointer;box-shadow:0 8px 24px rgba(144,96,184,0.3);}
+  .login-btn:active{transform:translateY(1px);}
+
+  /* ---- panel ---- */
+  #panel-view{display:none;min-height:100vh;}
+  .panel-header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;}
+  #marca-logo{display:none;width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+  #marca-nombre{flex:1;font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .btn-salir{background:none;border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;flex-shrink:0;}
+  .panel-body{padding:14px 16px 40px;max-width:720px;margin:0 auto;}
+  #buscador{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 14px;font-size:14px;border-radius:10px;outline:none;margin-bottom:14px;}
+  #buscador:focus{border-color:var(--purple);}
+
+  #vacio{display:none;text-align:center;color:var(--text2);font-size:13px;padding:40px 20px;line-height:1.6;}
+
+  .fila{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .fila-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin-bottom:4px;}
+  .fila-top strong{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;color:var(--text);}
+  .fila-meta{font-size:12px;color:var(--text2);}
+  .fila-contacto{font-size:12px;color:var(--text2);margin-bottom:10px;word-break:break-word;}
+  .fila-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .fila-links{font-size:12px;color:var(--text2);display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+  .fila-links button{background:rgba(144,96,184,0.08);border:1px solid var(--border);color:var(--purple);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;}
+  .fila-links button:active{background:rgba(144,96,184,0.18);}
+
+  #toast{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:20;}
+
+  @media (max-width:420px){
+    .login-box{padding:26px 20px;}
+    .panel-header{padding:12px;}
+    .panel-body{padding:12px 10px 40px;}
+  }
+</style>
+</head>
+<body>
+
+  <div id="login-view">
+    <div class="login-box">
+      <p class="login-title">Panel del estudio</p>
+      <p class="login-sub">Kuerre</p>
+      <div id="login-error"></div>
+      <input id="in-usuario" class="login-field" type="text" placeholder="Usuario" autocomplete="username">
+      <input id="in-pass" class="login-field" type="password" placeholder="Contraseña" autocomplete="current-password">
+      <button class="login-btn" onclick="entrar()">Entrar</button>
+    </div>
+  </div>
+
+  <div id="panel-view">
+    <div class="panel-header">
+      <img id="marca-logo" alt="">
+      <span id="marca-nombre"></span>
+      <button class="btn-salir" onclick="salir()">Salir</button>
+    </div>
+    <div class="panel-body">
+      <input id="buscador" type="text" placeholder="Buscar evento o contacto...">
+      <div id="vacio">Todavía no tenés eventos asignados. Cuando Kuerre te asigne uno, aparece acá.</div>
+      <div id="lista"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+const WORKER = 'https://kuerre-worker.cristian-romero-digital.workers.dev';
+const JWT_KEY = 'kuerre_estudio_jwt';   // clave propia: no comparte sesion con el admin
+let _clientes = [];
+
+function getJwt()  { try { return localStorage.getItem(JWT_KEY) || ''; } catch(e) { return ''; } }
+function setJwt(t) { try { t ? localStorage.setItem(JWT_KEY, t) : localStorage.removeItem(JWT_KEY); } catch(e) {} }
+
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fechaFmt(f) { return f ? String(f).replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1') : '—'; }
+
+async function api(path) {
+  const r = await fetch(WORKER + path, { headers: { 'Authorization': 'Bearer ' + getJwt() } });
+  if (r.status === 401) { setJwt(''); mostrarLogin('Tu sesión expiró. Entrá de nuevo.'); return null; }
+  if (!r.ok) throw new Error('http ' + r.status);
+  return r.json();
+}
+
+function mostrarLogin(msg) {
+  document.getElementById('panel-view').style.display = 'none';
+  document.getElementById('login-view').style.display = 'block';
+  const e = document.getElementById('login-error');
+  if (msg) { e.textContent = msg; e.style.display = 'block'; } else { e.style.display = 'none'; }
+}
+
+async function entrar() {
+  const usuario = document.getElementById('in-usuario').value.trim();
+  const pass    = document.getElementById('in-pass').value;
+  const err     = document.getElementById('login-error');
+  err.style.display = 'none';
+  try {
+    const r = await fetch(WORKER + '/partner/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, pass })
+    });
+    const d = await r.json();
+    if (!d.token) { err.textContent = d.error || 'No se pudo entrar'; err.style.display = 'block'; return; }
+    setJwt(d.token);
+    document.getElementById('in-pass').value = '';
+    await abrirPanel();
+  } catch(e) {
+    err.textContent = 'No se pudo conectar. Probá de nuevo.'; err.style.display = 'block';
+  }
+}
+
+function salir() { setJwt(''); mostrarLogin(''); }
+
+async function abrirPanel() {
+  const marca = await api('/partner/me');
+  if (!marca) return;
+  document.getElementById('marca-nombre').textContent = marca.nombre || '';
+  const logo = document.getElementById('marca-logo');
+  if (marca.logo_url) { logo.src = marca.logo_url; logo.style.display = 'block'; }
+  else logo.style.display = 'none';
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('panel-view').style.display = 'block';
+  const d = await api('/partner/clientes');
+  if (!d) return;
+  _clientes = d.clientes || [];
+  render();
+}
+
+function chip(texto, listo) {
+  const bg = listo ? 'rgba(37,211,102,0.15)' : 'rgba(0,0,0,0.06)';
+  const co = listo ? '#1a9e4b' : '#8a8a92';
+  return '<span style="background:' + bg + ';color:' + co + ';font-size:10px;padding:3px 10px;border-radius:12px">' + esc(texto) + '</span>';
+}
+
+function render() {
+  const q = document.getElementById('buscador').value.trim().toLowerCase();
+  const list = _clientes.filter(function(c) {
+    if (!q) return true;
+    return (c.evento.nombre + ' ' + c.contacto.nombre).toLowerCase().indexOf(q) !== -1;
+  });
+  document.getElementById('vacio').style.display = _clientes.length ? 'none' : 'block';
+  document.getElementById('lista').innerHTML = list.map(function(c, i) {
+    const contacto = [c.contacto.nombre, c.contacto.tel, c.contacto.email].filter(Boolean).map(esc).join(' · ');
+    const links = [
+      c.links.invitacion ? '<button onclick="copiar(' + i + ',\'invitacion\')">Invitación</button>' : '',
+      c.links.fiesta     ? '<button onclick="copiar(' + i + ',\'fiesta\')">QR Fiestas</button>' : '',
+      c.links.entrega    ? '<button onclick="copiar(' + i + ',\'entrega\')">Entrega</button>' : ''
+    ].filter(Boolean).join(' ');
+    return '<div class="fila">' +
+      '<div class="fila-top"><strong>' + esc(c.evento.nombre) + '</strong>' +
+        '<span class="fila-meta">' + esc(c.evento.tipo) + ' · ' + fechaFmt(c.evento.fecha) + (c.evento.salon ? ' · ' + esc(c.evento.salon) : '') + '</span></div>' +
+      (contacto ? '<div class="fila-contacto">' + contacto + '</div>' : '') +
+      '<div class="fila-chips">' +
+        chip(c.estados.invitacion === 'lista' ? 'Invitación lista' : 'Invitación pendiente', c.estados.invitacion === 'lista') +
+        chip(c.estados.fiesta === 'activa' ? 'QR activo' : 'QR pendiente', c.estados.fiesta === 'activa') +
+        chip(c.estados.entrega === 'lista' ? 'Entrega lista' : 'Entrega pendiente', c.estados.entrega === 'lista') +
+      '</div>' +
+      (links ? '<div class="fila-links">Copiar link: ' + links + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+// El worker devuelve rutas; el dominio lo pone la pagina.
+function copiar(i, cual) {
+  const path = _clientes[i] && _clientes[i].links[cual];
+  if (!path) return;
+  navigator.clipboard.writeText(location.origin + path)
+    .then(function(){ toast('Link copiado ✓'); })
+    .catch(function(){ toast('No se pudo copiar'); });
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(window._tt); window._tt = setTimeout(function(){ t.style.display = 'none'; }, 2000);
+}
+
+document.getElementById('buscador').addEventListener('input', render);
+document.getElementById('in-pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') entrar(); });
+if (getJwt()) abrirPanel().catch(function(){ mostrarLogin(''); });
+else mostrarLogin('');
+</script>
+</body>
+</html>
