@@ -443,7 +443,7 @@ body.ae-select .ae-item .ae-check { display:flex; }
 <!-- SOCIAL FLOAT -->
 <div id="social-float">
   <a class="sfloat-btn" id="pm-logo-btn" href="#" data-brand="web" target="_blank"><img id="hero-logo-img" src="" alt="Logo" data-brand="logo"></a>
-  <a class="sfloat-btn" id="ig-float" href="https://www.instagram.com/cristian.romero.digital/" target="_blank" style="display:none">
+  <a class="sfloat-btn" id="ig-float" href="#" target="_blank" style="display:none">
     <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-linecap="round" stroke-width="2.5"/></svg>
   </a>
   <a class="sfloat-btn" id="wsp-float" href="#" data-brand="wa" target="_blank">
@@ -804,6 +804,7 @@ async function init() {
   loadBrand('entrega', CFG.folderId).then(function (b) {
     _brandResolved = b;
     applyBrand(b);
+    if (b.logo_url) applyLogo(b.logo_url);
     const vm = document.getElementById('vm-meta');
     if (vm) vm.textContent = 'Video · ' + b.nombre;
     document.getElementById('page-title').textContent = (CFG.nombres || 'Premiere') + ' — ' + b.nombre;
@@ -1375,8 +1376,12 @@ function abrirPedidoAlbum() {
   if(_aeSelOpt < 0) { toast('Elegí primero el tipo de álbum', 'error'); return; }
   const tipo = _aeAlbumOpts[_aeSelOpt].formSize.toLowerCase().replace(/\s+/g,'_');
   if(_pedidosExistentes[tipo]) {
-    const marca = _brandResolved ? _brandResolved.nombre : 'KUERRE';
-    toast('Ya tenés un pedido de este álbum en proceso. Contactá a ' + marca + '.', 'error'); return;
+    if (_brandResolved) {
+      toast('Ya tenés un pedido de este álbum en proceso. Contactá a ' + _brandResolved.nombre + '.', 'error');
+    } else {
+      toast('Ya tenés un pedido de este álbum en proceso.', 'error');
+    }
+    return;
   }
   const fotos = _aeSelected.size > 0
     ? _aePhotos.filter(f => _aeSelected.has(f.id))
