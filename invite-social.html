@@ -409,6 +409,10 @@ function applyBrand(b) {
   });
 }
 
+// Arrancar el fetch de marca lo antes posible: el slug ya se conoce por URL
+// (?i=), así se evita la ventana donde se ven los valores de fallback.
+let _brandPromise = loadBrand('invite', new URLSearchParams(location.search).get('i') || '');
+
 let cfg = null;
 
 const TEMAS = {
@@ -856,7 +860,7 @@ async function init() {
   if (logoSrc) { const l = document.getElementById('footer-logo'); l.src = logoSrc; l.style.display = 'block'; }
 
   // Branding footer (white-label)
-  const _brand = await loadBrand('invite', new URLSearchParams(location.search).get('i') || '');
+  const _brand = await _brandPromise;
   applyBrand(_brand);
   if (!logoSrc && _brand.logo_url) {
     const _le = document.getElementById('footer-logo');

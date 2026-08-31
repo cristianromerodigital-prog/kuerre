@@ -509,6 +509,11 @@ function applyBrand(b) {
   });
 }
 
+// Arrancar el fetch de marca lo antes posible: el slug ya se conoce por URL
+// (?i=), así se evita la ventana donde se ven los valores de fallback.
+// En preview (editor del admin) no hace falta: init() nunca llega a usarla.
+let _brandPromise = PREVIEW_MODE ? null : loadBrand('invite', new URLSearchParams(location.search).get('i') || '');
+
 // ── PARTÍCULAS AERO ──
 let _aeroRAF = null, _aeroCanvas = null;
 function startAeroParticles() {
@@ -1443,7 +1448,7 @@ async function init() {
     if (cfg.youtube_audio) initYoutubeAudio(cfg.youtube_audio);
     // sin sobre: unmute en primer scroll/touch/click (manejado dentro de initYoutubeAudio)
   }
-  const _brand = await loadBrand('invite', new URLSearchParams(location.search).get('i') || '');
+  const _brand = await _brandPromise;
   applyBrand(_brand);
   const _igEl = document.getElementById('invite-footer-ig');
   if (_igEl && _brand.instagram) {
