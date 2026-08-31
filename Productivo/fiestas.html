@@ -190,8 +190,8 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 #logo-float { background:#0d1117; border:1px solid rgba(0,212,232,.5); box-shadow:0 8px 24px rgba(0,212,232,.2); display:none; overflow:hidden; }
 #logo-float img { width:76%; height:76%; object-fit:contain; filter:invert(1); }
 
-#credito-line a{color:inherit;text-decoration:none}
-#credito-line a:hover{text-decoration:underline;text-underline-offset:2px}
+#credito-line a,#credito-line-tv a{color:inherit;text-decoration:none}
+#credito-line a:hover,#credito-line-tv a:hover{text-decoration:underline;text-underline-offset:2px}
 </style>
 </head>
 <body>
@@ -251,6 +251,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
         <div data-brand="nombre" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(10px,1vw,13px);color:rgba(255,255,255,.8);letter-spacing:.06em">KUERRE</div>
         <div data-brand="slogan" style="font-size:clamp(7px,.7vw,9px);letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:2px">KUERRE</div>
       </div>
+      <div id="credito-line-tv" data-brand="credito" style="display:none;text-align:center;font-size:clamp(6px,.6vw,8px);letter-spacing:.06em;line-height:1.5;color:rgba(255,255,255,.22)"><a href="https://kuerre.com.ar" target="_blank" rel="noopener">Kuerre · Experiencias digitales para eventos</a></div>
     </div>
     <div id="tv-main">
       <img id="tv-current-img" src="" alt="">
@@ -383,8 +384,8 @@ function applyBrand(b) {
     if (k === 'web')    { if (b.web) { el.href = b.web; el.style.display = ''; } else el.style.display = 'none'; return; }
     if (k === 'ig')     { if (b.instagram) { el.href = brandIgUrl(b.instagram); el.style.display = ''; } else el.style.display = 'none'; return; }
     if (k === 'wa')     { if (b.whatsapp) { el.href = 'https://wa.me/' + b.whatsapp.replace(/\D/g, ''); el.style.display = ''; } else el.style.display = 'none'; return; }
-    // El crédito nunca se muestra en modo TV: esa vista se proyecta en el salón.
-    if (k === 'credito') { el.style.display = (b.credito && !IS_TV) ? '' : 'none'; return; }
+    // Hay un nodo de crédito por vista (galería y TV); cada uno se oculta con su contenedor.
+    if (k === 'credito') { el.style.display = b.credito ? '' : 'none'; return; }
   });
 }
 
