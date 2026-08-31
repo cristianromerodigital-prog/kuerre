@@ -55,7 +55,7 @@
   .fila-contacto{font-size:12px;color:var(--text2);margin-bottom:10px;word-break:break-word;}
   .fila-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
   .fila-links{font-size:12px;color:var(--text2);display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
-  .fila-links button{background:rgba(144,96,184,0.08);border:1px solid var(--border);color:var(--purple);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;}
+  .fila-links button,.fila-links a{background:rgba(144,96,184,0.08);border:1px solid var(--border);color:var(--purple);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;text-decoration:none;display:inline-block;}
   .fila-links button:active{background:rgba(144,96,184,0.18);}
 
   #toast{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:20;}
@@ -205,18 +205,10 @@ function renderDemos(demos) {
   if (!_demos) { caja.style.display = 'none'; return; }
   var pares = [['invitacion','Invitación'],['fiesta','QR Fiestas'],['entrega','Entrega']];
   var html = pares.filter(function(p){ return _demos[p[0]]; })
-    .map(function(p){ return '<button onclick="copiarDemo(\'' + p[0] + '\')">' + p[1] + '</button>'; }).join('');
+    .map(function(p){ return '<a href="' + location.origin + _demos[p[0]] + '" target="_blank" rel="noopener">' + p[1] + '</a>'; }).join('');
   if (!html) { caja.style.display = 'none'; return; }
-  cont.innerHTML = '<span>Copiar link:</span> ' + html;
+  cont.innerHTML = '<span>Abrir:</span> ' + html;
   caja.style.display = 'block';
-}
-
-function copiarDemo(cual) {
-  var path = _demos && _demos[cual];
-  if (!path) return;
-  navigator.clipboard.writeText(location.origin + path)
-    .then(function(){ toast('Link de demo copiado ✓'); })
-    .catch(function(){ toast('No se pudo copiar'); });
 }
 
 function chip(texto, listo) {
