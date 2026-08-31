@@ -229,6 +229,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
   <div id="gallery-closed-notice" class="gallery-closed-notice" style="display:none">El evento ya finalizó — las fotos siguen disponibles para ver</div>
   <div class="gallery-count" id="gallery-count"></div>
   <div id="gallery-grid"></div>
+  <div id="credito-line" data-brand="credito" style="display:none;text-align:center;margin-top:32px;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.18)">Plataforma por <a href="https://kuerre.com.ar" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:2px">Kuerre</a></div>
 </section>
 
 <div id="tv-mode">
@@ -360,7 +361,7 @@ const EVENT_ID = params.get('e') || '';
 function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
 
 async function loadBrand(scope, id) {
-  const fallback = { nombre: 'KUERRE', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: 'https://kuerre.com.ar' };
+  const fallback = { nombre: 'KUERRE', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: 'https://kuerre.com.ar', credito: false };
   try {
     const r = await fetch(WORKER_URL + '/brand?scope=' + scope + '&id=' + encodeURIComponent(id || ''));
     if (!r.ok) throw new Error('brand ' + r.status);
@@ -379,6 +380,8 @@ function applyBrand(b) {
     if (k === 'web')    { if (b.web) { el.href = b.web; el.style.display = ''; } else el.style.display = 'none'; return; }
     if (k === 'ig')     { if (b.instagram) { el.href = brandIgUrl(b.instagram); el.style.display = ''; } else el.style.display = 'none'; return; }
     if (k === 'wa')     { if (b.whatsapp) { el.href = 'https://wa.me/' + b.whatsapp.replace(/\D/g, ''); el.style.display = ''; } else el.style.display = 'none'; return; }
+    // El crédito nunca se muestra en modo TV: esa vista se proyecta en el salón.
+    if (k === 'credito') { el.style.display = (b.credito && !IS_TV) ? '' : 'none'; return; }
   });
 }
 
