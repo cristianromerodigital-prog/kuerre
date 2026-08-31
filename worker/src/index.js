@@ -1073,10 +1073,23 @@ export default {
 
       // ── Marca pública de una pieza (invitación / fiesta / entrega) ─────────
       if (path === '/brand' && method === 'GET') {
-        const bScope = url.searchParams.get('scope') || '';
-        const bId    = url.searchParams.get('id')    || '';
-        const bPid   = await resolvePartnerId(env, coreEnv, bScope, bId);
-        const brand  = await partnerPublic(env.KUERRE_DB, bPid, url.origin);
+        const bScope   = url.searchParams.get('scope')   || '';
+        const bId      = url.searchParams.get('id')      || '';
+        const bPartner = url.searchParams.get('partner') || '';
+        let brand = null;
+        // Marca forzada para las 3 demos permanentes (id=demo / DEMO22): solo se
+        // honra ahí, nunca sobre una pieza real, así nadie re-marca la invitación
+        // de un cliente agregándole ?partner= a su URL.
+        if (bPartner && ['demo', 'demo22'].includes(bId.toLowerCase())) {
+          const demoPartner = await env.KUERRE_DB.prepare(
+            'SELECT id FROM partners WHERE slug = ? AND activo = 1'
+          ).bind(bPartner).first();
+          if (demoPartner) brand = await partnerPublic(env.KUERRE_DB, demoPartner.id, url.origin);
+        }
+        if (!brand) {
+          const bPid = await resolvePartnerId(env, coreEnv, bScope, bId);
+          brand = await partnerPublic(env.KUERRE_DB, bPid, url.origin);
+        }
         return new Response(JSON.stringify(brand), {
           headers: {
             'Content-Type': 'application/json',

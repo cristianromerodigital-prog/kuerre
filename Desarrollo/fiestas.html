@@ -367,7 +367,8 @@ function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.
 async function loadBrand(scope, id) {
   const fallback = { nombre: 'KUERRE', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: 'https://kuerre.com.ar', credito: false };
   try {
-    const r = await fetch(WORKER_URL + '/brand?scope=' + scope + '&id=' + encodeURIComponent(id || ''));
+    const brandPartner = new URLSearchParams(location.search).get('m') || '';
+    const r = await fetch(WORKER_URL + '/brand?scope=' + scope + '&id=' + encodeURIComponent(id || '') + (brandPartner ? '&partner=' + encodeURIComponent(brandPartner) : ''));
     if (!r.ok) throw new Error('brand ' + r.status);
     return Object.assign(fallback, await r.json());
   } catch (e) { return fallback; }
