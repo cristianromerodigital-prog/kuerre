@@ -112,5 +112,6 @@ CREATE TABLE IF NOT EXISTS partners (
   instagram  TEXT DEFAULT '',
   web        TEXT DEFAULT '',
   activo     INTEGER NOT NULL DEFAULT 1,
+  mostrar_credito INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

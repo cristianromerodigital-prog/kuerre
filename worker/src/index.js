@@ -700,17 +700,18 @@ async function resolvePartnerId(env, coreEnv, scope, id) {
 
 // Solo campos públicos: nunca devolver activo, logo_key ni ids internos.
 async function partnerPublic(db, partnerId, origin) {
-  const cols = 'slug, nombre, slogan, logo_key, whatsapp, instagram, web';
+  const cols = 'slug, nombre, slogan, logo_key, whatsapp, instagram, web, mostrar_credito';
   let p = await db.prepare(`SELECT ${cols} FROM partners WHERE id = ? AND activo = 1`).bind(partnerId).first();
   if (!p) p = await db.prepare(`SELECT ${cols} FROM partners WHERE id = ?`).bind(PARTNER_DEFAULT).first();
-  if (!p) return { nombre: '', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: '' };
+  if (!p) return { nombre: '', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: '', credito: false };
   return {
     nombre:    p.nombre    || '',
     slogan:    p.slogan    || '',
     logo_url:  p.logo_key ? `${origin}/api/partners/${encodeURIComponent(p.slug)}/logo` : '',
     whatsapp:  p.whatsapp  || '',
     instagram: p.instagram || '',
-    web:       p.web       || ''
+    web:       p.web       || '',
+    credito:   p.mostrar_credito === 1
   };
 }
 
@@ -1326,7 +1327,7 @@ export default {
       if (path === '/partners' && method === 'GET') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { results } = await env.KUERRE_DB.prepare(
-          'SELECT id, slug, nombre, slogan, logo_key, whatsapp, instagram, web, activo, created_at FROM partners ORDER BY (id = \'kuerre\') DESC, nombre ASC'
+          'SELECT id, slug, nombre, slogan, logo_key, whatsapp, instagram, web, activo, mostrar_credito, created_at FROM partners ORDER BY (id = \'kuerre\') DESC, nombre ASC'
         ).all();
         return json(results || []);
       }
@@ -1338,10 +1339,13 @@ export default {
         if (!nombre) return json({ error: 'nombre requerido' }, 400);
         const pid  = crypto.randomUUID();
         const slug = await partnerFreeSlug(env.KUERRE_DB, partnerSlugify(nombre));
+        const cols = ['id', 'slug', 'nombre', 'slogan', 'whatsapp', 'instagram', 'web'];
+        const vals = [pid, slug, nombre, String(b.slogan || '').trim(), String(b.whatsapp || '').trim(),
+                      String(b.instagram || '').trim(), String(b.web || '').trim()];
+        if (b.mostrar_credito !== undefined) { cols.push('mostrar_credito'); vals.push(b.mostrar_credito ? 1 : 0); }
         await env.KUERRE_DB.prepare(
-          'INSERT INTO partners (id, slug, nombre, slogan, whatsapp, instagram, web) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        ).bind(pid, slug, nombre, String(b.slogan || '').trim(), String(b.whatsapp || '').trim(),
-               String(b.instagram || '').trim(), String(b.web || '').trim()).run();
+          `INSERT INTO partners (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`
+        ).bind(...vals).run();
         return json({ ok: true, id: pid, slug });
       }
 
@@ -1354,6 +1358,7 @@ export default {
           if (b[col] !== undefined) { sets.push(`${col} = ?`); vals.push(String(b[col]).trim()); }
         }
         if (b.activo !== undefined) { sets.push('activo = ?'); vals.push(b.activo ? 1 : 0); }
+        if (b.mostrar_credito !== undefined) { sets.push('mostrar_credito = ?'); vals.push(b.mostrar_credito ? 1 : 0); }
         if (!sets.length) return json({ error: 'nada para actualizar' }, 400);
         vals.push(partnerIdMatch[1]);
         const upd = await env.KUERRE_DB.prepare(`UPDATE partners SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();
