@@ -1224,6 +1224,7 @@ export default {
           if (inviteOk) {
             const ent = invites.find(x => String(x.id).toLowerCase() === String(r.invite_id).toLowerCase());
             if (ent && ent.slug) linkInvitacion = '/invite.html?i=' + encodeURIComponent(ent.slug);
+            else console.log('partner/clientes: invitacion sin slug resoluble', 'cliente=' + r.id, 'invite_id=' + r.invite_id);
           }
           const slugFiesta = r.evento_slug || r.fiesta_id || '';
           const linkFiesta = fiestaOk && slugFiesta ? '/fiestas.html?e=' + encodeURIComponent(slugFiesta) : '';
@@ -1238,6 +1239,11 @@ export default {
             linkEntrega = '/entrega.html?' + p.toString();
           }
 
+          // estados dice si la pieza EXISTE (ej. invite_id cargado); links dice si
+          // se pudo ARMAR su URL publica (ej. el slug se encontro en crd_invites).
+          // Son dos hechos distintos y pueden no coincidir: una invitacion puede
+          // estar "lista" con link vacio si la KV no resolvio el slug. No las
+          // unifiques: eso ocultaria justamente el caso que hay que loguear arriba.
           return {
             evento:   { nombre: r.nombre_display || '', tipo: r.tipo || '', fecha: r.fecha || '', salon: r.salon || '' },
             contacto: { nombre: r.cliente_nombre || '', tel: r.cliente_tel || '', email: r.cliente_email || '' },
