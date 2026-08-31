@@ -227,6 +227,7 @@ body.select-mode .card:hover .card-overlay { opacity:0; }
 .vm-close:hover { border-color:var(--white); color:var(--white); }
 .vm-ratio { position:relative; aspect-ratio:16/9; background:#000; border-radius:6px; overflow:hidden; box-shadow:0 40px 100px rgba(0,0,0,.8); }
 #vm-iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+#vm-video { position:absolute; inset:0; width:100%; height:100%; border:none; background:#000; }
 .vm-dl-row { display:flex; justify-content:flex-end; margin-top:14px; }
 .vm-dl-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; border:1px solid rgba(0,212,232,.4); border-radius:3px; color:var(--green); background:transparent; font-size:10px; letter-spacing:.25em; text-transform:uppercase; font-family:'Montserrat',sans-serif; cursor:pointer; transition:all .2s; text-decoration:none; }
 .vm-dl-btn:hover { background:rgba(0,212,232,.1); }
@@ -572,6 +573,7 @@ body.ae-select .ae-item .ae-check { display:flex; }
     </div>
     <div class="vm-ratio">
       <iframe id="vm-iframe" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      <video id="vm-video" style="display:none" controls playsinline preload="metadata"></video>
     </div>
     <div class="vm-dl-row">
       <a class="vm-dl-btn" id="vm-dl-link" href="#" target="_blank" download>↓ Descargar video</a>
@@ -657,10 +659,14 @@ let rootFolderId  = CFG.folderId;
 // ═══════════════════════════════════════════
 // DRIVE HELPERS
 // ═══════════════════════════════════════════
-function thumbUrl(id, w=400)  { return `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`; }
-function fullUrl(id)           { return `https://lh3.googleusercontent.com/d/${id}`; }
-function dlUrl(id)             { return `https://drive.google.com/uc?export=download&id=${id}`; }
-function videoEmbedUrl(id)     { return `https://drive.google.com/file/d/${id}/preview`; }
+// Un item puede vivir en Drive (entregas reales) o en R2 (la demo, que no depende
+// de permisos publicos de Drive). Se distingue por el prefijo 'r2:' del id.
+function isR2(id)              { return typeof id === 'string' && id.indexOf('r2:') === 0; }
+function r2Url(id)             { return CONFIG.CF_URL + '/api/fotos/' + String(id).slice(3).split('/').map(encodeURIComponent).join('/'); }
+function thumbUrl(id, w=400)  { return isR2(id) ? r2Url(id) : `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`; }
+function fullUrl(id)           { return isR2(id) ? r2Url(id) : `https://lh3.googleusercontent.com/d/${id}`; }
+function dlUrl(id)             { return isR2(id) ? r2Url(id) : `https://drive.google.com/uc?export=download&id=${id}`; }
+function videoEmbedUrl(id)     { return isR2(id) ? r2Url(id) : `https://drive.google.com/file/d/${id}/preview`; }
 function driveFolderUrl(id)    { return `https://drive.google.com/drive/folders/${id}`; }
 
 function jsonp(url, ms=10000) {
@@ -1200,7 +1206,13 @@ function closeLb() {
 // ═══════════════════════════════════════════
 function openVm(embedUrl, title, dlHref) {
   document.getElementById('vm-title').textContent  = title;
-  document.getElementById('vm-iframe').src          = embedUrl;
+  const vmIframe = document.getElementById('vm-iframe');
+  const vmVideo  = document.getElementById('vm-video');
+  const esR2 = /\/api\/fotos\//.test(embedUrl);
+  vmIframe.style.display = esR2 ? 'none' : '';
+  vmVideo.style.display  = esR2 ? '' : 'none';
+  if (esR2) { vmIframe.src = ''; vmVideo.src = embedUrl; }
+  else      { vmVideo.removeAttribute('src'); vmVideo.load(); vmIframe.src = embedUrl; }
   const dl = document.getElementById('vm-dl-link');
   if(CFG.allowDownload && dlHref) { dl.href = dlHref; dl.style.display='inline-flex'; }
   else dl.style.display = 'none';
@@ -1210,6 +1222,8 @@ function openVm(embedUrl, title, dlHref) {
 function closeVm() {
   document.getElementById('video-modal').classList.remove('open');
   document.getElementById('vm-iframe').src = '';
+  const vmVideo = document.getElementById('vm-video');
+  vmVideo.pause(); vmVideo.removeAttribute('src'); vmVideo.load();
   document.body.style.overflow = '';
 }
 

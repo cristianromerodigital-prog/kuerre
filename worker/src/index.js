@@ -1165,13 +1165,38 @@ export default {
       if (path.startsWith('/api/fotos/') && method === 'GET') {
         const key = decodeURIComponent(path.slice('/api/fotos/'.length));
         if (!key || key.includes('..')) return new Response('Not found', { status: 404 });
+        const fotoHeaders = {
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Access-Control-Allow-Origin': '*'
+        };
+        // Range: sin esto un video servido desde R2 no se puede adelantar.
+        const fotoRange = request.headers.get('Range');
+        if (fotoRange) {
+          const meta = await env.MEDIA.head(key);
+          if (!meta) return new Response('Not found', { status: 404 });
+          const m = fotoRange.match(/bytes=(\d+)-(\d*)/);
+          if (!m) return new Response('Range Not Satisfiable', { status: 416 });
+          const offset = parseInt(m[1]);
+          const end = m[2] ? Math.min(parseInt(m[2]), meta.size - 1) : meta.size - 1;
+          if (offset > end) return new Response('Range Not Satisfiable', { status: 416 });
+          const length = end - offset + 1;
+          const part = await env.MEDIA.get(key, { range: { offset, length } });
+          return new Response(part?.body ?? null, {
+            status: 206,
+            headers: { ...fotoHeaders,
+              'Content-Type': meta.httpMetadata?.contentType || 'image/jpeg',
+              'Content-Range': `bytes ${offset}-${end}/${meta.size}`,
+              'Content-Length': String(length)
+            }
+          });
+        }
         const obj = await env.MEDIA.get(key);
         if (!obj) return new Response('Not found', { status: 404 });
         return new Response(obj.body, {
-          headers: {
+          headers: { ...fotoHeaders,
             'Content-Type': obj.httpMetadata?.contentType || 'image/jpeg',
-            'Cache-Control': 'public, max-age=31536000, immutable',
-            'Access-Control-Allow-Origin': '*'
+            'Content-Length': String(obj.size)
           }
         });
       }
