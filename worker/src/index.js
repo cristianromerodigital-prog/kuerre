@@ -643,6 +643,16 @@ async function handleContratosDelete(numero, env) {
 // ── Marca blanca (partners) ─────────────────────────────────────────────────
 const PARTNER_DEFAULT = 'kuerre';
 
+// json() del CORE no manda Cache-Control: estos 3 endpoints devuelven datos de
+// contacto de clientes (o el token de sesion) y no tienen que quedar en la
+// cache de disco del navegador. No se toca el json() compartido: es un caso
+// especifico de estos endpoints, no de todo el worker.
+function partnerJson(data, status) {
+  const r = json(data, status);
+  r.headers.set('Cache-Control', 'no-store');
+  return r;
+}
+
 // Sube desde una pieza pública hasta el cliente y devuelve su partner_id.
 // Nunca falla: sin match, devuelve el partner por defecto.
 async function resolvePartnerId(env, coreEnv, scope, id) {
@@ -780,12 +790,19 @@ async function bumpLoginFails(db, pid) {
 
 // Devuelve el partner_id del token, o null. El id SIEMPRE sale de aca:
 // ningun endpoint de partner lo acepta por parametro.
+// Ademas de validar el JWT, confirma que la marca siga existiendo y activa:
+// un token emitido antes de desactivarla (o de borrarla) dura hasta 8hs, y
+// "Marca activa" tiene que cortar el acceso apenas se apaga, no solo en el
+// login. Un solo chequeo aca cubre /partner/clientes y /partner/me por igual.
 async function isPartner(request, env) {
   const auth = request.headers.get('Authorization') || '';
   if (!auth.startsWith('Bearer ')) return null;
   try {
     const p = await verifyJWT(auth.slice(7), env.ADMIN_JWT_SECRET);
-    return (p && p.role === 'partner' && p.pid) ? String(p.pid) : null;
+    if (!p || p.role !== 'partner' || !p.pid) return null;
+    const row = await env.KUERRE_DB.prepare('SELECT id FROM partners WHERE id = ? AND activo = 1')
+      .bind(String(p.pid)).first();
+    return row ? String(p.pid) : null;
   } catch { return null; }
 }
 
@@ -1147,12 +1164,15 @@ export default {
 
       // ── Login del panel del estudio ───────────────────────────────────────
       if (path === '/partner/login' && method === 'POST') {
-        const body = await request.json().catch(() => ({}));
+        // El body literal "null" es JSON valido: request.json() lo resuelve
+        // sin tirar, así que el .catch no lo cubre. El "|| {}" sí.
+        const body = (await request.json().catch(() => ({}))) || {};
         const usuario = String(body.usuario || '').trim();
         const pass    = String(body.pass || '');
-        // Mismo error para usuario inexistente, clave incorrecta y marca
-        // desactivada: no se le dice al atacante cual de las tres fallo.
-        const generico = () => json({ error: 'Usuario o contraseña incorrectos' }, 401);
+        // Mismo error para usuario inexistente, clave incorrecta, marca
+        // desactivada y cuenta bloqueada por intentos: no se le dice al
+        // atacante cual de las cuatro fallo.
+        const generico = () => partnerJson({ error: 'Usuario o contraseña incorrectos' }, 401);
         if (!usuario || !pass) return generico();
         const row = await env.KUERRE_DB.prepare(
           "SELECT id, pass_hash, login_fails FROM partners WHERE usuario = ? AND usuario != '' AND activo = 1"
@@ -1165,12 +1185,23 @@ export default {
           return generico();
         }
         const f = parseLoginFails(row.login_fails);
-        if (f.n >= LOGIN_MAX_FAILS && (Date.now() - f.ts) < LOGIN_LOCK_MS) {
-          const mins = Math.ceil((LOGIN_LOCK_MS - (Date.now() - f.ts)) / 60000);
-          return json({ error: `Demasiados intentos. Probá de nuevo en ${mins} minuto${mins === 1 ? '' : 's'}.` }, 429);
+        const bloqueada = f.n >= LOGIN_MAX_FAILS && (Date.now() - f.ts) < LOGIN_LOCK_MS;
+        // Se corre siempre, este bloqueada la cuenta o no: si nos salteamos el
+        // hash cuando está bloqueada, el tiempo de respuesta delata el
+        // bloqueo aunque el status ya no lo haga (mandar 8 fallos y ver si el
+        // noveno tarda distinto es el mismo oraculo con otro nombre).
+        const passOk = await verifyPassHash(pass, row.pass_hash);
+        if (bloqueada) {
+          // El bloqueo sigue existiendo del lado del servidor: solo deja de
+          // ser observable desde afuera. Log server-side para tener rastro.
+          console.log('partner/login: bloqueada por intentos —', 'usuario=' + usuario);
+          return generico();
         }
-        if (!await verifyPassHash(pass, row.pass_hash)) {
-          await bumpLoginFails(env.KUERRE_DB, row.id);
+        if (!passOk) {
+          // Sin esperar el UPDATE: ese round-trip a D1 pesa mas que la
+          // comparacion de hash y es otro canal que delata "el usuario
+          // existe" frente al camino de usuario inexistente, que no escribe.
+          ctx.waitUntil(bumpLoginFails(env.KUERRE_DB, row.id));
           return generico();
         }
         await env.KUERRE_DB.prepare("UPDATE partners SET login_fails = '' WHERE id = ?").bind(row.id).run();
@@ -1178,19 +1209,19 @@ export default {
           { role: 'partner', pid: row.id, exp: Math.floor(Date.now() / 1000) + PARTNER_SESSION_HOURS * 3600 },
           env.ADMIN_JWT_SECRET
         );
-        return json({ token });
+        return partnerJson({ token });
       }
 
       if (path === '/partner/me' && method === 'GET') {
         const pid = await isPartner(request, env);
-        if (!pid) return json({ error: 'Unauthorized' }, 401);
+        if (!pid) return partnerJson({ error: 'Unauthorized' }, 401);
         const marca = await partnerPublic(env.KUERRE_DB, pid, url.origin);
-        return json(marca);
+        return partnerJson(marca);
       }
 
       if (path === '/partner/clientes' && method === 'GET') {
         const pid = await isPartner(request, env);
-        if (!pid) return json({ error: 'Unauthorized' }, 401);
+        if (!pid) return partnerJson({ error: 'Unauthorized' }, 401);
 
         // Columnas listadas una por una a proposito: con SELECT s.* cualquier
         // columna que se agregue a solicitudes se filtraria sola a un tercero.
@@ -1215,7 +1246,7 @@ export default {
           invites = raw ? JSON.parse(raw) : [];
         } catch (e) { console.log('partner/clientes: crd_invites', e.message); }
 
-        const clientes = (results || []).map(r => {
+        const clientes = await Promise.all((results || []).map(async r => {
           const inviteOk  = !!(r.invite_id && String(r.invite_id).trim());
           const fiestaOk  = r.fiesta_estado === 'activo';
           const entregaOk = !!(r.entrega_folder && String(r.entrega_folder).trim());
@@ -1223,8 +1254,18 @@ export default {
           let linkInvitacion = '';
           if (inviteOk) {
             const ent = invites.find(x => String(x.id).toLowerCase() === String(r.invite_id).toLowerCase());
-            if (ent && ent.slug) linkInvitacion = '/invite.html?i=' + encodeURIComponent(ent.slug);
-            else console.log('partner/clientes: invitacion sin slug resoluble', 'cliente=' + r.id, 'invite_id=' + r.invite_id);
+            // crd_invites[].slug no siempre es el slug que existe de verdad en
+            // KV (invite_cfg_<slug>): el admin lo guarda desde un campo editable
+            // que puede desincronizarse del que realmente arma el link publico.
+            // Confirmamos contra la config real antes de emitir el link; si no
+            // esta, mismo comportamiento que "sin slug resoluble": link vacio y log.
+            const cfgExiste = ent && ent.slug ? await env.KUERRE_KV.get('invite_cfg_' + ent.slug) : null;
+            if (cfgExiste !== null) {
+              const esSocial = !!(ent.config && ent.config.modelo === 'social');
+              linkInvitacion = (esSocial ? '/invite-social.html?i=' : '/invite.html?i=') + encodeURIComponent(ent.slug);
+            } else {
+              console.log('partner/clientes: invitacion sin slug resoluble', 'cliente=' + r.id, 'invite_id=' + r.invite_id);
+            }
           }
           const slugFiesta = r.evento_slug || r.fiesta_id || '';
           const linkFiesta = fiestaOk && slugFiesta ? '/fiestas.html?e=' + encodeURIComponent(slugFiesta) : '';
@@ -1252,9 +1293,9 @@ export default {
                         entrega:    entregaOk ? 'lista' : 'pendiente' },
             links:    { invitacion: linkInvitacion, fiesta: linkFiesta, entrega: linkEntrega }
           };
-        });
+        }));
 
-        return json({ clientes });
+        return partnerJson({ clientes });
       }
 
       // ── Marca pública de una pieza (invitación / fiesta / entrega) ─────────
@@ -1551,15 +1592,19 @@ export default {
       if (path === '/partners' && method === 'GET') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { results } = await env.KUERRE_DB.prepare(
-          'SELECT id, slug, nombre, slogan, logo_key, whatsapp, instagram, web, activo, mostrar_credito, usuario, pass_hash, created_at FROM partners ORDER BY (id = \'kuerre\') DESC, nombre ASC'
+          'SELECT id, slug, nombre, slogan, logo_key, whatsapp, instagram, web, activo, mostrar_credito, usuario, pass_hash, login_fails, created_at FROM partners ORDER BY (id = \'kuerre\') DESC, nombre ASC'
         ).all();
         const out = (results || []).map(function(p) {
           const tiene_clave = !!p.pass_hash;
           // Un usuario sin contraseña, o una contraseña sin usuario, no entra:
           // /partner/login exige ambos (WHERE usuario = ? AND usuario != '').
           const tiene_acceso = tiene_clave && !!p.usuario;
-          const { pass_hash, ...rest } = p;
-          return Object.assign({}, rest, { tiene_clave, tiene_acceso });
+          // Booleano nomas: login_fails no sale de aca (es un contador y un
+          // timestamp de intentos, no dato para el admin).
+          const f = parseLoginFails(p.login_fails);
+          const bloqueada = f.n >= LOGIN_MAX_FAILS && (Date.now() - f.ts) < LOGIN_LOCK_MS;
+          const { pass_hash, login_fails, ...rest } = p;
+          return Object.assign({}, rest, { tiene_clave, tiene_acceso, bloqueada });
         });
         return json(out);
       }
@@ -1609,12 +1654,15 @@ export default {
           }
           sets.push('usuario = ?'); vals.push(nuevoUser);
         }
+        if (!sets.length && !b.pass) return json({ error: 'nada para actualizar' }, 400);
+        // Guardar la ficha desbloquea la cuenta por intentos, se cambie o no
+        // la contraseña: es la forma de desbloquear un estudio sin obligar a
+        // rotarle la clave.
+        sets.push("login_fails = ?"); vals.push('');
         // Vacio = no tocar la clave. Solo se reemplaza si mandan una nueva.
         if (b.pass) {
           sets.push('pass_hash = ?'); vals.push(await makePassHash(String(b.pass)));
-          sets.push("login_fails = ?"); vals.push('');
         }
-        if (!sets.length) return json({ error: 'nada para actualizar' }, 400);
         vals.push(partnerIdMatch[1]);
         const upd = await env.KUERRE_DB.prepare(`UPDATE partners SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();
         if (!upd.meta || upd.meta.changes === 0) return json({ error: 'Not found' }, 404);
