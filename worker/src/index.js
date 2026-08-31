@@ -1181,6 +1181,76 @@ export default {
         return json({ token });
       }
 
+      if (path === '/partner/me' && method === 'GET') {
+        const pid = await isPartner(request, env);
+        if (!pid) return json({ error: 'Unauthorized' }, 401);
+        const marca = await partnerPublic(env.KUERRE_DB, pid, url.origin);
+        return json(marca);
+      }
+
+      if (path === '/partner/clientes' && method === 'GET') {
+        const pid = await isPartner(request, env);
+        if (!pid) return json({ error: 'Unauthorized' }, 401);
+
+        // Columnas listadas una por una a proposito: con SELECT s.* cualquier
+        // columna que se agregue a solicitudes se filtraria sola a un tercero.
+        const { results } = await env.KUERRE_DB.prepare(`
+          SELECT s.id, s.salon, s.cliente_nombre, s.cliente_tel, s.cliente_email,
+                 s.invite_id, s.fiesta_id,
+                 e.nombre AS nombre_display, e.tipo, e.fecha, e.slug AS evento_slug,
+                 ef.estado AS fiesta_estado,
+                 ec.folder_id AS entrega_folder
+            FROM solicitudes s
+            LEFT JOIN eventos e        ON e.id  = s.evento_id
+            LEFT JOIN eventos_foto ef  ON ef.id = s.fiesta_id
+            LEFT JOIN entrega_configs ec ON ec.id = s.id
+           WHERE s.partner_id = ?
+           ORDER BY s.created_at DESC`).bind(pid).all();
+
+        // El slug publico de la invitacion vive en crd_invites: una sola lectura
+        // de KV para todas las filas.
+        let invites = [];
+        try {
+          const raw = await env.KUERRE_KV.get('crd_invites');
+          invites = raw ? JSON.parse(raw) : [];
+        } catch (e) { console.log('partner/clientes: crd_invites', e.message); }
+
+        const clientes = (results || []).map(r => {
+          const inviteOk  = !!(r.invite_id && String(r.invite_id).trim());
+          const fiestaOk  = r.fiesta_estado === 'activo';
+          const entregaOk = !!(r.entrega_folder && String(r.entrega_folder).trim());
+
+          let linkInvitacion = '';
+          if (inviteOk) {
+            const ent = invites.find(x => String(x.id).toLowerCase() === String(r.invite_id).toLowerCase());
+            if (ent && ent.slug) linkInvitacion = '/invite.html?i=' + encodeURIComponent(ent.slug);
+          }
+          const slugFiesta = r.evento_slug || r.fiesta_id || '';
+          const linkFiesta = fiestaOk && slugFiesta ? '/fiestas.html?e=' + encodeURIComponent(slugFiesta) : '';
+          let linkEntrega = '';
+          if (entregaOk) {
+            const p = new URLSearchParams({
+              folder: r.entrega_folder,
+              nombres: r.nombre_display || '',
+              fecha: r.fecha || '',
+              tipo: String(r.tipo || '').toLowerCase()
+            });
+            linkEntrega = '/entrega.html?' + p.toString();
+          }
+
+          return {
+            evento:   { nombre: r.nombre_display || '', tipo: r.tipo || '', fecha: r.fecha || '', salon: r.salon || '' },
+            contacto: { nombre: r.cliente_nombre || '', tel: r.cliente_tel || '', email: r.cliente_email || '' },
+            estados:  { invitacion: inviteOk ? 'lista' : 'pendiente',
+                        fiesta:     fiestaOk ? 'activa' : 'pendiente',
+                        entrega:    entregaOk ? 'lista' : 'pendiente' },
+            links:    { invitacion: linkInvitacion, fiesta: linkFiesta, entrega: linkEntrega }
+          };
+        });
+
+        return json({ clientes });
+      }
+
       // ── Marca pública de una pieza (invitación / fiesta / entrega) ─────────
       if (path === '/brand' && method === 'GET') {
         const bScope   = url.searchParams.get('scope')   || '';
