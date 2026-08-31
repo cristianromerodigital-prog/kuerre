@@ -329,6 +329,9 @@ async function handleSolicitudesCreate(request, env) {
         };
         const slug = toSlugW(nombre_display) + (fechaDisplay ? '-' + toSlugW(fechaDisplay) : '') + '-' + inviteId.slice(-4);
         await env.KUERRE_KV.put('invite_cfg_' + slug, JSON.stringify(inviteConfig));
+        // Persiste el mapeo slug→invitación para que resolvePartnerId lo encuentre
+        // aunque el admin regenere el link con otra fórmula de slug (genInviteUrl).
+        await env.KUERRE_KV.put('invite_slug_' + slug, inviteId);
 
         const invitesRaw = await env.KUERRE_KV.get('crd_invites');
         let invitesList = [];
@@ -653,6 +656,15 @@ async function resolvePartnerId(env, coreEnv, scope, id) {
       // traducir el slug a id vía crd_invites (mismo mecanismo que usa el media upload).
       row = await db.prepare('SELECT partner_id FROM solicitudes WHERE invite_slug = ?').bind(id).first();
       if (!row) {
+        // Slug persistido al escribir invite_cfg_{slug} (POST /invite/{slug}?invite_id=...
+        // o la auto-creación) — cubre los links que el admin ya reparte con su propia fórmula.
+        const mappedId = await env.KUERRE_KV.get('invite_slug_' + id);
+        if (mappedId) {
+          row = await db.prepare('SELECT partner_id FROM solicitudes WHERE LOWER(invite_id) = ?')
+            .bind(String(mappedId).toLowerCase()).first();
+        }
+      }
+      if (!row) {
         const invitesRaw = await env.KUERRE_KV.get('crd_invites');
         let invitesList = [];
         try { invitesList = invitesRaw ? JSON.parse(invitesRaw) : []; } catch {}
@@ -923,6 +935,11 @@ export default {
         const body = await request.text();
         try { JSON.parse(body); } catch { return json({ error: 'JSON inválido' }, 400); }
         await env.KUERRE_KV.put('invite_cfg_' + invCfgMatch[1], body);
+        // El admin manda el id de la invitación cuando lo conoce — persiste el
+        // mapeo slug→invitación para que resolvePartnerId resuelva la marca
+        // aunque este slug no coincida con el que armó la auto-creación.
+        const inviteId = url.searchParams.get('invite_id');
+        if (inviteId) await env.KUERRE_KV.put('invite_slug_' + invCfgMatch[1], inviteId);
         return json({ ok: true });
       }
 
@@ -1378,6 +1395,42 @@ export default {
         if (!exists) return json({ error: 'Not found' }, 404);
         const key = `partners/${pid}/logo.${ext}`;
         await env.MEDIA.put(key, bytes, { httpMetadata: { contentType: ct } });
+        await env.KUERRE_DB.prepare('UPDATE partners SET logo_key = ? WHERE id = ?').bind(key, pid).run();
+        return json({ ok: true, logo_key: key });
+      }
+
+      const partnerLogoDriveMatch = path.match(/^\/partners\/([A-Za-z0-9-]{1,64})\/logo\/from-drive$/);
+      if (partnerLogoDriveMatch && method === 'POST') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const pid = partnerLogoDriveMatch[1];
+        const exists = await env.KUERRE_DB.prepare('SELECT id FROM partners WHERE id = ?').bind(pid).first();
+        if (!exists) return json({ error: 'Not found' }, 404);
+        const { fileId } = await request.json().catch(() => ({}));
+        if (!fileId) return json({ error: 'fileId requerido' }, 400);
+
+        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36';
+        let driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        let resp = await fetch(driveUrl, { headers: { 'User-Agent': ua }, redirect: 'follow' });
+        let ct = resp.headers.get('content-type') || '';
+        if (ct.includes('text/html')) {
+          const html = await resp.text();
+          const m = html.match(/confirm=([^&"'\s]+)/);
+          if (!m) return json({ error: 'Drive: no se pudo obtener confirm token' }, 502);
+          driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=${m[1]}`;
+          resp = await fetch(driveUrl, { headers: { 'User-Agent': ua }, redirect: 'follow' });
+          ct = resp.headers.get('content-type') || '';
+        }
+        if (!resp.ok) return json({ error: 'Drive respondió ' + resp.status }, 502);
+        // No se confía en el nombre del archivo: el mime real que reporta Drive
+        // debe matchear el mismo allowlist que usa la carga manual del logo.
+        const mimeBase = ct.split(';')[0].trim().toLowerCase();
+        const ext = PARTNER_LOGO_MIME[mimeBase];
+        if (!ext) return json({ error: 'El archivo de Drive no es una imagen permitida (PNG, JPG, WEBP o SVG)' }, 400);
+        const bytes = new Uint8Array(await resp.arrayBuffer());
+        if (!bytes.length || bytes.length > 2 * 1024 * 1024) return json({ error: 'El logo debe pesar menos de 2 MB' }, 400);
+
+        const key = `partners/${pid}/logo.${ext}`;
+        await env.MEDIA.put(key, bytes, { httpMetadata: { contentType: mimeBase } });
         await env.KUERRE_DB.prepare('UPDATE partners SET logo_key = ? WHERE id = ?').bind(key, pid).run();
         return json({ ok: true, logo_key: key });
       }

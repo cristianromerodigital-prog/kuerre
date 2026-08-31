@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.87</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.88</div>
     </div>
   </aside>
 
@@ -3037,7 +3037,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
               <label for="pm-activo" style="font-size:11px;color:var(--gray2)">Marca activa <i class="tip" data-tip="Si la desactivás, sus clientes dejan de mostrar esta marca en la invitación, el QR y la entrega — vuelven a verse con tu marca propia — sin perder el historial ni tener que reasignarlos uno por uno.">?</i></label>
             </div>
             <div><label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:4px">Logo (PNG, JPG, WEBP o SVG — máx 2 MB)</label>
-              <input id="pm-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="font-size:11px;color:var(--gray2)">
+              <div style="display:flex;align-items:center;gap:8px">
+                <input id="pm-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="font-size:11px;color:var(--gray2)">
+                <button type="button" class="btn-sm btn-sec" onclick="pmLogoFromDrive()">Elegir de Drive</button>
+              </div>
               <img id="pm-logo-preview" style="display:none;max-height:48px;margin-top:8px;background:#0006;padding:6px;border-radius:4px"></div>
           </div>
           <div id="pm-error" style="display:none;color:#e57373;font-size:11px;margin-top:10px"></div>
@@ -4573,6 +4576,41 @@ async function partnersGuardar() {
   document.getElementById('partner-modal').style.display = 'none';
   toast('Marca guardada');
   initPartnersPage();
+}
+
+function pmLogoFromDrive() {
+  const err = document.getElementById('pm-error');
+  err.style.display = 'none';
+  // El endpoint necesita el id del partner: si la marca todavía no se guardó
+  // (creación nueva), no hay id todavía — pedimos guardar primero, igual que
+  // el flujo de video de invitaciones (openInvDriveBrowser / invEditingId).
+  if (!_partnerEdit || !_partnerEdit.id) {
+    err.textContent = 'Guardá la marca primero, después elegí el logo desde Drive';
+    err.style.display = 'block';
+    return;
+  }
+  const id = _partnerEdit.id;
+  openDriveBrowser(async (url) => {
+    const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    const fileId = m ? m[1] : null;
+    if (!fileId) { err.textContent = 'No se pudo leer el ID del archivo de Drive'; err.style.display = 'block'; return; }
+    toast('Descargando logo de Drive…');
+    try {
+      const hdrs = { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' };
+      const r = await fetch(CLIENTES_WORKER + '/partners/' + id + '/logo/from-drive', {
+        method: 'POST', headers: hdrs, body: JSON.stringify({ fileId })
+      });
+      const d = await r.json();
+      if (!d.ok) { err.textContent = d.error || 'No se pudo traer el logo de Drive'; err.style.display = 'block'; return; }
+      const prev = document.getElementById('pm-logo-preview');
+      prev.src = CLIENTES_WORKER + '/api/partners/' + encodeURIComponent(_partnerEdit.slug) + '/logo?t=' + Date.now();
+      prev.style.display = 'block';
+      toast('Logo cargado ✓');
+    } catch (e) {
+      err.textContent = 'Error de conexión';
+      err.style.display = 'block';
+    }
+  });
 }
 
 async function partnersBorrar(id) {
@@ -7322,7 +7360,7 @@ async function genInviteUrl(inv) {
   const slug = nombre + (fecha ? '-' + fecha : '') + '-' + suffix;
   const base = inv.config.modelo === 'social' ? getInvSocialBaseUrl() : getInvBaseUrl();
   try {
-    const res = await fetch(CONFIG.CF_URL + '/invite/' + slug, {
+    const res = await fetch(CONFIG.CF_URL + '/invite/' + slug + '?invite_id=' + encodeURIComponent(inv.id), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': CONFIG.CF_AUTH },
       body: JSON.stringify(inv.config)
