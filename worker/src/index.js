@@ -1551,9 +1551,14 @@ export default {
       if (path === '/partners' && method === 'GET') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const { results } = await env.KUERRE_DB.prepare(
-          'SELECT id, slug, nombre, slogan, logo_key, whatsapp, instagram, web, activo, mostrar_credito, created_at FROM partners ORDER BY (id = \'kuerre\') DESC, nombre ASC'
+          'SELECT id, slug, nombre, slogan, logo_key, whatsapp, instagram, web, activo, mostrar_credito, usuario, pass_hash, created_at FROM partners ORDER BY (id = \'kuerre\') DESC, nombre ASC'
         ).all();
-        return json(results || []);
+        const out = (results || []).map(function(p) {
+          const tiene_acceso = !!p.pass_hash;
+          const { pass_hash, ...rest } = p;
+          return Object.assign({}, rest, { tiene_acceso });
+        });
+        return json(out);
       }
 
       if (path === '/partners' && method === 'POST') {
@@ -1563,9 +1568,17 @@ export default {
         if (!nombre) return json({ error: 'nombre requerido' }, 400);
         const pid  = crypto.randomUUID();
         const slug = await partnerFreeSlug(env.KUERRE_DB, partnerSlugify(nombre));
-        const cols = ['id', 'slug', 'nombre', 'slogan', 'whatsapp', 'instagram', 'web'];
+        const nuevoUser = String(b.usuario || '').trim();
+        if (nuevoUser) {
+          const taken = await env.KUERRE_DB.prepare(
+            "SELECT id FROM partners WHERE usuario = ? AND usuario != ''"
+          ).bind(nuevoUser).first();
+          if (taken) return json({ error: 'Ese usuario ya lo tiene otra marca' }, 409);
+        }
+        const nuevoHash = b.pass ? await makePassHash(String(b.pass)) : '';
+        const cols = ['id', 'slug', 'nombre', 'slogan', 'whatsapp', 'instagram', 'web', 'usuario', 'pass_hash'];
         const vals = [pid, slug, nombre, String(b.slogan || '').trim(), String(b.whatsapp || '').trim(),
-                      String(b.instagram || '').trim(), String(b.web || '').trim()];
+                      String(b.instagram || '').trim(), String(b.web || '').trim(), nuevoUser, nuevoHash];
         if (b.mostrar_credito !== undefined) { cols.push('mostrar_credito'); vals.push(b.mostrar_credito ? 1 : 0); }
         await env.KUERRE_DB.prepare(
           `INSERT INTO partners (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`
@@ -1583,6 +1596,21 @@ export default {
         }
         if (b.activo !== undefined) { sets.push('activo = ?'); vals.push(b.activo ? 1 : 0); }
         if (b.mostrar_credito !== undefined) { sets.push('mostrar_credito = ?'); vals.push(b.mostrar_credito ? 1 : 0); }
+        if (b.usuario !== undefined) {
+          const nuevoUser = String(b.usuario).trim();
+          if (nuevoUser) {
+            const taken = await env.KUERRE_DB.prepare(
+              "SELECT id FROM partners WHERE usuario = ? AND usuario != '' AND id != ?"
+            ).bind(nuevoUser, partnerIdMatch[1]).first();
+            if (taken) return json({ error: 'Ese usuario ya lo tiene otra marca' }, 409);
+          }
+          sets.push('usuario = ?'); vals.push(nuevoUser);
+        }
+        // Vacio = no tocar la clave. Solo se reemplaza si mandan una nueva.
+        if (b.pass) {
+          sets.push('pass_hash = ?'); vals.push(await makePassHash(String(b.pass)));
+          sets.push("login_fails = ?"); vals.push('');
+        }
         if (!sets.length) return json({ error: 'nada para actualizar' }, 400);
         vals.push(partnerIdMatch[1]);
         const upd = await env.KUERRE_DB.prepare(`UPDATE partners SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();

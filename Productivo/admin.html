@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.92</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.93</div>
     </div>
   </aside>
 
@@ -3046,6 +3046,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 <button type="button" class="btn-sm btn-sec" onclick="pmLogoFromDrive()">Elegir de Drive</button>
               </div>
               <img id="pm-logo-preview" style="display:none;max-height:48px;margin-top:8px;background:#0006;padding:6px;border-radius:4px"></div>
+            <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;min-width:0">
+              <label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:6px">Acceso al panel del estudio <i class="tip" data-tip="Con estos datos el estudio entra a estudio.html y ve sus clientes, los estados de sus 3 servicios y los links. Es solo lectura: no puede crear ni editar nada.">?</i></label>
+              <div style="display:grid;grid-template-columns:minmax(0,1fr);gap:8px">
+                <input id="pm-usuario" type="text" placeholder="Usuario (ej: kanaudt)" autocomplete="off" style="width:100%;box-sizing:border-box;background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:8px 10px;font-size:12px;font-family:inherit;outline:none;border-radius:4px">
+                <input id="pm-pass" type="password" placeholder="Contraseña nueva (vacío = no cambiarla)" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:8px 10px;font-size:12px;font-family:inherit;outline:none;border-radius:4px">
+                <div id="pm-acceso-estado" style="font-size:10px;color:var(--gray2)"></div>
+              </div>
+            </div>
             <div id="pm-demo-links" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;min-width:0">
               <label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:6px">Links de demo para este estudio <i class="tip" data-tip="Las 3 piezas de la demo permanente de Kuerre (invitación, QR Fiestas y Premiere) pintadas con esta marca — listas para mandarle al estudio como argumento de venta.">?</i></label>
               <div id="pm-demo-links-empty" style="font-size:11px;color:var(--gray2)">Los links aparecen al guardar la marca.</div>
@@ -4506,6 +4514,7 @@ async function initPartnersPage() {
       '<div style="flex:1">' +
         '<div style="font-size:13px;color:var(--white)">' + escHtml(p.nombre) + (propia ? ' <span style="font-size:9px;color:var(--gold);letter-spacing:1px">· MARCA PROPIA</span>' : '') + (inactiva ? ' <span style="font-size:9px;color:var(--gray2);letter-spacing:1px">· INACTIVA</span>' : '') + (sinCredito ? ' <span style="font-size:9px;color:var(--gray2);letter-spacing:1px">· SIN CRÉDITO</span>' : '') + '</div>' +
         '<div style="font-size:10px;color:var(--gray2);margin-top:3px">' + escHtml(p.slogan || '—') + '</div>' +
+        '<div style="font-size:9px;color:var(--gray2);margin-top:2px">' + (p.tiene_acceso ? '🔑 con acceso' : 'sin acceso') + '</div>' +
       '</div>' +
       '<button class="btn-sm btn-edit" onclick="partnersEditar(\'' + p.id + '\')">Editar</button>' +
       (propia ? '' : '<button class="btn-sm btn-danger" onclick="partnersBorrar(\'' + p.id + '\')">Borrar</button>') +
@@ -4521,6 +4530,9 @@ function partnersNuevo() {
   document.getElementById('pm-credito').checked = true;
   document.getElementById('pm-logo-file').value = '';
   document.getElementById('pm-logo-preview').style.display = 'none';
+  document.getElementById('pm-usuario').value = '';
+  document.getElementById('pm-pass').value = '';
+  document.getElementById('pm-acceso-estado').textContent = 'Al guardar, el estudio podrá entrar con estos datos.';
   document.getElementById('pm-error').style.display = 'none';
   pmRenderDemoLinks('');
   document.getElementById('partner-modal').style.display = 'flex';
@@ -4542,6 +4554,12 @@ function partnersEditar(id) {
   const prev = document.getElementById('pm-logo-preview');
   if (p.logo_key) { prev.src = CLIENTES_WORKER + '/api/partners/' + encodeURIComponent(p.slug) + '/logo?t=' + Date.now(); prev.style.display = 'block'; }
   else prev.style.display = 'none';
+  document.getElementById('pm-usuario').value = p.usuario || '';
+  // Vacio a proposito: solo se guarda el hash, la clave no se puede mostrar.
+  document.getElementById('pm-pass').value = '';
+  document.getElementById('pm-acceso-estado').textContent = p.tiene_acceso
+    ? '✓ Acceso configurado — dejá la contraseña vacía para no cambiarla'
+    : 'Todavía sin acceso: cargá usuario y contraseña para habilitarlo';
   document.getElementById('pm-error').style.display = 'none';
   pmRenderDemoLinks(p.slug);
   document.getElementById('partner-modal').style.display = 'flex';
@@ -4597,7 +4615,9 @@ async function partnersGuardar() {
     instagram: document.getElementById('pm-instagram').value.trim(),
     web:       document.getElementById('pm-web').value.trim(),
     activo:    document.getElementById('pm-activo').checked,
-    mostrar_credito: document.getElementById('pm-credito').checked
+    mostrar_credito: document.getElementById('pm-credito').checked,
+    usuario:   document.getElementById('pm-usuario').value.trim(),
+    pass:      document.getElementById('pm-pass').value
   };
   if (!body.nombre) { err.textContent = 'El nombre es obligatorio'; err.style.display = 'block'; return; }
   const hdrs = { 'Authorization': 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' };
