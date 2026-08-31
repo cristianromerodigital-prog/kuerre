@@ -633,7 +633,13 @@ function applyBrand(b) {
 let _brandResolved = null; // Guardar la marca resuelta para usarla en toasts
 // Arrancar el fetch de marca lo antes posible: si el folder ya vino por URL
 // (?folder=) no hace falta esperar al resto de init() para conocerlo.
-let _brandPromise = CFG.folderId ? loadBrand('entrega', CFG.folderId) : null;
+// La entrega se identifica por su carpeta de Drive, pero la demo se pide por
+// su id literal ('demo'): es el único que el worker reconoce para aplicar la
+// marca del parámetro ?m=. Sin esto, el link de demo de un estudio no se marca.
+function brandPieceId() {
+  return (CFG.eventId && String(CFG.eventId).toLowerCase() === 'demo') ? 'demo' : CFG.folderId;
+}
+let _brandPromise = brandPieceId() ? loadBrand('entrega', brandPieceId()) : null;
 
 // ═══════════════════════════════════════════
 // STATE
@@ -811,7 +817,7 @@ async function init() {
   rootFolderId = CFG.folderId;
 
   // ── Aplicar marca dinámica (white-label) ──
-  (_brandPromise || loadBrand('entrega', CFG.folderId)).then(function (b) {
+  (_brandPromise || loadBrand('entrega', brandPieceId())).then(function (b) {
     _brandResolved = b;
     applyBrand(b);
     if (b.logo_url) applyLogo(b.logo_url);
