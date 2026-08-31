@@ -379,7 +379,10 @@ function applyBrand(b) {
     const k = el.getAttribute('data-brand');
     if (k === 'nombre') { el.textContent = b.nombre; return; }
     if (k === 'slogan') { if (b.slogan) el.textContent = b.slogan; else el.style.display = 'none'; return; }
-    if (k === 'logo')   { if (b.logo_url) { el.src = b.logo_url; el.style.display = ''; } else el.style.display = 'none'; return; }
+    // El filtro y el blend vienen de la marca: las piezas traen un invert(1) en
+    // el CSS pensado para el logo de Kuerre, que es oscuro, y un logo ya claro
+    // invertido queda negro sobre fondo negro.
+    if (k === 'logo')   { if (b.logo_url) { el.src = b.logo_url; el.style.display = ''; if (b.logo_filter) el.style.filter = b.logo_filter; if (b.logo_blend) el.style.mixBlendMode = b.logo_blend; } else el.style.display = 'none'; return; }
     // Ojo: varios de estos anchors arrancan con display:none inline, así que
     // cuando el dato existe hay que mostrarlos explícitamente.
     if (k === 'web')    { if (b.web) { el.href = b.web; el.style.display = ''; } else el.style.display = 'none'; return; }
