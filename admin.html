@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.90</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.91</div>
     </div>
   </aside>
 
@@ -3016,7 +3016,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
       <!-- Modal marca -->
       <div id="partner-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center;padding:16px">
-        <div style="background:var(--black3);border:1px solid rgba(255,255,255,0.08);max-width:460px;width:100%;max-height:90vh;overflow-y:auto;padding:28px">
+        <div style="background:var(--black3);border:1px solid rgba(255,255,255,0.08);max-width:460px;width:100%;box-sizing:border-box;max-height:90vh;overflow-y:auto;overflow-x:hidden;padding:28px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
             <div id="pm-title" style="font-size:16px;font-weight:500;color:var(--gold)">Nueva marca</div>
             <button onclick="document.getElementById('partner-modal').style.display='none'" style="background:none;border:none;color:var(--gray2);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>
@@ -4571,9 +4571,9 @@ function pmRenderDemoLinks(slug) {
   list.style.display = 'flex';
   list.innerHTML = PM_DEMO_PIECES.map(function(p){
     const url = pmDemoUrl(p.key, slug);
-    return '<div style="display:flex;align-items:center;gap:8px">' +
-      '<span style="font-size:9px;color:var(--gray2);letter-spacing:1px;min-width:64px">' + escHtml(p.label) + '</span>' +
-      '<span style="font-size:10px;color:var(--white);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + escHtml(url) + '">' + escHtml(url) + '</span>' +
+    return '<div style="display:flex;align-items:center;gap:8px;max-width:100%">' +
+      '<span style="font-size:9px;color:var(--gray2);letter-spacing:1px;min-width:64px;flex-shrink:0">' + escHtml(p.label) + '</span>' +
+      '<span style="font-size:10px;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + escHtml(url) + '">' + escHtml(url) + '</span>' +
       '<button type="button" class="btn-sm btn-sec" onclick="pmCopyDemoLink(\'' + p.key + '\')">Copiar</button>' +
     '</div>';
   }).join('');
