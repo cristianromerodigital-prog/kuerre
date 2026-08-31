@@ -663,6 +663,8 @@ let rootFolderId  = CFG.folderId;
 // de permisos publicos de Drive). Se distingue por el prefijo 'r2:' del id.
 function isR2(id)              { return typeof id === 'string' && id.indexOf('r2:') === 0; }
 function r2Url(id)             { return CONFIG.CF_URL + '/api/fotos/' + String(id).slice(3).split('/').map(encodeURIComponent).join('/'); }
+// Ojo: para un video en R2 hay que pasarle el poster, no el id del mp4 —
+// un <img> no puede renderizar un video.
 function thumbUrl(id, w=400)  { return isR2(id) ? r2Url(id) : `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`; }
 function fullUrl(id)           { return isR2(id) ? r2Url(id) : `https://lh3.googleusercontent.com/d/${id}`; }
 function dlUrl(id)             { return isR2(id) ? r2Url(id) : `https://drive.google.com/uc?export=download&id=${id}`; }
@@ -1132,7 +1134,7 @@ function buildVideoRow(row) {
     card.className = 'video-card';
     card.innerHTML = `
       <div class="video-thumb-wrap">
-        <img class="video-thumb" src="${thumbUrl(video.id, 720)}" alt="${video.name}" loading="lazy" draggable="false" oncontextmenu="return false">
+        <img class="video-thumb" src="${thumbUrl(video.poster || video.id, 720)}" alt="${video.name}" loading="lazy" draggable="false" oncontextmenu="return false">
         <div class="video-play-overlay"><div class="video-play-circle">▶</div></div>
       </div>
       <div class="video-info">
