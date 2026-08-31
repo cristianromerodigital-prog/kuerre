@@ -710,7 +710,7 @@ async function resolvePartnerId(env, coreEnv, scope, id) {
 
 // Solo campos públicos: nunca devolver activo, logo_key ni ids internos.
 async function partnerPublic(db, partnerId, origin) {
-  const cols = 'slug, nombre, slogan, logo_key, whatsapp, instagram, web, mostrar_credito';
+  const cols = 'slug, nombre, slogan, logo_key, whatsapp, instagram, web, mostrar_credito, logo_invertir';
   let p = await db.prepare(`SELECT ${cols} FROM partners WHERE id = ? AND activo = 1`).bind(partnerId).first();
   if (!p) p = await db.prepare(`SELECT ${cols} FROM partners WHERE id = ?`).bind(PARTNER_DEFAULT).first();
   if (!p) return { nombre: '', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: '', credito: false };
@@ -718,6 +718,13 @@ async function partnerPublic(db, partnerId, origin) {
     nombre:    p.nombre    || '',
     slogan:    p.slogan    || '',
     logo_url:  p.logo_key ? `${origin}/api/partners/${encodeURIComponent(p.slug)}/logo` : '',
+    // Las piezas tienen fondo oscuro y su CSS trae un filter:invert(1) pensado
+    // para el logo de Kuerre, que es oscuro. Un logo ya claro, invertido, queda
+    // negro y desaparece: por eso el tratamiento viaja con la marca.
+    logo_filter: p.logo_invertir ? 'invert(1)' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.55))',
+    // El blend de las piezas acompania al invert; con un logo claro hay que
+    // apagarlo, si no se come la sombra.
+    logo_blend:  p.logo_invertir ? '' : 'normal',
     whatsapp:  p.whatsapp  || '',
     instagram: p.instagram || '',
     web:       p.web       || '',

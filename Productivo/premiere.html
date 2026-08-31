@@ -622,7 +622,10 @@ function applyBrand(b) {
     const k = el.getAttribute('data-brand');
     if (k === 'nombre') { el.textContent = b.nombre; return; }
     if (k === 'slogan') { if (b.slogan) el.textContent = b.slogan; else el.style.display = 'none'; return; }
-    if (k === 'logo')   { if (b.logo_url) { el.src = b.logo_url; el.style.display = ''; } else el.style.display = 'none'; return; }
+    // El filtro y el blend vienen de la marca: las piezas traen un invert(1) en
+    // el CSS pensado para el logo de Kuerre, que es oscuro, y un logo ya claro
+    // invertido queda negro sobre fondo negro.
+    if (k === 'logo')   { if (b.logo_url) { el.src = b.logo_url; el.style.display = ''; if (b.logo_filter) el.style.filter = b.logo_filter; if (b.logo_blend) el.style.mixBlendMode = b.logo_blend; } else el.style.display = 'none'; return; }
     // Ojo: varios de estos anchors arrancan con display:none inline, así que
     // cuando el dato existe hay que mostrarlos explícitamente.
     if (k === 'web')    { if (b.web) { el.href = b.web; el.style.display = ''; } else el.style.display = 'none'; return; }
@@ -828,7 +831,7 @@ async function init() {
   (_brandPromise || loadBrand('entrega', brandPieceId())).then(function (b) {
     _brandResolved = b;
     applyBrand(b);
-    if (b.logo_url) applyLogo(b.logo_url);
+    if (b.logo_url) applyLogo(b.logo_url, b.logo_filter || '', b.logo_blend || '');
     const vm = document.getElementById('vm-meta');
     if (vm) vm.textContent = 'Video · ' + b.nombre;
     document.getElementById('page-title').textContent = (CFG.nombres || 'Premiere') + ' — ' + b.nombre;
@@ -897,16 +900,19 @@ async function init() {
   hideLoading();
 }
 
-function applyLogo(src) {
+function applyLogo(src, filter, blend) {
   const preImg  = document.getElementById('preloader-logo-img');
   const preWrap = document.getElementById('preloader-logo-wrap');
   const spinner = document.querySelector('.loading-spinner');
   const floatImg = document.getElementById('hero-logo-img');
   const floatBtn = document.getElementById('pm-logo-btn');
-  if(preImg)   { preImg.src = src; }
+  // El CSS de los dos nodos trae invert(1)+screen, pensado para el logo oscuro
+  // de Kuerre. La marca dice como tratar el suyo.
+  const pinta = function(el){ if(!el) return; if(filter) el.style.filter = filter; if(blend) el.style.mixBlendMode = blend; };
+  if(preImg)   { preImg.src = src; pinta(preImg); }
   if(preWrap)  { preWrap.style.display = 'flex'; }
   if(spinner)  { spinner.style.display = 'none'; }
-  if(floatImg) { floatImg.src = src; }
+  if(floatImg) { floatImg.src = src; pinta(floatImg); }
   if(floatBtn) { floatBtn.style.display = 'flex'; }
 }
 
