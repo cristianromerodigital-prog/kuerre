@@ -105,7 +105,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
 .album-card:hover .album-info { transform:translateY(0); }
 .album-num { font-size:10px; letter-spacing:.4em; color:var(--green); opacity:.7; margin-bottom:6px; display:block; }
 .album-name { font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:300; font-size:clamp(26px,3vw,38px); line-height:1; color:var(--white); display:block; margin-bottom:8px; }
-.album-count { font-size:11px; letter-spacing:.2em; color:rgba(255,255,255,.45); display:block; }
+.album-count { font-size:11px; letter-spacing:.06em; color:rgba(255,255,255,.45); display:block; }
 
 /* FOTOS GRID (dentro de un álbum) */
 #back-btn { display:none; align-items:center; gap:10px; color:rgba(255,255,255,.5); font-size:11px; letter-spacing:.3em; text-transform:uppercase; cursor:pointer !important; margin-bottom:28px; transition:color .3s; }
@@ -224,6 +224,9 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
   #footer { padding:48px 20px; }
   .footer-brand { font-size:24px; }
 }
+
+#credito-line a{color:inherit;text-decoration:none}
+#credito-line a:hover{text-decoration:underline;text-underline-offset:2px}
 </style>
 </head>
 <body>
@@ -377,7 +380,7 @@ body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-s
     Contactar
   </a>
   <div id="footer-copy" class="footer-copy"></div>
-  <div id="credito-line" data-brand="credito" style="display:none;margin-top:8px;font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.1)">Plataforma por <a href="https://kuerre.com.ar" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:2px">Kuerre</a></div>
+  <div id="credito-line" data-brand="credito" style="display:none;margin-top:8px;font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.1)"><a href="https://kuerre.com.ar" target="_blank" rel="noopener">Kuerre · Experiencias digitales para eventos</a></div>
 </footer>
 
 <div id="social-float">
