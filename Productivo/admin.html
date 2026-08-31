@@ -4559,6 +4559,8 @@ function partnersEditar(id) {
   document.getElementById('pm-pass').value = '';
   document.getElementById('pm-acceso-estado').textContent = p.tiene_acceso
     ? '✓ Acceso configurado — dejá la contraseña vacía para no cambiarla'
+    : p.tiene_clave ? 'Hay contraseña cargada pero falta el usuario: el estudio no puede entrar todavía'
+    : p.usuario ? 'Hay usuario cargado pero falta la contraseña: el estudio no puede entrar todavía'
     : 'Todavía sin acceso: cargá usuario y contraseña para habilitarlo';
   document.getElementById('pm-error').style.display = 'none';
   pmRenderDemoLinks(p.slug);

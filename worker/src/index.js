@@ -1554,9 +1554,12 @@ export default {
           'SELECT id, slug, nombre, slogan, logo_key, whatsapp, instagram, web, activo, mostrar_credito, usuario, pass_hash, created_at FROM partners ORDER BY (id = \'kuerre\') DESC, nombre ASC'
         ).all();
         const out = (results || []).map(function(p) {
-          const tiene_acceso = !!p.pass_hash;
+          const tiene_clave = !!p.pass_hash;
+          // Un usuario sin contraseña, o una contraseña sin usuario, no entra:
+          // /partner/login exige ambos (WHERE usuario = ? AND usuario != '').
+          const tiene_acceso = tiene_clave && !!p.usuario;
           const { pass_hash, ...rest } = p;
-          return Object.assign({}, rest, { tiene_acceso });
+          return Object.assign({}, rest, { tiene_clave, tiene_acceso });
         });
         return json(out);
       }
