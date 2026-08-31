@@ -153,7 +153,13 @@ async function entrar() {
   }
 }
 
-function salir() { setJwt(''); mostrarLogin(''); }
+function salir() {
+  setJwt('');
+  _clientes = [];
+  document.getElementById('lista').innerHTML = '';
+  document.getElementById('buscador').value = '';
+  mostrarLogin('');
+}
 
 async function abrirPanel() {
   document.getElementById('error-view').style.display = 'none';
@@ -187,8 +193,19 @@ function render() {
     if (!q) return true;
     return ((c.evento.nombre || '') + ' ' + (c.contacto.nombre || '')).toLowerCase().indexOf(q) !== -1;
   });
-  document.getElementById('vacio').style.display = _clientes.length ? 'none' : 'block';
-  document.getElementById('lista').innerHTML = list.map(function(c, i) {
+  if (!_clientes.length) {
+    document.getElementById('vacio').textContent = 'Todavía no tenés eventos asignados. Cuando Kuerre te asigne uno, aparece acá.';
+    document.getElementById('vacio').style.display = 'block';
+  } else if (!list.length) {
+    document.getElementById('vacio').textContent = 'Ningún evento coincide con la búsqueda.';
+    document.getElementById('vacio').style.display = 'block';
+  } else {
+    document.getElementById('vacio').style.display = 'none';
+  }
+  document.getElementById('lista').innerHTML = list.map(function(c) {
+    // Indice real en _clientes (no el de "list", que cambia con el buscador):
+    // copiar() tiene que apuntar siempre al cliente correcto.
+    const i = _clientes.indexOf(c);
     const contacto = [c.contacto.nombre, c.contacto.tel, c.contacto.email].filter(Boolean).map(esc).join(' · ');
     const links = [
       c.links.invitacion ? '<button onclick="copiar(' + i + ',\'invitacion\')">Invitación</button>' : '',
@@ -225,6 +242,7 @@ function toast(msg) {
 }
 
 document.getElementById('buscador').addEventListener('input', render);
+document.getElementById('in-usuario').addEventListener('keydown', function(e){ if (e.key === 'Enter') entrar(); });
 document.getElementById('in-pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') entrar(); });
 if (getJwt()) abrirPanel();
 else mostrarLogin('');
