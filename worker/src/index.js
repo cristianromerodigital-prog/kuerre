@@ -720,6 +720,12 @@ const PBKDF2_ITER      = 100000;
 const LOGIN_MAX_FAILS  = 8;
 const LOGIN_LOCK_MS    = 15 * 60 * 1000;
 const PARTNER_SESSION_HOURS = 8;
+// Hash dummy (mismo formato y misma cantidad de iteraciones que un hash real,
+// pero de una clave descartable que nadie usa). Se verifica contra este hash
+// cuando no hay fila o no hay pass_hash, para que ese camino tarde lo mismo
+// que un intento con clave incorrecta y así el reloj no delate si el usuario
+// existe. No es codigo muerto: NO borrar.
+const DUMMY_PASS_HASH = 'pbkdf2$100000$taMxJ9sbnP29ycNug13s3Q==$m5DM5ZnileDQh9U5Acfgr6Z50CrlXWwLeAw47gHkFsA=';
 
 function b64enc(bytes) { return btoa(String.fromCharCode(...bytes)); }
 function b64dec(s)     { return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
@@ -1151,7 +1157,13 @@ export default {
         const row = await env.KUERRE_DB.prepare(
           "SELECT id, pass_hash, login_fails FROM partners WHERE usuario = ? AND usuario != '' AND activo = 1"
         ).bind(usuario).first();
-        if (!row || !row.pass_hash) return generico();
+        if (!row || !row.pass_hash) {
+          // Corremos el mismo PBKDF2 contra un hash dummy para que este
+          // camino tarde lo mismo que uno con clave incorrecta: sin esto, el
+          // reloj delata si el usuario existe y está activo.
+          await verifyPassHash(pass, DUMMY_PASS_HASH);
+          return generico();
+        }
         const f = parseLoginFails(row.login_fails);
         if (f.n >= LOGIN_MAX_FAILS && (Date.now() - f.ts) < LOGIN_LOCK_MS) {
           const mins = Math.ceil((LOGIN_LOCK_MS - (Date.now() - f.ts)) / 60000);
