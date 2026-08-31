@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.91</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.92</div>
     </div>
   </aside>
 
@@ -3021,7 +3021,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div id="pm-title" style="font-size:16px;font-weight:500;color:var(--gold)">Nueva marca</div>
             <button onclick="document.getElementById('partner-modal').style.display='none'" style="background:none;border:none;color:var(--gray2);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>
           </div>
-          <div style="display:grid;gap:10px">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr);gap:10px">
             <div><label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:4px">Nombre</label>
               <input id="pm-nombre" type="text" placeholder="Estudio Lumen" style="width:100%;background:var(--black2);border:1px solid rgba(255,255,255,0.08);color:var(--white);padding:8px 10px;font-size:12px;font-family:inherit;outline:none;border-radius:4px"></div>
             <div><label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:4px">Slogan</label>
@@ -3046,7 +3046,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
                 <button type="button" class="btn-sm btn-sec" onclick="pmLogoFromDrive()">Elegir de Drive</button>
               </div>
               <img id="pm-logo-preview" style="display:none;max-height:48px;margin-top:8px;background:#0006;padding:6px;border-radius:4px"></div>
-            <div id="pm-demo-links" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:12px">
+            <div id="pm-demo-links" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;min-width:0">
               <label style="font-size:9px;letter-spacing:1px;color:var(--gray2);display:block;margin-bottom:6px">Links de demo para este estudio <i class="tip" data-tip="Las 3 piezas de la demo permanente de Kuerre (invitación, QR Fiestas y Premiere) pintadas con esta marca — listas para mandarle al estudio como argumento de venta.">?</i></label>
               <div id="pm-demo-links-empty" style="font-size:11px;color:var(--gray2)">Los links aparecen al guardar la marca.</div>
               <div id="pm-demo-links-list" style="display:none;flex-direction:column;gap:6px"></div>
@@ -4574,7 +4574,7 @@ function pmRenderDemoLinks(slug) {
     return '<div style="display:flex;align-items:center;gap:8px;max-width:100%">' +
       '<span style="font-size:9px;color:var(--gray2);letter-spacing:1px;min-width:64px;flex-shrink:0">' + escHtml(p.label) + '</span>' +
       '<span style="font-size:10px;color:var(--white);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + escHtml(url) + '">' + escHtml(url) + '</span>' +
-      '<button type="button" class="btn-sm btn-sec" onclick="pmCopyDemoLink(\'' + p.key + '\')">Copiar</button>' +
+      '<button type="button" class="btn-sm btn-sec" style="flex-shrink:0" onclick="pmCopyDemoLink(\'' + p.key + '\')">Copiar</button>' +
     '</div>';
   }).join('');
 }
