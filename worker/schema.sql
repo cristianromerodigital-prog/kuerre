@@ -113,5 +113,8 @@ CREATE TABLE IF NOT EXISTS partners (
   web        TEXT DEFAULT '',
   activo     INTEGER NOT NULL DEFAULT 1,
   mostrar_credito INTEGER NOT NULL DEFAULT 1,
+  usuario     TEXT DEFAULT '',
+  pass_hash   TEXT DEFAULT '',
+  login_fails TEXT DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
