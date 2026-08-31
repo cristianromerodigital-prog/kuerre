@@ -642,14 +642,36 @@ const PARTNER_DEFAULT = 'kuerre';
 
 // Sube desde una pieza pública hasta el cliente y devuelve su partner_id.
 // Nunca falla: sin match, devuelve el partner por defecto.
-async function resolvePartnerId(db, scope, id) {
+async function resolvePartnerId(env, coreEnv, scope, id) {
   if (!id) return PARTNER_DEFAULT;
+  const db = env.KUERRE_DB;
   let row = null;
   try {
     if (scope === 'invite') {
+      // invite_slug en solicitudes guarda el id del cliente, no el slug descriptivo
+      // que manda la invitación (?i=juan-y-sofia-...): probar directo y, si no matchea,
+      // traducir el slug a id vía crd_invites (mismo mecanismo que usa el media upload).
       row = await db.prepare('SELECT partner_id FROM solicitudes WHERE invite_slug = ?').bind(id).first();
+      if (!row) {
+        const invitesRaw = await env.KUERRE_KV.get('crd_invites');
+        let invitesList = [];
+        try { invitesList = invitesRaw ? JSON.parse(invitesRaw) : []; } catch {}
+        const entry = invitesList.find(x => x.slug === id);
+        if (entry && entry.id) {
+          row = await db.prepare('SELECT partner_id FROM solicitudes WHERE LOWER(id) = ?')
+            .bind(String(entry.id).toLowerCase()).first();
+        }
+      }
     } else if (scope === 'fiesta') {
+      // fiestas.html manda el slug del evento (?e=), no el fiesta_id crudo: probar
+      // directo y, si no matchea, traducir con resolveEventId (KV fiesta_slug_{slug}).
       row = await db.prepare('SELECT partner_id FROM solicitudes WHERE fiesta_id = ?').bind(id).first();
+      if (!row) {
+        const realId = await resolveEventId(id, coreEnv);
+        if (realId && realId !== id) {
+          row = await db.prepare('SELECT partner_id FROM solicitudes WHERE fiesta_id = ?').bind(realId).first();
+        }
+      }
     } else if (scope === 'entrega') {
       row = await db.prepare(
         'SELECT s.partner_id AS partner_id FROM entrega_configs ec JOIN solicitudes s ON s.id = ec.id WHERE ec.folder_id = ?'
@@ -657,6 +679,9 @@ async function resolvePartnerId(db, scope, id) {
     }
   } catch (e) {
     console.log('resolvePartnerId:', e.message);
+  }
+  if (!row || !row.partner_id) {
+    console.log('resolvePartnerId: sin match, uso default —', 'scope=' + scope, 'id=' + id);
   }
   return (row && row.partner_id) || PARTNER_DEFAULT;
 }
@@ -1032,13 +1057,13 @@ export default {
       if (path === '/brand' && method === 'GET') {
         const bScope = url.searchParams.get('scope') || '';
         const bId    = url.searchParams.get('id')    || '';
-        const bPid   = await resolvePartnerId(env.KUERRE_DB, bScope, bId);
+        const bPid   = await resolvePartnerId(env, coreEnv, bScope, bId);
         const brand  = await partnerPublic(env.KUERRE_DB, bPid, url.origin);
         return new Response(JSON.stringify(brand), {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
-            'Cache-Control': 'public, max-age=300'
+            'Cache-Control': 'public, max-age=60'
           }
         });
       }
@@ -1314,7 +1339,8 @@ export default {
         if (b.activo !== undefined) { sets.push('activo = ?'); vals.push(b.activo ? 1 : 0); }
         if (!sets.length) return json({ error: 'nada para actualizar' }, 400);
         vals.push(partnerIdMatch[1]);
-        await env.KUERRE_DB.prepare(`UPDATE partners SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();
+        const upd = await env.KUERRE_DB.prepare(`UPDATE partners SET ${sets.join(', ')} WHERE id = ?`).bind(...vals).run();
+        if (!upd.meta || upd.meta.changes === 0) return json({ error: 'Not found' }, 404);
         return json({ ok: true });
       }
 

@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <script>!function(){var v='196';if(location.search.indexOf('v='+v)<0){var u=new URL(location.href);u.searchParams.set('v',v);location.replace(u.toString());}}();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Fotos del Evento — KUERRE</title>
+<title id="page-title">Fotos del Evento — KUERRE</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -382,7 +382,9 @@ function applyBrand(b) {
   });
 }
 
-let settings = (() => { try { return JSON.parse(localStorage.getItem('KUERRE_settings')) || {}; } catch(e) { return {}; } })();
+// Arrancar el fetch de marca lo antes posible: EVENT_ID ya se conoce por URL,
+// así se evita la ventana donde se ven los valores de fallback.
+let _brandPromise = EVENT_ID ? loadBrand('fiesta', EVENT_ID) : null;
 
 function checkNSFW() {
   return { ok: true, uncertain: true };
@@ -428,7 +430,7 @@ async function init() {
   else setupMobile();
   document.getElementById('loading-screen').classList.add('hidden');
 
-  loadBrand('fiesta', EVENT_ID).then(function (b) {
+  (_brandPromise || loadBrand('fiesta', EVENT_ID)).then(function (b) {
     applyBrand(b);
     const tvb = document.getElementById('tv-brand');
     const lf  = document.getElementById('logo-float');
@@ -438,6 +440,8 @@ async function init() {
     } else if (lf) {
       lf.style.display = 'none';
     }
+    const pt = document.getElementById('page-title');
+    if (pt) pt.textContent = 'Fotos del Evento — ' + b.nombre;
   });
 }
 

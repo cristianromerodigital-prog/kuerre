@@ -598,6 +598,7 @@ const CFG = {
 };
 
 // ── Marca (white-label) ─────────────────────────────────────────────────────
+// Copiado igual en invite.html, invite-social.html, fiestas.html y entrega.html.
 function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
 
 async function loadBrand(scope, id) {
@@ -624,6 +625,9 @@ function applyBrand(b) {
 }
 
 let _brandResolved = null; // Guardar la marca resuelta para usarla en toasts
+// Arrancar el fetch de marca lo antes posible: si el folder ya vino por URL
+// (?folder=) no hace falta esperar al resto de init() para conocerlo.
+let _brandPromise = CFG.folderId ? loadBrand('entrega', CFG.folderId) : null;
 
 // ═══════════════════════════════════════════
 // STATE
@@ -801,7 +805,7 @@ async function init() {
   rootFolderId = CFG.folderId;
 
   // ── Aplicar marca dinámica (white-label) ──
-  loadBrand('entrega', CFG.folderId).then(function (b) {
+  (_brandPromise || loadBrand('entrega', CFG.folderId)).then(function (b) {
     _brandResolved = b;
     applyBrand(b);
     if (b.logo_url) applyLogo(b.logo_url);

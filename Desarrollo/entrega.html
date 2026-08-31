@@ -456,6 +456,9 @@ let CFG = {
   allowDownload: urlParams.get('dl') !== '0',
   overlay: urlParams.get('overlay') || 'violeta',
 };
+// Arrancar el fetch de marca lo antes posible: si el folder ya vino por URL
+// (?folder=) no hace falta esperar al resto de init() para conocerlo.
+let _brandPromise = CFG.folderId ? loadBrand('entrega', CFG.folderId) : null;
 // Ocultar todos los elementos de descarga si está deshabilitado
 function applyDownloadPolicy() {
   if(CFG.allowDownload) return;
@@ -611,7 +614,7 @@ async function init() {
   }
 
   // Aplicar marca (white-label) en paralelo (no bloquea nada)
-  loadBrand('entrega', CFG.folderId).then(function (b) {
+  (_brandPromise || loadBrand('entrega', CFG.folderId)).then(function (b) {
     applyBrand(b);
     applyAlbumWsp(b);
     if (b.logo_url) applyLogo(b.logo_url, '');
