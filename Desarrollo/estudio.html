@@ -44,7 +44,7 @@
 
   .fila{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
   .fila-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin-bottom:4px;}
-  .fila-top strong{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;color:var(--text);}
+  .fila-top strong{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;color:var(--text);word-break:break-word;overflow-wrap:break-word;}
   .fila-meta{font-size:12px;color:var(--text2);}
   .fila-contacto{font-size:12px;color:var(--text2);margin-bottom:10px;word-break:break-word;}
   .fila-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
@@ -53,6 +53,11 @@
   .fila-links button:active{background:rgba(144,96,184,0.18);}
 
   #toast{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:20;}
+
+  /* ---- error de carga ---- */
+  #error-view{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px;}
+  .error-box{width:100%;max-width:360px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 28px;box-shadow:0 12px 40px rgba(144,96,184,0.12);text-align:center;}
+  .error-msg{color:var(--text2);font-size:13px;margin:0 0 20px;line-height:1.6;}
 
   @media (max-width:420px){
     .login-box{padding:26px 20px;}
@@ -87,6 +92,13 @@
     </div>
   </div>
 
+  <div id="error-view">
+    <div class="error-box">
+      <p class="error-msg" id="error-msg">No se pudo cargar el panel. Probá de nuevo.</p>
+      <button class="login-btn" onclick="abrirPanel()">Reintentar</button>
+    </div>
+  </div>
+
   <div id="toast"></div>
 
 <script>
@@ -109,9 +121,16 @@ async function api(path) {
 
 function mostrarLogin(msg) {
   document.getElementById('panel-view').style.display = 'none';
+  document.getElementById('error-view').style.display = 'none';
   document.getElementById('login-view').style.display = 'block';
   const e = document.getElementById('login-error');
   if (msg) { e.textContent = msg; e.style.display = 'block'; } else { e.style.display = 'none'; }
+}
+
+function mostrarError() {
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('panel-view').style.display = 'none';
+  document.getElementById('error-view').style.display = 'flex';
 }
 
 async function entrar() {
@@ -137,18 +156,23 @@ async function entrar() {
 function salir() { setJwt(''); mostrarLogin(''); }
 
 async function abrirPanel() {
-  const marca = await api('/partner/me');
-  if (!marca) return;
-  document.getElementById('marca-nombre').textContent = marca.nombre || '';
-  const logo = document.getElementById('marca-logo');
-  if (marca.logo_url) { logo.src = marca.logo_url; logo.style.display = 'block'; }
-  else logo.style.display = 'none';
-  document.getElementById('login-view').style.display = 'none';
-  document.getElementById('panel-view').style.display = 'block';
-  const d = await api('/partner/clientes');
-  if (!d) return;
-  _clientes = d.clientes || [];
-  render();
+  document.getElementById('error-view').style.display = 'none';
+  try {
+    const marca = await api('/partner/me');
+    if (!marca) return;
+    const d = await api('/partner/clientes');
+    if (!d) return;
+    document.getElementById('marca-nombre').textContent = marca.nombre || '';
+    const logo = document.getElementById('marca-logo');
+    if (marca.logo_url) { logo.src = marca.logo_url; logo.style.display = 'block'; }
+    else logo.style.display = 'none';
+    _clientes = d.clientes || [];
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('panel-view').style.display = 'block';
+    render();
+  } catch(e) {
+    mostrarError();
+  }
 }
 
 function chip(texto, listo) {
@@ -161,7 +185,7 @@ function render() {
   const q = document.getElementById('buscador').value.trim().toLowerCase();
   const list = _clientes.filter(function(c) {
     if (!q) return true;
-    return (c.evento.nombre + ' ' + c.contacto.nombre).toLowerCase().indexOf(q) !== -1;
+    return ((c.evento.nombre || '') + ' ' + (c.contacto.nombre || '')).toLowerCase().indexOf(q) !== -1;
   });
   document.getElementById('vacio').style.display = _clientes.length ? 'none' : 'block';
   document.getElementById('lista').innerHTML = list.map(function(c, i) {
@@ -173,7 +197,7 @@ function render() {
     ].filter(Boolean).join(' ');
     return '<div class="fila">' +
       '<div class="fila-top"><strong>' + esc(c.evento.nombre) + '</strong>' +
-        '<span class="fila-meta">' + esc(c.evento.tipo) + ' · ' + fechaFmt(c.evento.fecha) + (c.evento.salon ? ' · ' + esc(c.evento.salon) : '') + '</span></div>' +
+        '<span class="fila-meta">' + esc(c.evento.tipo) + ' · ' + esc(fechaFmt(c.evento.fecha)) + (c.evento.salon ? ' · ' + esc(c.evento.salon) : '') + '</span></div>' +
       (contacto ? '<div class="fila-contacto">' + contacto + '</div>' : '') +
       '<div class="fila-chips">' +
         chip(c.estados.invitacion === 'lista' ? 'Invitación lista' : 'Invitación pendiente', c.estados.invitacion === 'lista') +
@@ -202,7 +226,7 @@ function toast(msg) {
 
 document.getElementById('buscador').addEventListener('input', render);
 document.getElementById('in-pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') entrar(); });
-if (getJwt()) abrirPanel().catch(function(){ mostrarLogin(''); });
+if (getJwt()) abrirPanel();
 else mostrarLogin('');
 </script>
 </body>
