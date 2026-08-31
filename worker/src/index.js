@@ -1216,6 +1216,17 @@ export default {
         const pid = await isPartner(request, env);
         if (!pid) return partnerJson({ error: 'Unauthorized' }, 401);
         const marca = await partnerPublic(env.KUERRE_DB, pid, url.origin);
+        // Los links de la demo permanente pintada con esta marca: es lo que el
+        // estudio le muestra a un cliente que todavia no le compro nada. Van
+        // como rutas, igual que los links de /partner/clientes: el dominio lo
+        // pone la pagina con su propio origin.
+        const meSlug = await env.KUERRE_DB.prepare('SELECT slug FROM partners WHERE id = ?').bind(pid).first();
+        const mParam = meSlug && meSlug.slug ? '&m=' + encodeURIComponent(meSlug.slug) : '';
+        marca.demos = {
+          invitacion: '/invite.html?i=demo' + mParam,
+          fiesta:     '/fiestas.html?e=demo' + mParam,
+          entrega:    '/premiere.html?id=demo' + mParam
+        };
         return partnerJson(marca);
       }
 
