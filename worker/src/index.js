@@ -1,4 +1,4 @@
-﻿import { corsHeaders, json, mountCoreRouter, isAdmin, arrayBufferToBase64, resolveEventId } from '@crd/kuerre-core';
+﻿import { corsHeaders, json, mountCoreRouter, isAdmin, arrayBufferToBase64, resolveEventId, signJWT, verifyJWT } from '@crd/kuerre-core';
 import brandedAdminHtml from '../../Productivo/admin.html';
 
 // ── Eventos Hub ──
@@ -715,6 +715,74 @@ async function partnerPublic(db, partnerId, origin) {
   };
 }
 
+// ── Acceso de los estudios (panel de solo lectura) ──────────────────────────
+const PBKDF2_ITER      = 100000;
+const LOGIN_MAX_FAILS  = 8;
+const LOGIN_LOCK_MS    = 15 * 60 * 1000;
+const PARTNER_SESSION_HOURS = 8;
+
+function b64enc(bytes) { return btoa(String.fromCharCode(...bytes)); }
+function b64dec(s)     { return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
+
+async function pbkdf2Bits(pass, salt, iter, bits) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveBits']);
+  const out = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, key, bits);
+  return new Uint8Array(out);
+}
+
+// Formato: pbkdf2$<iteraciones>$<salt_b64>$<hash_b64>. La clave nunca se guarda.
+async function makePassHash(pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const h = await pbkdf2Bits(String(pass), salt, PBKDF2_ITER, 256);
+  return `pbkdf2$${PBKDF2_ITER}$${b64enc(salt)}$${b64enc(h)}`;
+}
+
+async function verifyPassHash(pass, stored) {
+  const parts = String(stored || '').split('$');
+  if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
+  const iter = parseInt(parts[1], 10);
+  if (!iter || iter < 1000) return false;
+  let salt, expected;
+  try { salt = b64dec(parts[2]); expected = b64dec(parts[3]); } catch { return false; }
+  if (!expected.length) return false;
+  const got = await pbkdf2Bits(String(pass), salt, iter, expected.length * 8);
+  if (got.length !== expected.length) return false;
+  // Comparacion en tiempo constante: un === sobre strings filtra cuanto coincide.
+  let diff = 0;
+  for (let i = 0; i < got.length; i++) diff |= got[i] ^ expected[i];
+  return diff === 0;
+}
+
+function parseLoginFails(v) {
+  const [n, ts] = String(v || '').split('|');
+  return { n: parseInt(n || '0', 10) || 0, ts: parseInt(ts || '0', 10) || 0 };
+}
+
+// Un solo UPDATE: leer y despues escribir se puede esquivar mandando intentos en
+// paralelo. El CASE tambien reinicia la cuenta si la ventana de bloqueo ya paso.
+async function bumpLoginFails(db, pid) {
+  const now = Date.now();
+  await db.prepare(`
+    UPDATE partners
+       SET login_fails = CAST(
+             CASE WHEN instr(login_fails, '|') > 0
+                   AND (? - CAST(substr(login_fails, instr(login_fails, '|') + 1) AS INTEGER)) < ?
+                  THEN CAST(substr(login_fails, 1, instr(login_fails, '|') - 1) AS INTEGER) + 1
+                  ELSE 1 END AS TEXT) || '|' || CAST(? AS TEXT)
+     WHERE id = ?`).bind(now, LOGIN_LOCK_MS, now, pid).run();
+}
+
+// Devuelve el partner_id del token, o null. El id SIEMPRE sale de aca:
+// ningun endpoint de partner lo acepta por parametro.
+async function isPartner(request, env) {
+  const auth = request.headers.get('Authorization') || '';
+  if (!auth.startsWith('Bearer ')) return null;
+  try {
+    const p = await verifyJWT(auth.slice(7), env.ADMIN_JWT_SECRET);
+    return (p && p.role === 'partner' && p.pid) ? String(p.pid) : null;
+  } catch { return null; }
+}
+
 const PARTNER_LOGO_MIME = {
   'image/png':     'png',
   'image/jpeg':    'jpg',
@@ -1069,6 +1137,36 @@ export default {
         const pubVal = await env.KUERRE_KV.get(pubKvMatch[1]);
         if (pubVal === null) return json({ error: 'Not found' }, 404);
         try { return json(JSON.parse(pubVal)); } catch { return new Response(pubVal, { headers: { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' } }); }
+      }
+
+      // ── Login del panel del estudio ───────────────────────────────────────
+      if (path === '/partner/login' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const usuario = String(body.usuario || '').trim();
+        const pass    = String(body.pass || '');
+        // Mismo error para usuario inexistente, clave incorrecta y marca
+        // desactivada: no se le dice al atacante cual de las tres fallo.
+        const generico = () => json({ error: 'Usuario o contraseña incorrectos' }, 401);
+        if (!usuario || !pass) return generico();
+        const row = await env.KUERRE_DB.prepare(
+          "SELECT id, pass_hash, login_fails FROM partners WHERE usuario = ? AND usuario != '' AND activo = 1"
+        ).bind(usuario).first();
+        if (!row || !row.pass_hash) return generico();
+        const f = parseLoginFails(row.login_fails);
+        if (f.n >= LOGIN_MAX_FAILS && (Date.now() - f.ts) < LOGIN_LOCK_MS) {
+          const mins = Math.ceil((LOGIN_LOCK_MS - (Date.now() - f.ts)) / 60000);
+          return json({ error: `Demasiados intentos. Probá de nuevo en ${mins} minuto${mins === 1 ? '' : 's'}.` }, 429);
+        }
+        if (!await verifyPassHash(pass, row.pass_hash)) {
+          await bumpLoginFails(env.KUERRE_DB, row.id);
+          return generico();
+        }
+        await env.KUERRE_DB.prepare("UPDATE partners SET login_fails = '' WHERE id = ?").bind(row.id).run();
+        const token = await signJWT(
+          { role: 'partner', pid: row.id, exp: Math.floor(Date.now() / 1000) + PARTNER_SESSION_HOURS * 3600 },
+          env.ADMIN_JWT_SECRET
+        );
+        return json({ token });
       }
 
       // ── Marca pública de una pieza (invitación / fiesta / entrega) ─────────
