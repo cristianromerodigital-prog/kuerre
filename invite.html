@@ -465,7 +465,7 @@ footer small a{color:inherit}
 <footer>
   <p id="footer-names"></p>
   <img id="footer-logo" alt="Logo">
-  <small>Invitación digital · <a id="invite-footer-web" href="https://www.KUERRE.com.ar" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">KUERRE</a> · <a id="invite-footer-ig" href="https://www.instagram.com/cristian.romero.digital" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">@KUERRE.com.ar</a></small>
+  <small>Invitación digital · <a id="invite-footer-web" data-brand="web" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px"><span data-brand="nombre">KUERRE</span></a> · <a id="invite-footer-ig" data-brand="ig" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">@KUERRE.com.ar</a></small>
 </footer>
 
 </div><!-- /invite-app -->
@@ -477,12 +477,37 @@ footer small a{color:inherit}
 let cfg = null;
 const CONFIG = {
   CF_URL:      'https://KUERRE-worker.cristian-romero-digital.workers.dev',
-  IG_DEFAULT:  'https://www.instagram.com/cristian.romero.digital/',
-  WEB_DEFAULT: 'https://KUERRE.com.ar',
   LOCALE:      'es-AR'
 };
 const CF_URL_INV = CONFIG.CF_URL; // alias para compatibilidad
 const PREVIEW_MODE = new URLSearchParams(location.search).get('preview') === '1';
+
+// ── Marca (white-label) ─────────────────────────────────────────────────────
+// Copiado igual en invite.html, invite-social.html, fiestas.html y premiere.html.
+function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
+
+async function loadBrand(scope, id) {
+  const fallback = { nombre: 'KUERRE', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: 'https://kuerre.com.ar' };
+  try {
+    const r = await fetch(CF_URL_INV + '/brand?scope=' + scope + '&id=' + encodeURIComponent(id || ''));
+    if (!r.ok) throw new Error('brand ' + r.status);
+    return Object.assign(fallback, await r.json());
+  } catch (e) { return fallback; }
+}
+
+function applyBrand(b) {
+  document.querySelectorAll('[data-brand]').forEach(function (el) {
+    const k = el.getAttribute('data-brand');
+    if (k === 'nombre') { el.textContent = b.nombre; return; }
+    if (k === 'slogan') { if (b.slogan) el.textContent = b.slogan; else el.style.display = 'none'; return; }
+    if (k === 'logo')   { if (b.logo_url) { el.src = b.logo_url; el.style.display = ''; } else el.style.display = 'none'; return; }
+    // Ojo: varios de estos anchors arrancan con display:none inline, así que
+    // cuando el dato existe hay que mostrarlos explícitamente.
+    if (k === 'web')    { if (b.web) { el.href = b.web; el.style.display = ''; } else el.style.display = 'none'; return; }
+    if (k === 'ig')     { if (b.instagram) { el.href = brandIgUrl(b.instagram); el.style.display = ''; } else el.style.display = 'none'; return; }
+    if (k === 'wa')     { if (b.whatsapp) { el.href = 'https://wa.me/' + b.whatsapp.replace(/\D/g, ''); el.style.display = ''; } else el.style.display = 'none'; return; }
+  });
+}
 
 // ── PARTÍCULAS AERO ──
 let _aeroRAF = null, _aeroCanvas = null;
@@ -1406,7 +1431,7 @@ async function init() {
   renderSpotify(cfg);
   renderNav(cfg);
   applyAllTextStyles(cfg.text_styles);
-  const logoSrc = cfg.logo_dark || localStorage.getItem('KUERRE_site_logo');
+  const logoSrc = cfg.logo_dark || '';
   if (logoSrc) { const el = document.getElementById('footer-logo'); el.src = logoSrc; el.style.display = 'block'; }
   if (cfg.youtube_audio && cfg.env_mostrar !== false) {
     showEnvelope(cfg);
@@ -1418,22 +1443,17 @@ async function init() {
     if (cfg.youtube_audio) initYoutubeAudio(cfg.youtube_audio);
     // sin sobre: unmute en primer scroll/touch/click (manejado dentro de initYoutubeAudio)
   }
-  // Load branding from KUERRE_settings
-  try {
-    const sRes = await fetch(CF_URL_INV + '/KUERRE_settings?t=' + Date.now());
-    const sText = await sRes.text();
-    if (sText && sText !== 'null') {
-      const s = JSON.parse(sText);
-      const webEl = document.getElementById('invite-footer-web');
-      const igEl  = document.getElementById('invite-footer-ig');
-      if (webEl) { webEl.href = s.entregaWebUrl || CONFIG.WEB_DEFAULT; }
-      if (igEl) {
-        const _igHref = s.entregaIgUrl || CONFIG.IG_DEFAULT;
-        igEl.href = _igHref;
-        if (s.entregaIgUrl) igEl.textContent = s.entregaIgUrl.replace('https://www.instagram.com/','@').replace('https://instagram.com/','@').replace(/\/$/,'');
-      }
-    }
-  } catch(e) {}
+  const _brand = await loadBrand('invite', new URLSearchParams(location.search).get('i') || '');
+  applyBrand(_brand);
+  const _igEl = document.getElementById('invite-footer-ig');
+  if (_igEl && _brand.instagram) {
+    _igEl.textContent = '@' + brandIgUrl(_brand.instagram)
+      .replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '');
+  }
+  if (!logoSrc && _brand.logo_url) {
+    const _le = document.getElementById('footer-logo');
+    if (_le) { _le.src = _brand.logo_url; _le.style.display = 'block'; }
+  }
 }
 
 function startInviteParticles(type, size) {
