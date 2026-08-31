@@ -201,10 +201,10 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 
 <div id="unavailable">
   <div class="msg-title">Este evento ya no está disponible</div>
-  <div class="msg-sub">KUERRE</div>
+  <div class="msg-sub" data-brand="nombre">KUERRE</div>
 </div>
 
-<div id="top-brand">KUERRE</div>
+<div id="top-brand" data-brand="nombre">KUERRE</div>
 
 <section id="hero">
   <div id="hero-bg"></div>
@@ -213,7 +213,7 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
     <div class="hero-logo-seal" id="hero-logo-seal">
       <img class="hero-logo" id="hero-logo-img" alt="CR">
     </div>
-    <div class="hero-brand">KUERRE</div>
+    <div class="hero-brand" data-brand="nombre">KUERRE</div>
     <div id="hero-nombres" class="hero-nombres"></div>
     <div class="hero-divider"><span class="hero-divider-star">✦</span></div>
     <div id="hero-fecha" class="hero-fecha"></div>
@@ -243,9 +243,9 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
       <div class="tv-scan-label">ESCANEÁ Y<br>PARTÍ TU MOMENTO</div>
       <img id="tv-qr-img" alt="QR">
       <div id="tv-brand" style="display:none;text-align:center;line-height:1.3;display:none">
-        <img id="tv-logo" alt="CR" style="display:block;margin:0 auto 6px">
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(10px,1vw,13px);color:rgba(255,255,255,.8);letter-spacing:.06em">KUERRE</div>
-        <div style="font-size:clamp(7px,.7vw,9px);letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:2px">KUERRE</div>
+        <img id="tv-logo" alt="CR" data-brand="logo" style="display:block;margin:0 auto 6px">
+        <div data-brand="nombre" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(10px,1vw,13px);color:rgba(255,255,255,.8);letter-spacing:.06em">KUERRE</div>
+        <div data-brand="slogan" style="font-size:clamp(7px,.7vw,9px);letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:2px">KUERRE</div>
       </div>
     </div>
     <div id="tv-main">
@@ -280,10 +280,10 @@ body.custom-cursor *, body.custom-cursor *::before, body.custom-cursor *::after 
 <div id="upload-progress">Subiendo foto...</div>
 
 <div id="social-float">
-  <a id="logo-float" class="sfloat-btn" href="https://cristianromeroKUERRE.com.ar" target="_blank">
-    <img id="logo-float-img" alt="CR">
+  <a id="logo-float" class="sfloat-btn" href="#" target="_blank" rel="noopener">
+    <img id="logo-float-img" alt="CR" data-brand="logo">
   </a>
-  <a id="ig-float" class="sfloat-btn" href="https://www.instagram.com/cristian.romero.KUERRE" target="_blank">
+  <a id="ig-float" class="sfloat-btn" href="#" data-brand="ig" target="_blank" rel="noopener">
     <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" width="26" height="26"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-linecap="round" stroke-width="2.5"/></svg>
   </a>
 </div>
@@ -355,12 +355,38 @@ const WORKER_URL = 'https://KUERRE-worker.cristian-romero-digital.workers.dev';
 const params = new URLSearchParams(window.location.search);
 const EVENT_ID = params.get('e') || '';
 
+// ── Marca (white-label) ─────────────────────────────────────────────────────
+// Copiado igual en invite.html, invite-social.html, entrega.html y premiere.html.
+function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
+
+async function loadBrand(scope, id) {
+  const fallback = { nombre: 'KUERRE', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: 'https://kuerre.com.ar' };
+  try {
+    const r = await fetch(WORKER_URL + '/brand?scope=' + scope + '&id=' + encodeURIComponent(id || ''));
+    if (!r.ok) throw new Error('brand ' + r.status);
+    return Object.assign(fallback, await r.json());
+  } catch (e) { return fallback; }
+}
+
+function applyBrand(b) {
+  document.querySelectorAll('[data-brand]').forEach(function (el) {
+    const k = el.getAttribute('data-brand');
+    if (k === 'nombre') { el.textContent = b.nombre; return; }
+    if (k === 'slogan') { if (b.slogan) el.textContent = b.slogan; else el.style.display = 'none'; return; }
+    if (k === 'logo')   { if (b.logo_url) { el.src = b.logo_url; el.style.display = ''; } else el.style.display = 'none'; return; }
+    // Ojo: varios de estos anchors arrancan con display:none inline, así que
+    // cuando el dato existe hay que mostrarlos explícitamente.
+    if (k === 'web')    { if (b.web) { el.href = b.web; el.style.display = ''; } else el.style.display = 'none'; return; }
+    if (k === 'ig')     { if (b.instagram) { el.href = brandIgUrl(b.instagram); el.style.display = ''; } else el.style.display = 'none'; return; }
+    if (k === 'wa')     { if (b.whatsapp) { el.href = 'https://wa.me/' + b.whatsapp.replace(/\D/g, ''); el.style.display = ''; } else el.style.display = 'none'; return; }
+  });
+}
+
 let settings = (() => { try { return JSON.parse(localStorage.getItem('KUERRE_settings')) || {}; } catch(e) { return {}; } })();
 
 function checkNSFW() {
   return { ok: true, uncertain: true };
 }
-fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/site/config',{headers:{Authorization:'crd2025'}}).then(r=>r.json()).then(function(d){ settings=Object.assign({},settings,{logo_url:d.logoUrl||'',whatsapp:d.waSuffix||'',website:d.entregaWebUrl||'',instagram:d.instagram||'',entregaIgUrl:d.entregaIgUrl||''}); applyBranding(); }).catch(function(){});
 
 let evento = null;
 let fotos = [];
@@ -398,28 +424,27 @@ async function init() {
     if (evento.error) { showUnavailable(); return; }
   } catch(e) { showUnavailable(); return; }
 
-  applyBranding();
   if (IS_TV) setupTV();
   else setupMobile();
   document.getElementById('loading-screen').classList.add('hidden');
+
+  loadBrand('fiesta', EVENT_ID).then(function (b) {
+    applyBrand(b);
+    const tvb = document.getElementById('tv-brand');
+    const lf  = document.getElementById('logo-float');
+    if (b.logo_url) {
+      if (tvb) tvb.style.display = 'block';
+      if (lf)  { lf.href = b.web || '#'; lf.style.display = 'flex'; }
+    } else if (lf) {
+      lf.style.display = 'none';
+    }
+  });
 }
 
 function isClosed() {
   if (evento.estado !== 'activo') return true;
   if (evento.cierre_auto && new Date() > new Date(evento.cierre_auto)) return true;
   return false;
-}
-
-function applyBranding() {
-  const logo = settings.logo_url || '';
-  if (logo) {
-    document.getElementById('tv-logo').src = logo;
-    document.getElementById('tv-brand').style.display = 'block';
-    document.getElementById('logo-float-img').src = logo;
-    document.getElementById('logo-float').style.display = 'flex';
-  }
-  const igUrl = settings.entregaIgUrl || (settings.instagram ? 'https://www.instagram.com/'+settings.instagram : '');
-  if (igUrl) document.getElementById('ig-float').href = igUrl;
 }
 
 // ── WELCOME MODAL ──
