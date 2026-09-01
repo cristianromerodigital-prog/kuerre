@@ -1466,7 +1466,15 @@ async function init() {
   }
   if (!logoSrc && _brand.logo_url) {
     const _le = document.getElementById('footer-logo');
-    if (_le) { _le.src = _brand.logo_url; _le.style.display = 'block'; }
+    // El CSS de #footer-logo invierte el logo (pensado para el de Kuerre, que es
+    // oscuro). Cuando el logo viene de la marca, manda el tratamiento de ella:
+    // uno ya claro, invertido, queda negro y no se ve.
+    if (_le) {
+      _le.src = _brand.logo_url;
+      _le.style.display = 'block';
+      if (_brand.logo_filter) _le.style.filter = _brand.logo_filter;
+      if (_brand.logo_blend)  _le.style.mixBlendMode = _brand.logo_blend;
+    }
   }
 }
 
