@@ -390,6 +390,8 @@ const CONFIG = {
 // Copiado igual en invite.html, invite-social.html, fiestas.html y premiere.html.
 // La config puede venir del cliente (formulario de estilos / solicitud): una URL
 // se usa solo si es https, así nunca entra un javascript: ni algo que rompa el atributo.
+// Texto de la config que va dentro de un template HTML: siempre escapado.
+function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function safeHttpsUrl(u) { try { return new URL(String(u || '')).protocol === 'https:' ? String(u) : ''; } catch (e) { return ''; } }
 function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
 
@@ -691,7 +693,7 @@ function mostrarPregunta() {
   document.getElementById('trivia-question').textContent = p.pregunta;
   document.getElementById('trivia-next').style.display = 'none';
   document.getElementById('trivia-options').innerHTML = p.opciones.map((op, i) =>
-    `<button class="trivia-option" onclick="responder(${i})">${op}</button>`
+    `<button class="trivia-option" onclick="responder(${i})">${escHtml(op)}</button>`
   ).join('');
 }
 

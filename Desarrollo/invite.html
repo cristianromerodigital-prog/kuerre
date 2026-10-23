@@ -577,6 +577,8 @@ function toggleSound() {
 
 // La config puede venir del cliente (formulario de estilos / solicitud): una URL
 // se usa solo si es https, así nunca entra un javascript: ni algo que rompa el atributo.
+// Texto de la config que va dentro de un template HTML: siempre escapado.
+function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function safeHttpsUrl(u) { try { return new URL(String(u || '')).protocol === 'https:' ? String(u) : ''; } catch (e) { return ''; } }
 
 function fmtHs(h) { if (!h) return ''; const t = h.trim(); return /hs\.?\s*$/i.test(t) ? t : t + ' hs.'; }
@@ -1243,7 +1245,8 @@ function renderEvento(c) {
   };
   const subtDefault = SUBTITULOS_DEFAULT[c.tipo] || SUBTITULOS_DEFAULT.casamiento;
   const subtRaw = c.subtitulo_html || '';
-  const subtFinal = subtRaw ? subtRaw.replace(/\*([^*]+)\*/g, '<em>$1</em>') : subtDefault;
+  // Se escapa primero: lo único que se convierte en HTML es *texto* → <em>texto</em>.
+  const subtFinal = subtRaw ? escHtml(subtRaw).replace(/\*([^*]+)\*/g, '<em>$1</em>') : subtDefault;
   const EV_LABELS = { casamiento:'El gran día', quinces:'La celebración', cumpleanos:'La celebración', save_the_date:'Guardá la fecha', otro:'El evento' };
   document.getElementById('ev-label').textContent = EV_LABELS[c.tipo] || 'El gran día';
   document.getElementById('ev-title').innerHTML = subtFinal;
@@ -1263,7 +1266,7 @@ function renderEvento(c) {
       <div class="evento-item">
         <div class="evento-icon">${it.icon === 'church' ? svgChurch() : it.icon === 'clock' ? svgClock() : svgParty()}</div>
         <span class="evento-label">${it.label}</span>
-        <div class="evento-hora">${it.hora}</div>
+        <div class="evento-hora">${escHtml(it.hora)}</div>
       </div>`).join('');
   } else {
     grid.style.display = 'none';
@@ -1346,8 +1349,9 @@ function renderRSVP(c) {
   if (titleCustom) titleEl.textContent = titleCustom;
   else titleEl.innerHTML = '¿<em>Venís</em>?';
   const bodyTpl = (c.text_content && c.text_content['rsvp-body']) || 'Por favor confirmá antes del {fecha}.';
-  const fechaSpan = `<span id="rsvp-fecha-limite" style="color:var(--gold2)">${formatFechaLimite(c.rsvp_limite) || ''}</span>`;
-  document.getElementById('rsvp-body').innerHTML = bodyTpl.includes('{fecha}') ? bodyTpl.replace('{fecha}', fechaSpan) : bodyTpl;
+  const fechaSpan = `<span id="rsvp-fecha-limite" style="color:var(--gold2)">${escHtml(formatFechaLimite(c.rsvp_limite) || '')}</span>`;
+  const bodyEsc = escHtml(bodyTpl);
+  document.getElementById('rsvp-body').innerHTML = bodyEsc.includes('{fecha}') ? bodyEsc.replace('{fecha}', fechaSpan) : bodyEsc;
   const alergiaEl = document.getElementById('rsvp-alergia');
   if (!alergiaEl.dataset.bound) {
     alergiaEl.dataset.bound = '1';

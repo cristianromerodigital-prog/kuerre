@@ -14,7 +14,13 @@ const malicioso = {
   spotify_url: `https://open.spotify.com/x"><img src=x onerror=${PWN}>`,
   album_url: `javascript:${PWN}`,
   carousel_images_1: [`x" onerror="${PWN}`, 'https://example.com/ok.jpg'],
-  rsvp_activo: true
+  rsvp_activo: true,
+  // campos de texto que terminan dentro de HTML (revisión final)
+  subtitulo_html: `Hola *<img src=x onerror=${PWN}>*`,
+  ceremonia_hora: `<img src=x onerror=${PWN}>`, recepcion_hora: `<img src=x onerror=${PWN}>`, fin_fiesta_hora: `<img src=x onerror=${PWN}>`,
+  rsvp_limite: `2026-1-<img src=x onerror=${PWN}>`,
+  text_content: { 'rsvp-body': `Confirmá antes del {fecha} <img src=x onerror=${PWN}>` },
+  trivia_activa: true, trivia_preguntas: [{ pregunta: 'P', opciones: [`<img src=x onerror=${PWN}>`, 'B'], correcta: 0 }]
 };
 
 let srv, br;
@@ -33,6 +39,7 @@ for (const page of ['invite.html', 'invite-social.html']) {
   test(`${page}: config maliciosa no ejecuta ni inyecta nada`, async () => {
     const modelo = page === 'invite-social.html' ? 'social' : 'clasico';
     await br.goto(`${srv.url}/${page}?c=${cfgParam({ ...malicioso, modelo })}`, 3500);
+    if (page === 'invite-social.html') { await br.eval('mostrarPregunta()'); await br.sleep(200); } // la trivia se arma al tocar "empezar"
     const e = await estado();
     assert.equal(e.pwn, false, 'se ejecutó código inyectado');
     assert.deepEqual(e.jsLinks, [], 'quedaron links javascript:');
@@ -79,4 +86,20 @@ test('invite-social.html: portada en video https sigue cargando y reproduciendo'
   assert.equal(r.tag, 'VIDEO');
   assert.equal(r.src, video);
   assert.equal(r.playing, true);
+});
+
+test('invite.html: el subtítulo sigue convirtiendo *texto* en cursiva y la fecha límite del RSVP se muestra', async () => {
+  await br.goto(`${srv.url}/invite.html?c=${cfgParam({ novios: 'A', tipo: 'casamiento', subtitulo_html: 'Los invitamos a nuestro *casamiento* & más', rsvp_activo: true, rsvp_limite: '2026-11-01', recepcion_hora: '21:00' })}`, 2500);
+  const r = JSON.parse(await br.eval(`JSON.stringify({ em: (document.querySelector('#ev-title em') || {}).textContent, titulo: document.getElementById('ev-title').textContent, rsvp: document.getElementById('rsvp-body').textContent, hora: (document.querySelector('#ev-grid .evento-hora') || {}).textContent })`));
+  assert.equal(r.em, 'casamiento');
+  assert.equal(r.titulo, 'Los invitamos a nuestro casamiento & más');
+  assert.equal(r.rsvp, 'Por favor confirmá antes del 1 de noviembre de 2026.');
+  assert.equal(r.hora, '21:00 hs.');
+});
+
+test('invite-social.html: la trivia muestra las opciones como texto', async () => {
+  await br.goto(`${srv.url}/invite-social.html?c=${cfgParam({ modelo: 'social', novios: 'A', trivia_activa: true, trivia_preguntas: [{ pregunta: '¿Color?', opciones: ['<b>Rojo</b>', 'Azul'], correcta: 0 }] })}`, 2500);
+  await br.eval('mostrarPregunta()');
+  const ops = JSON.parse(await br.eval(`JSON.stringify([...document.querySelectorAll('#trivia-options .trivia-option')].map(b => b.textContent))`));
+  assert.deepEqual(ops, ['<b>Rojo</b>', 'Azul']);
 });
