@@ -837,8 +837,8 @@ async function exportCSV() {
     if (!confirm(msg)) return;
   }
   const rows = _all.filter(r => _filter === 'todos' || r.asistencia === _filter);
-  const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa'];
-  const datos = rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '']);
+  const header = ['Fila','Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa'];
+  const datos = rows.map(r => [numero(r), r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '']);
   // Arriba de todo, lo que necesita el catering (mismo cálculo que el resumen del panel).
   const catering = cateringConteo();
   const textoCatering = catering.length ? 'Para el catering (confirmados): ' + catering.map(([l, n]) => l + ': ' + n + '.').join(' ') : '';
@@ -898,7 +898,8 @@ function armarXlsx(textoCatering, header, datos) {
     ? `<c r="${ref}" s="${est}"><v>${v}</v></c>`
     : `<c r="${ref}" s="${est}" t="inlineStr"><is><t xml:space="preserve">${escXml(v)}</t></is></c>`;
   // Ancho de cada columna según su contenido más largo (entre 10 y 45 caracteres).
-  const anchos = cols.map((_, i) => Math.min(45, Math.max(10, ...[header, ...datos].map(f => String(f[i] == null ? '' : f[i]).length + 2))));
+  // (las columnas numéricas, como Fila, pueden ser más angostas: mínimo 6).
+  const anchos = cols.map((_, i) => Math.min(45, Math.max(datos.every(f => typeof f[i] === 'number') ? 6 : 10, ...[header, ...datos].map(f => String(f[i] == null ? '' : f[i]).length + 2))));
   const totalAncho = anchos.reduce((a, b) => a + b, 0);
   const filas = [];
   const lineasCat = Math.max(1, Math.ceil(textoCatering.length / (totalAncho * 1.1)));
