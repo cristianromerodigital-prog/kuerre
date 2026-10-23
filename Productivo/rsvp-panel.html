@@ -67,9 +67,6 @@ th.sortable{cursor:pointer;user-select:none}
 /* toda la celda es tocable: en el celular la casilla sola es un blanco chico */
 .sel-cell label,.sel-all{display:inline-flex;align-items:center;cursor:pointer;padding:6px 4px;min-height:32px}
 .sel-all{font-size:9px;letter-spacing:1px;color:#888;text-transform:uppercase;white-space:nowrap}
-#sort-fila{display:block;cursor:pointer;margin-top:4px;color:#555}
-/* en el encabezado de la tabla, "Seleccionar todos" en dos renglones para no ensanchar la columna */
-#table-wrap thead .sel-all{white-space:normal;max-width:96px;line-height:1.3}
 .elim-lbl{display:inline-flex;align-items:center;cursor:pointer;flex:1;min-height:32px}
 .elim-fila .fecha{font-size:11px;color:#777}
 #sort-fila:hover{color:#00c896}
@@ -220,6 +217,7 @@ footer small a{color:inherit}
     </div>
   </div>
 </div>
+<label class="sel-all" id="sel-todos-wrap" style="margin:0 0 4px 8px"><input type="checkbox" id="sel-todos" title="Elegir todos los que se ven" onchange="toggleTodos(this.checked)">Seleccionar todos</label>
 <div id="table-wrap"></div>
 <details id="elim-wrap">
   <summary id="elim-titulo">Eliminados (0)</summary>
@@ -731,11 +729,12 @@ function renderTable() {
   });
   _visibles = rows.map(r => r.id);
   renderSelBar();
+  document.getElementById('sel-todos-wrap').style.display = rows.length ? '' : 'none';
   if (!rows.length) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
   const occ = ocupacion();
   rows = ordenar(rows);
   document.getElementById('table-wrap').innerHTML = `<table>
-    <thead><tr><th><label class="sel-all"><input type="checkbox" id="sel-todos" title="Elegir todos los que se ven" onchange="toggleTodos(this.checked)"${_visibles.every(id => _selected.has(id)) ? ' checked' : ''}>Seleccionar todos</label><span id="sort-fila" onclick="sortBy('fila')">Fila${_sort.col === 'fila' ? (_sort.dir === 1 ? ' ▲' : ' ▼') : ''}</span></th>${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Alimentación')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}<th></th></tr></thead>
+    <thead><tr><th class="sortable" id="sort-fila" onclick="sortBy('fila')">Fila${_sort.col === 'fila' ? (_sort.dir === 1 ? ' ▲' : ' ▼') : ''}</th>${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Alimentación')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}<th></th></tr></thead>
     <tbody>${rows.map((r, i) => `<tr${r.asistencia === 'si' && !r.mesa ? ' class="sin-mesa" title="Confirmado sin mesa asignada"' : ''}>
       <td class="sel-cell" style="color:#555;white-space:nowrap"><label><input type="checkbox" class="sel-fila" aria-label="Elegir fila ${numero(r)}"${_selected.has(r.id) ? ' checked' : ''} onchange="toggleSel(${r.id}, this.checked)"><span class="num-fila">${numero(r)}</span></label></td>
       <td>
@@ -841,7 +840,7 @@ async function exportCSV() {
   const lista = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '', fmtDate(r.created_at), fmtDate(r.modificado_at)])].map(celdas);
   // Arriba de todo, lo que necesita el catering (mismo cálculo que el resumen del panel).
   const catering = cateringConteo();
-  const csv = (catering.length ? [celdas(['Para el catering (confirmados)', 'Cantidad']), ...catering.map(celdas), ''] : []).concat(lista).join('\n');
+  const csv = (catering.length ? [celdas(['Para el catering (confirmados): ' + catering.map(([l, n]) => l + ': ' + n + '.').join(' ')]), ''] : []).concat(lista).join('\n');
   const name = 'invitados-' + slug + '.csv';
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
   // En el celular (iPhone, navegador de WhatsApp) los links de descarga no bajan
