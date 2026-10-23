@@ -138,7 +138,7 @@ footer small a{color:inherit}
   <div class="stat no"><div class="stat-n" id="st-no">—</div><div class="stat-l">No asisten</div></div>
 </div>
 <div class="actions">
-  <button class="btn" onclick="exportCSV()">⬇ Exportar CSV</button>
+  <button class="btn" onclick="exportCSV()">⬇ Exportar Excel</button>
   <button class="btn btn-share" onclick="shareUrl()">WhatsApp 📲</button>
   <button class="btn" id="add-btn" style="border-color:#c9a84c;color:#c9a84c" onclick="openAdd()">+ Agregar invitado</button>
 </div>
@@ -838,17 +838,16 @@ async function exportCSV() {
   }
   const rows = _all.filter(r => _filter === 'todos' || r.asistencia === _filter);
   const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa','Respondió el','Se modificó el'];
-  const celdas = fila => fila.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',');
-  const lista = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '', fmtDate(r.created_at), fmtDate(r.modificado_at)])].map(celdas);
+  const datos = rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '', fmtDate(r.created_at), fmtDate(r.modificado_at)]);
   // Arriba de todo, lo que necesita el catering (mismo cálculo que el resumen del panel).
   const catering = cateringConteo();
-  const csv = (catering.length ? [celdas(['Para el catering (confirmados): ' + catering.map(([l, n]) => l + ': ' + n + '.').join(' ')]), ''] : []).concat(lista).join('\n');
-  const name = 'invitados-' + slug + '.csv';
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const textoCatering = catering.length ? 'Para el catering (confirmados): ' + catering.map(([l, n]) => l + ': ' + n + '.').join(' ') : '';
+  const name = 'invitados-' + slug + '.xlsx';
+  const blob = armarXlsx(textoCatering, header, datos);
   // En el celular (iPhone, navegador de WhatsApp) los links de descarga no bajan
   // nada: se abre el menú Compartir del sistema (Guardar en Archivos, abrir con
   // Excel/Numbers/Sheets, mandar por WhatsApp). En la compu, descarga directa.
-  const file = new File([blob], name, { type: 'text/csv' });
+  const file = new File([blob], name, { type: XLSX_MIME });
   if (matchMedia('(pointer: coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file], title: name }); return; }
     catch (e) { if (e.name === 'AbortError') return; }
@@ -861,6 +860,89 @@ async function exportCSV() {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// ── Excel (.xlsx) armado a mano ─────────────────────────────────────────────
+// Sin librerías y sincrónico: así, en el celular, el menú Compartir se abre dentro
+// del mismo toque (iOS lo exige). Un .xlsx es un ZIP con XML de Office; acá va sin
+// compresión. Estilos: 1 = catering (blanco, combinado), 2 = encabezado (negro,
+// texto blanco), 3 / 4 = filas intercaladas blanca / gris claro.
+const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const CRC_TABLA = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_TABLA[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipSinCompresion(archivos) {
+  const enc = new TextEncoder(), partes = [], central = [];
+  let off = 0;
+  archivos.forEach(([nombre, texto]) => {
+    const n = enc.encode(nombre), d = enc.encode(texto), crc = crc32(d);
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+    h.setUint16(12, 33, true); h.setUint32(14, crc, true); h.setUint32(18, d.length, true); h.setUint32(22, d.length, true); h.setUint16(26, n.length, true);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+    c.setUint16(14, 33, true); c.setUint32(16, crc, true); c.setUint32(20, d.length, true); c.setUint32(24, d.length, true); c.setUint16(28, n.length, true); c.setUint32(42, off, true);
+    partes.push(new Uint8Array(h.buffer), n, d);
+    central.push(new Uint8Array(c.buffer), n);
+    off += 30 + n.length + d.length;
+  });
+  const tamCentral = central.reduce((a, x) => a + x.length, 0);
+  const fin = new DataView(new ArrayBuffer(22));
+  fin.setUint32(0, 0x06054b50, true); fin.setUint16(8, archivos.length, true); fin.setUint16(10, archivos.length, true); fin.setUint32(12, tamCentral, true); fin.setUint32(16, off, true);
+  return new Blob([...partes, ...central, new Uint8Array(fin.buffer)], { type: XLSX_MIME });
+}
+// Texto para XML: escapado y sin caracteres de control (Excel no abre el archivo si los hay).
+function escXml(v) { return String(v == null ? '' : v).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function armarXlsx(textoCatering, header, datos) {
+  const cols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.slice(0, header.length).split('');
+  const celda = (ref, est, v) => typeof v === 'number'
+    ? `<c r="${ref}" s="${est}"><v>${v}</v></c>`
+    : `<c r="${ref}" s="${est}" t="inlineStr"><is><t xml:space="preserve">${escXml(v)}</t></is></c>`;
+  // Ancho de cada columna según su contenido más largo (entre 10 y 45 caracteres).
+  const anchos = cols.map((_, i) => Math.min(45, Math.max(10, ...[header, ...datos].map(f => String(f[i] == null ? '' : f[i]).length + 2))));
+  const totalAncho = anchos.reduce((a, b) => a + b, 0);
+  const filas = [];
+  const lineasCat = Math.max(1, Math.ceil(textoCatering.length / (totalAncho * 1.1)));
+  filas.push(`<row r="1" ht="${15 * lineasCat + 8}" customHeight="1">${cols.map((c, i) => celda(c + '1', 1, i ? '' : textoCatering)).join('')}</row>`);
+  filas.push('<row r="2"/>');
+  filas.push(`<row r="3" ht="22" customHeight="1">${header.map((h, i) => celda(cols[i] + '3', 2, h)).join('')}</row>`);
+  datos.forEach((f, k) => {
+    const r = k + 4;
+    filas.push(`<row r="${r}">${f.map((v, i) => celda(cols[i] + r, k % 2 ? 4 : 3, v)).join('')}</row>`);
+  });
+  const ultima = cols[cols.length - 1];
+  const hoja = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+    + '<sheetViews><sheetView workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+    + '<sheetFormatPr defaultRowHeight="18"/>'
+    + '<cols>' + anchos.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('') + '</cols>'
+    + '<sheetData>' + filas.join('') + '</sheetData>'
+    + `<mergeCells count="1"><mergeCell ref="A1:${ultima}1"/></mergeCells>`
+    + '</worksheet>';
+  const estilos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'
+    + '<fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+    + '<fill><patternFill patternType="solid"><fgColor rgb="FF000000"/><bgColor indexed="64"/></patternFill></fill>'
+    + '<fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/><bgColor indexed="64"/></patternFill></fill>'
+    + '<fill><patternFill patternType="solid"><fgColor rgb="FFFFFFFF"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    + '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'
+    + '<border><left style="thin"><color rgb="FFDDDDDD"/></left><right style="thin"><color rgb="FFDDDDDD"/></right><top style="thin"><color rgb="FFDDDDDD"/></top><bottom style="thin"><color rgb="FFDDDDDD"/></bottom><diagonal/></border></borders>'
+    + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    + '<cellXfs count="5"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    + '<xf numFmtId="0" fontId="2" fillId="4" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>'
+    + '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>'
+    + '<xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>'
+    + '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf></cellXfs>'
+    + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+    + '</styleSheet>';
+  return zipSinCompresion([
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Invitados" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+    ['xl/styles.xml', estilos],
+    ['xl/worksheets/sheet1.xml', hoja]
+  ]);
 }
 
 function shareUrl() {
