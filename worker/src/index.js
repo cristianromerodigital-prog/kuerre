@@ -237,6 +237,15 @@ async function resolveInviteLinkSlug(env, ent) {
 }
 
 const RSVP_MAX_POR_EVENTO = 2000;
+const RSVP_CAPACIDAD_MESA = 10;
+const RSVP_MESAS_DEFAULT = 20;
+const RSVP_MESAS_MAX = 60;
+
+// Cantidad de mesas del evento (la configura el panel RSVP; default 20).
+async function rsvpMesas(env, slug) {
+  const n = Number(await env.KUERRE_KV.get('rsvp_mesas:' + slug));
+  return Number.isInteger(n) && n >= 1 && n <= RSVP_MESAS_MAX ? n : RSVP_MESAS_DEFAULT;
+}
 
 function isHttpsUrl(u) {
   if (typeof u !== 'string') return false;
@@ -2048,7 +2057,8 @@ export default {
             'SELECT id, nombre, apellido, asistencia, restricciones, mensaje, mesa, created_at, modificado_at FROM rsvp_responses WHERE slug = ? ORDER BY created_at ASC'
           ).bind(slug).all();
           const responses = rows.results || [];
-          return json({ responses, total_si: responses.filter(r => r.asistencia === 'si').length, total_no: responses.filter(r => r.asistencia === 'no').length, total: responses.length });
+          return json({ responses, total_si: responses.filter(r => r.asistencia === 'si').length, total_no: responses.filter(r => r.asistencia === 'no').length, total: responses.length,
+            mesas: await rsvpMesas(env, slug), capacidad: RSVP_CAPACIDAD_MESA });
         }
       }
 
@@ -2059,6 +2069,27 @@ export default {
         const token = genRsvpToken();
         await env.KUERRE_KV.put('rsvp_token:' + slug, token, { expirationTtl: 365 * 24 * 3600 });
         return json({ token });
+      }
+
+      // Cantidad de mesas del evento (panel RSVP con su token, o admin)
+      const rsvpCfgMatch = path.match(/^\/rsvp\/([a-z0-9-]+)\/config$/);
+      if (rsvpCfgMatch && method === 'PUT') {
+        const slug = rsvpCfgMatch[1];
+        const tokenParam = url.searchParams.get('t') || '';
+        const storedToken = await env.KUERRE_KV.get('rsvp_token:' + slug);
+        if (!(storedToken && tokenParam === storedToken) && !await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const body = await request.json().catch(() => ({}));
+        const mesas = Number(body.mesas);
+        if (!Number.isInteger(mesas) || mesas < 1 || mesas > RSVP_MESAS_MAX) return json({ error: 'Cantidad de mesas inválida', mensaje: 'Entre 1 y ' + RSVP_MESAS_MAX }, 400);
+        const { results } = await env.KUERRE_DB.prepare(
+          "SELECT DISTINCT mesa FROM rsvp_responses WHERE slug = ? AND asistencia = 'si' AND mesa > ? ORDER BY mesa"
+        ).bind(slug, mesas).all();
+        if (results && results.length) {
+          const ocupadas = results.map(r => r.mesa);
+          return json({ error: 'mesas_ocupadas', mensaje: 'Hay invitados sentados en las mesas ' + ocupadas.join(', '), mesas: ocupadas }, 409);
+        }
+        await env.KUERRE_KV.put('rsvp_mesas:' + slug, String(mesas));
+        return json({ ok: true, mesas });
       }
 
       const rsvpDelMatch = path.match(/^\/rsvp\/([a-z0-9-]+)\/(\d+)$/);
@@ -2081,29 +2112,48 @@ export default {
         const cambiaMesa = body.mesa !== undefined;
         if (!cambiaAsistencia && !cambiaMesa) return json({ error: 'Nada para actualizar' }, 400);
         if (cambiaAsistencia && !['si', 'no'].includes(body.asistencia)) return json({ error: 'Asistencia inválida' }, 400);
+        const mesas = await rsvpMesas(env, slug);
         let mesa = cambiaMesa ? body.mesa : null;
         if (mesa === '') mesa = null;
         if (mesa !== null) {
           mesa = Number(mesa);
-          if (!Number.isInteger(mesa) || mesa < 1 || mesa > 20) return json({ error: 'Mesa inválida' }, 400);
+          if (!Number.isInteger(mesa) || mesa < 1 || mesa > mesas) return json({ error: 'Mesa inválida', mensaje: 'La mesa tiene que estar entre 1 y ' + mesas }, 400);
         }
+        // prev = lo que el panel veía al editar. Si la fila ya no coincide, otra persona
+        // la cambió: no se pisa (la condición va en el mismo UPDATE).
+        const prev = body.prev && typeof body.prev === 'object' ? body.prev : null;
+        const condPrev = prev ? ' AND asistencia = ?9 AND mesa IS ?10' : '';
+        const prevArgs = prev ? [String(prev.asistencia), prev.mesa === null || prev.mesa === undefined || prev.mesa === '' ? null : Number(prev.mesa)] : [];
+        const rid = Number(id);
+        // Si un UPDATE no tocó nada, se explica por qué (lectura solo para el mensaje).
+        const motivo = async () => {
+          const f = await env.KUERRE_DB.prepare('SELECT asistencia, mesa, modificado_at FROM rsvp_responses WHERE id = ? AND slug = ?').bind(rid, slug).first();
+          if (!f) return json({ error: 'Not found' }, 404);
+          if (prev && (f.asistencia !== prevArgs[0] || f.mesa !== prevArgs[1]))
+            return json({ error: 'conflicto', mensaje: 'Otra persona cambió a este invitado mientras editabas', actual: f }, 409);
+          if (f.asistencia !== 'si') return json({ error: 'no_asiste', mensaje: 'Solo se puede asignar mesa a quien asiste' }, 409);
+          return json({ error: 'mesa_llena', mensaje: 'La mesa ' + mesa + ' ya tiene ' + RSVP_CAPACIDAD_MESA + ' invitados' }, 409);
+        };
         if (cambiaAsistencia) {
           // La mesa solo sobrevive si ya asistía y sigue asistiendo (en el SET, "asistencia"
           // es el valor previo). Pasar a "no asiste" la libera, y quien vuelve a asistir
           // arranca sin mesa: no reaparece una asignada antes de cancelar.
           const r = await env.KUERRE_DB.prepare(
             "UPDATE rsvp_responses SET asistencia = ?1, mesa = CASE WHEN asistencia = 'si' AND ?1 = 'si' THEN mesa ELSE NULL END, " +
-            "modificado_at = CASE WHEN asistencia <> ?1 THEN datetime('now') ELSE modificado_at END WHERE id = ?2 AND slug = ?3"
-          ).bind(body.asistencia, Number(id), slug).run();
-          if (!r.meta || !r.meta.changes) return json({ error: 'Not found' }, 404);
+            "modificado_at = CASE WHEN asistencia <> ?1 THEN datetime('now') ELSE modificado_at END WHERE id = ?2 AND slug = ?3" + condPrev
+          ).bind(body.asistencia, rid, slug, ...(prev ? [null, null, null, null, null, ...prevArgs] : [])).run();
+          if (!r.meta || !r.meta.changes) return motivo();
         }
         if (cambiaMesa) {
-          // Solo quien asiste puede tener mesa: la condición va en el WHERE, no en un
-          // SELECT previo, para que no haya ventana entre leer y escribir.
+          // Solo quien asiste tiene mesa, y cada mesa admite RSVP_CAPACIDAD_MESA confirmados.
+          // Las dos reglas van en el WHERE del UPDATE: dos personas que piden el último
+          // lugar a la vez no pueden entrar las dos (D1 serializa las escrituras).
+          const condPrevMesa = prev && !cambiaAsistencia ? condPrev : '';
           const r = await env.KUERRE_DB.prepare(
-            "UPDATE rsvp_responses SET mesa = ?1 WHERE id = ?2 AND slug = ?3 AND (asistencia = 'si' OR ?1 IS NULL)"
-          ).bind(mesa, Number(id), slug).run();
-          if (!r.meta || !r.meta.changes) return json({ error: 'Solo se puede asignar mesa a quien asiste' }, 409);
+            "UPDATE rsvp_responses SET mesa = ?1 WHERE id = ?2 AND slug = ?3 AND (?1 IS NULL OR (asistencia = 'si' AND " +
+            "(SELECT COUNT(*) FROM rsvp_responses WHERE slug = ?3 AND mesa = ?1 AND asistencia = 'si' AND id <> ?2) < ?4))" + condPrevMesa
+          ).bind(mesa, rid, slug, RSVP_CAPACIDAD_MESA, ...(condPrevMesa ? [null, null, null, null, ...prevArgs] : [])).run();
+          if (!r.meta || !r.meta.changes) return motivo();
         }
         return json({ ok: true });
       }
