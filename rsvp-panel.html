@@ -657,10 +657,12 @@ async function restaurar(ids) {
 // así "Posible duplicado de #12" siempre apunta a la misma fila.
 function numero(r) { return _all.indexOf(r) + 1; }
 
-// Misma persona respondiendo dos veces: nombre + apellido sin mayúsculas, tildes ni espacios extra.
-function dupKey(r) {
-  return (r.nombre + ' ' + r.apellido).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+// Texto comparable: sin mayúsculas, tildes ni espacios de más ("Lucía " = "lucia").
+function normTexto(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
 }
+// Misma persona respondiendo dos veces.
+function dupKey(r) { return normTexto(r.nombre + ' ' + r.apellido); }
 
 const SORTS = {
   fila:       r => numero(r),
@@ -717,13 +719,13 @@ function setFilter(f, btn) {
 }
 
 function renderTable() {
-  const q = document.getElementById('search').value.toLowerCase();
+  const q = normTexto(document.getElementById('search').value);
   const grupos = {};
   _all.forEach(r => { const k = dupKey(r); (grupos[k] = grupos[k] || []).push(numero(r)); });
   const dupDe = r => grupos[dupKey(r)].filter(n => n !== numero(r));
   let rows = _all.filter(r => {
     const matchFilter = _filter === 'todos' || r.asistencia === _filter;
-    const matchSearch = !q || (r.nombre + ' ' + r.apellido).toLowerCase().includes(q);
+    const matchSearch = !q || dupKey(r).includes(q);
     const matchMesa = _mesaFilter === null || (r.asistencia === 'si' && (_mesaFilter === 0 ? !r.mesa : r.mesa === _mesaFilter));
     return matchFilter && matchSearch && matchMesa;
   });
