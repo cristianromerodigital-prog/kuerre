@@ -63,7 +63,29 @@ th.sortable{cursor:pointer;user-select:none}
 .restr-edit{margin-left:6px;background:none;border:1px solid #1e2c2e;color:#888;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px}
 .restr-edit:hover{border-color:#00c896;color:#00c896}
 /* Selección y borrado */
-.sel-fila,#sel-todos{accent-color:#00c896;margin-right:6px;vertical-align:middle;cursor:pointer}
+.sel-fila,#sel-todos,.elim-sel,#elim-sel-todos{accent-color:#00c896;width:20px;height:20px;margin:0 8px 0 0;vertical-align:middle;cursor:pointer;flex-shrink:0}
+/* toda la celda es tocable: en el celular la casilla sola es un blanco chico */
+.sel-cell label,.sel-all{display:inline-flex;align-items:center;cursor:pointer;padding:6px 4px;min-height:32px}
+.sel-all{font-size:9px;letter-spacing:1px;color:#888;text-transform:uppercase;white-space:nowrap}
+#sort-fila{display:block;cursor:pointer;margin-top:4px;color:#555}
+/* en el encabezado de la tabla, "Seleccionar todos" en dos renglones para no ensanchar la columna */
+#table-wrap thead .sel-all{white-space:normal;max-width:96px;line-height:1.3}
+.elim-lbl{display:inline-flex;align-items:center;cursor:pointer;flex:1;min-height:32px}
+.elim-fila .fecha{font-size:11px;color:#777}
+#sort-fila:hover{color:#00c896}
+#elim-sel-bar{display:none;justify-content:center;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0;font-size:11px;color:#ccc}
+#elim-sel-bar.on{display:flex}
+.elim-purge-fila{background:none;border:1px solid #1e2c2e;color:#e57373;border-radius:4px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px}
+/* Agregar invitado */
+#add-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+#add-modal.open{display:flex}
+#add-modal .box{background:#0a1416;border:1px solid #15201f;border-radius:8px;padding:20px;width:100%;max-width:380px}
+#add-modal h3{font-family:'Cormorant Garamond',serif;font-weight:400;color:#c9a84c;font-size:20px;margin-bottom:12px}
+#add-modal .lbl{display:block;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#666;margin:10px 0 6px}
+#add-modal input[type=text],#add-modal select{width:100%;background:#060d0f;border:1px solid #15201f;color:#fff;padding:9px 12px;font-family:inherit;font-size:13px;border-radius:4px}
+#add-modal .chk{display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc;margin-bottom:8px;cursor:pointer}
+#add-error{color:#e57373;font-size:12px;min-height:16px;margin:10px 0}
+#add-modal .acciones{display:flex;gap:10px;justify-content:flex-end}
 .del-fila{background:none;border:1px solid #1e2c2e;color:#e57373;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px}
 .del-fila:hover{border-color:#e57373}
 #sel-bar{display:none;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:0 auto 14px;font-size:11px;color:#ccc}
@@ -84,7 +106,7 @@ th.sortable{cursor:pointer;user-select:none}
 #elim-wrap{margin:32px auto 0;max-width:900px}
 #elim-wrap summary{text-align:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;cursor:pointer;list-style-position:inside}
 .elim-head{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:#666;margin:12px 0}
-.elim-fila{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #0e1718;font-size:12px;color:#aaa}
+.elim-fila{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:8px 10px;border-bottom:1px solid #0e1718;font-size:12px;color:#aaa}
 .elim-fila .elim-nombre{flex:1;color:#ccc}
 .elim-rest{background:none;border:1px solid #1e2c2e;color:#00c896;border-radius:4px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px}
 #restr-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;align-items:center;justify-content:center;padding:16px}
@@ -121,6 +143,33 @@ footer small a{color:inherit}
 <div class="actions">
   <button class="btn" onclick="exportCSV()">⬇ Exportar CSV</button>
   <button class="btn btn-share" onclick="shareUrl()">WhatsApp 📲</button>
+  <button class="btn" id="add-btn" style="border-color:#c9a84c;color:#c9a84c" onclick="openAdd()">+ Agregar invitado</button>
+</div>
+<div id="add-modal">
+  <div class="box">
+    <h3>Agregar invitado</h3>
+    <label class="lbl" for="add-nombre">Nombre</label>
+    <input type="text" id="add-nombre" maxlength="80" autocomplete="off">
+    <label class="lbl" for="add-apellido">Apellido</label>
+    <input type="text" id="add-apellido" maxlength="80" autocomplete="off">
+    <label class="lbl" for="add-asistencia">Asistencia</label>
+    <select id="add-asistencia" onchange="addAsistenciaChange()">
+      <option value="si">Asiste</option>
+      <option value="no">No asiste</option>
+    </select>
+    <span class="lbl">Alimentación</span>
+    <label class="chk"><input type="checkbox" id="add-celiaco"> Celíaco/a</label>
+    <label class="chk"><input type="checkbox" id="add-vegetariano"> Vegetariano/a</label>
+    <label class="chk"><input type="checkbox" id="add-vegano"> Vegano/a</label>
+    <input type="text" id="add-alergia" maxlength="200" placeholder="Otra alergia o restricción (opcional)">
+    <label class="lbl" for="add-mesa">Mesa</label>
+    <select id="add-mesa"></select>
+    <div id="add-error"></div>
+    <div class="acciones">
+      <button class="btn" onclick="closeAdd()">Cancelar</button>
+      <button class="btn" id="add-ok" style="border-color:#00c896;color:#00c896" onclick="saveAdd()">Agregar</button>
+    </div>
+  </div>
 </div>
 <input id="search" placeholder="Buscar por nombre..." oninput="renderTable()">
 <div class="filters">
@@ -148,7 +197,7 @@ footer small a{color:inherit}
 </div>
 <div id="del-modal">
   <div class="box">
-    <h3>Eliminar invitados</h3>
+    <h3 id="del-titulo">Eliminar invitados</h3>
     <div id="del-texto"></div>
     <div id="del-lista"></div>
     <div class="acciones">
@@ -175,8 +224,13 @@ footer small a{color:inherit}
 <details id="elim-wrap">
   <summary id="elim-titulo">Eliminados (0)</summary>
   <div class="elim-head">
+    <label class="sel-all" id="elim-sel-all-lbl"><input type="checkbox" id="elim-sel-todos" onchange="elimToggleTodos(this.checked)">Seleccionar todos</label>
     <span>Se borran definitivamente a los 30 días.</span>
     <button class="btn" id="elim-todos" style="padding:6px 14px" onclick="restaurar(_eliminados.map(r => r.id))">Restaurar todos</button>
+  </div>
+  <div id="elim-sel-bar">
+    <span id="elim-sel-count"></span>
+    <button class="btn" id="elim-purge" style="border-color:#e57373;color:#e57373;padding:6px 14px" onclick="pedirPurgar([..._elimSel])">Eliminar definitivamente</button>
   </div>
   <div id="elim-lista"></div>
 </details>
@@ -202,6 +256,8 @@ let _visibles = [];          // ids que muestra la tabla ahora (filtros aplicado
 let _porBorrar = [];
 let _eliminados = [];        // papelera (se restaura durante 30 días)
 let _undoIds = [], _undoTimer = null;
+let _elimSel = new Set();    // elegidos en la papelera para eliminar definitivamente
+let _avisoModo = 'borrar';   // el mismo aviso sirve para borrar y para eliminar definitivo
 
 // ── Marca (white-label) — mismo código que invite.html ─────────────────────
 function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
@@ -384,7 +440,7 @@ function openRestr(id) {
   RESTR_OPCIONES.forEach(([k]) => { document.getElementById('restr-' + k).checked = p[k]; });
   // Texto libre viejo + alergia van al mismo campo: es lo que el panel puede editar.
   document.getElementById('restr-alergia').value = [...p.otros, p.alergia].filter(Boolean).join(', ');
-  document.getElementById('restr-quien').textContent = '#' + numero(r) + ' · ' + r.nombre + ' ' + r.apellido;
+  document.getElementById('restr-quien').textContent = 'Fila ' + numero(r) + ' · ' + r.nombre + ' ' + r.apellido;
   document.getElementById('restr-modal').classList.add('open');
 }
 function closeRestr() { document.getElementById('restr-modal').classList.remove('open'); _restrId = null; }
@@ -418,17 +474,34 @@ function toggleSel(id, on) { if (on) _selected.add(id); else _selected.delete(id
 // "Elegir todos" = todos los que se están viendo (respeta buscador y filtros).
 function toggleTodos(on) { _visibles.forEach(id => on ? _selected.add(id) : _selected.delete(id)); renderTable(); }
 function limpiarSel() { _selected.clear(); renderTable(); }
+function abrirAviso(modo, titulo, texto, quienes, okTxt) {
+  _avisoModo = modo;
+  const n = quienes.length;
+  document.getElementById('del-titulo').textContent = titulo;
+  document.getElementById('del-texto').textContent = texto;
+  document.getElementById('del-lista').textContent = quienes.slice(0, 10).join('\n') + (n > 10 ? '\n…y ' + (n - 10) + ' más' : '');
+  document.getElementById('del-ok').textContent = okTxt;
+  document.getElementById('del-modal').classList.add('open');
+}
 function pedirBorrar(ids) {
   _porBorrar = ids.filter(id => _all.some(r => r.id === id));
   if (!_porBorrar.length) return;
   const n = _porBorrar.length;
-  document.getElementById('del-texto').textContent = 'Vas a eliminar ' + n + (n === 1 ? ' invitado' : ' invitados') + '. Van a quedar en "Eliminados" (abajo de todo) y se pueden restaurar durante 30 días.';
-  const quienes = _porBorrar.map(id => _all.find(r => r.id === id)).map(r => '#' + numero(r) + ' · ' + r.nombre + ' ' + r.apellido);
-  document.getElementById('del-lista').textContent = quienes.slice(0, 10).join('\n') + (n > 10 ? '\n…y ' + (n - 10) + ' más' : '');
-  document.getElementById('del-modal').classList.add('open');
+  abrirAviso('borrar', 'Eliminar invitados',
+    'Vas a eliminar ' + n + (n === 1 ? ' invitado' : ' invitados') + '. Van a quedar en "Eliminados" (abajo de todo) y se pueden restaurar durante 30 días.',
+    _porBorrar.map(id => _all.find(r => r.id === id)).map(r => 'Fila ' + numero(r) + ' · ' + r.nombre + ' ' + r.apellido), 'Eliminar');
+}
+function pedirPurgar(ids) {
+  _porBorrar = ids.filter(id => _eliminados.some(r => r.id === id));
+  if (!_porBorrar.length) return;
+  const n = _porBorrar.length;
+  abrirAviso('purgar', 'Eliminar definitivamente',
+    'Vas a eliminar definitivamente ' + n + (n === 1 ? ' invitado' : ' invitados') + '. No se van a poder restaurar.',
+    _porBorrar.map(id => _eliminados.find(r => r.id === id)).map(r => r.nombre + ' ' + r.apellido), 'Eliminar definitivamente');
 }
 function cerrarBorrar() { document.getElementById('del-modal').classList.remove('open'); _porBorrar = []; }
 async function confirmarBorrar() {
+  if (_avisoModo === 'purgar') return confirmarPurgar();
   const ids = _porBorrar;
   const btn = document.getElementById('del-ok');
   btn.disabled = true;
@@ -461,17 +534,99 @@ async function confirmarBorrar() {
 
 // ── Papelera ──
 function renderEliminados() {
+  const vivos = new Set(_eliminados.map(r => r.id));
+  [..._elimSel].forEach(id => { if (!vivos.has(id)) _elimSel.delete(id); });
   document.getElementById('elim-titulo').textContent = 'Eliminados (' + _eliminados.length + ')';
   document.getElementById('elim-todos').style.display = _eliminados.length ? '' : 'none';
+  document.getElementById('elim-sel-all-lbl').style.display = _eliminados.length ? '' : 'none';
+  document.getElementById('elim-sel-todos').checked = _eliminados.length > 0 && _eliminados.every(r => _elimSel.has(r.id));
+  document.getElementById('elim-sel-bar').classList.toggle('on', _elimSel.size > 0);
+  document.getElementById('elim-sel-count').textContent = _elimSel.size + (_elimSel.size === 1 ? ' seleccionado' : ' seleccionados');
   document.getElementById('elim-lista').replaceChildren(..._eliminados.map(r => {
     const f = document.createElement('div'); f.className = 'elim-fila';
+    const lbl = document.createElement('label'); lbl.className = 'elim-lbl';
+    const c = document.createElement('input'); c.type = 'checkbox'; c.className = 'elim-sel'; c.checked = _elimSel.has(r.id);
+    c.onchange = () => { if (c.checked) _elimSel.add(r.id); else _elimSel.delete(r.id); renderEliminados(); };
     const n = document.createElement('span'); n.className = 'elim-nombre'; n.textContent = r.nombre + ' ' + r.apellido;
-    const d = document.createElement('span'); d.textContent = 'Eliminado el ' + fmtDate(r.borrado_at);
+    lbl.append(c, n);
+    const d = document.createElement('span'); d.className = 'fecha'; d.textContent = 'Eliminado el ' + fmtDate(r.borrado_at);
     const b = document.createElement('button'); b.type = 'button'; b.className = 'elim-rest'; b.textContent = 'Restaurar';
     b.onclick = () => restaurar([r.id]);
-    f.append(n, d, b);
+    const x = document.createElement('button'); x.type = 'button'; x.className = 'elim-purge-fila'; x.textContent = 'Eliminar definitivo';
+    x.onclick = () => pedirPurgar([r.id]);
+    f.append(lbl, d, b, x);
     return f;
   }));
+}
+function elimToggleTodos(on) { _elimSel = on ? new Set(_eliminados.map(r => r.id)) : new Set(); renderEliminados(); }
+async function confirmarPurgar() {
+  const ids = _porBorrar;
+  const btn = document.getElementById('del-ok');
+  btn.disabled = true;
+  try {
+    const res = await fetch(WORKER + '/rsvp/' + slug + '/purge?t=' + encodeURIComponent(token), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.mensaje || d.error || 'HTTP ' + res.status); }
+    const fuera = new Set(ids);
+    _eliminados = _eliminados.filter(r => !fuera.has(r.id));
+    ids.forEach(id => _elimSel.delete(id));
+    cerrarBorrar();
+    renderEliminados();
+  } catch (e) {
+    cerrarBorrar();
+    alert('No se pudo eliminar: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Agregar invitado ──
+function openAdd() {
+  ['add-nombre', 'add-apellido', 'add-alergia'].forEach(id => { document.getElementById(id).value = ''; });
+  RESTR_OPCIONES.forEach(([k]) => { document.getElementById('add-' + k).checked = false; });
+  document.getElementById('add-asistencia').value = 'si';
+  document.getElementById('add-error').textContent = '';
+  document.getElementById('add-mesa').innerHTML = mesaOptions(null, ocupacion());
+  addAsistenciaChange();
+  document.getElementById('add-modal').classList.add('open');
+  document.getElementById('add-nombre').focus();
+}
+function closeAdd() { document.getElementById('add-modal').classList.remove('open'); }
+function addAsistenciaChange() {
+  const m = document.getElementById('add-mesa');
+  m.disabled = document.getElementById('add-asistencia').value !== 'si';
+  if (m.disabled) m.value = '';
+}
+async function saveAdd() {
+  const err = document.getElementById('add-error');
+  const nombre = document.getElementById('add-nombre').value.trim();
+  const apellido = document.getElementById('add-apellido').value.trim();
+  if (!nombre || !apellido) { err.textContent = 'Completá nombre y apellido.'; return; }
+  const p = { alergia: document.getElementById('add-alergia').value.trim() };
+  RESTR_OPCIONES.forEach(([k]) => { p[k] = document.getElementById('add-' + k).checked; });
+  const body = { nombre, apellido, asistencia: document.getElementById('add-asistencia').value, restricciones: serializeRestr(p) };
+  const mesa = document.getElementById('add-mesa').value;
+  if (mesa && body.asistencia === 'si') body.mesa = Number(mesa);
+  const btn = document.getElementById('add-ok');
+  btn.disabled = true; err.textContent = '';
+  try {
+    const res = await fetch(WORKER + '/rsvp/' + slug + '/add?t=' + encodeURIComponent(token), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { err.textContent = d.mensaje || d.error || 'No se pudo agregar.'; return; }
+    closeAdd();
+    await loadData();
+  } catch (e) {
+    err.textContent = 'No se pudo agregar. Revisá la conexión.';
+  } finally {
+    btn.disabled = false;
+  }
 }
 function mostrarDeshacer(ids) {
   _undoIds = ids;
@@ -510,6 +665,7 @@ function dupKey(r) {
 }
 
 const SORTS = {
+  fila:       r => numero(r),
   nombre:     r => (r.nombre + ' ' + r.apellido).replace(/\s+/g, ' ').trim(),
   asistencia: r => r.asistencia === 'si' ? 0 : 1,
   respondido: r => r.created_at || '',
@@ -579,11 +735,11 @@ function renderTable() {
   const occ = ocupacion();
   rows = ordenar(rows);
   document.getElementById('table-wrap').innerHTML = `<table>
-    <thead><tr><th><input type="checkbox" id="sel-todos" title="Elegir todos los que se ven" onclick="toggleTodos(this.checked)"${_visibles.every(id => _selected.has(id)) ? ' checked' : ''}>#</th>${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Alimentación')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}<th></th></tr></thead>
+    <thead><tr><th><label class="sel-all"><input type="checkbox" id="sel-todos" title="Elegir todos los que se ven" onchange="toggleTodos(this.checked)"${_visibles.every(id => _selected.has(id)) ? ' checked' : ''}>Seleccionar todos</label><span id="sort-fila" onclick="sortBy('fila')">Fila${_sort.col === 'fila' ? (_sort.dir === 1 ? ' ▲' : ' ▼') : ''}</span></th>${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Alimentación')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}<th></th></tr></thead>
     <tbody>${rows.map((r, i) => `<tr${r.asistencia === 'si' && !r.mesa ? ' class="sin-mesa" title="Confirmado sin mesa asignada"' : ''}>
-      <td style="color:#555;white-space:nowrap"><input type="checkbox" class="sel-fila" aria-label="Elegir"${_selected.has(r.id) ? ' checked' : ''} onclick="toggleSel(${r.id}, this.checked)">${numero(r)}</td>
+      <td class="sel-cell" style="color:#555;white-space:nowrap"><label><input type="checkbox" class="sel-fila" aria-label="Elegir fila ${numero(r)}"${_selected.has(r.id) ? ' checked' : ''} onchange="toggleSel(${r.id}, this.checked)"><span class="num-fila">${numero(r)}</span></label></td>
       <td>
-        <div class="nombre-txt">${esc(r.nombre)} ${esc(r.apellido)}${dupDe(r).length ? '<span class="dup" title="Hay otra respuesta con el mismo nombre">Posible duplicado de ' + dupDe(r).map(n => '#' + n).join(', ') + '</span>' : ''}</div>
+        <div class="nombre-txt">${esc(r.nombre)} ${esc(r.apellido)}${dupDe(r).length ? '<span class="dup" title="Hay otra respuesta con el mismo nombre">Posible duplicado de ' + (dupDe(r).length === 1 ? 'la fila ' : 'las filas ') + dupDe(r).join(', ') + '</span>' : ''}</div>
         ${r.mensaje ? '<div class="restricciones">💬 ' + esc(r.mensaje) + '</div>' : ''}
       </td>
       <td><select class="mesa-select asis-select ${r.asistencia === 'si' ? 'si' : 'no'}" onchange="setAsistencia(${r.id}, this.value)">
