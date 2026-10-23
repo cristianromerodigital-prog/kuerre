@@ -1271,6 +1271,8 @@ function renderLugar(c) {
 }
 
 function renderDresscode(c) {
+  const sec = document.getElementById('dresscode');
+  sec.style.display = c.dresscode_activo === false ? 'none' : '';
   const titleEl = document.getElementById('dresscode-title');
   const titleCustom = c.text_content && c.text_content['dresscode-title'];
   if (titleCustom) titleEl.textContent = titleCustom;
@@ -1342,6 +1344,7 @@ function renderNav(c) {
   if (c.tipo === 'save_the_date') { nav.style.display = 'none'; return; }
   const hide = [];
   if (!c.rsvp_activo || c.tipo === 'save_the_date') hide.push('rsvp');
+  if (c.dresscode_activo === false) hide.push('dresscode');
   if (!c.spotify_url) hide.push('spotify');
   if ((!c.alias_mp && !c.cbu) || c.tipo === 'save_the_date') hide.push('regalo');
   nav.querySelectorAll('a').forEach(a => {
