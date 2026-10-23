@@ -311,11 +311,11 @@ footer small a{color:inherit}
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Nombre</label>
-          <input class="form-input" id="rsvp-nombre" placeholder="Tu nombre">
+          <input class="form-input" id="rsvp-nombre" placeholder="Tu nombre" maxlength="80">
         </div>
         <div class="form-group">
           <label class="form-label">Apellido</label>
-          <input class="form-input" id="rsvp-apellido" placeholder="Tu apellido">
+          <input class="form-input" id="rsvp-apellido" placeholder="Tu apellido" maxlength="80">
         </div>
       </div>
       <div class="form-group">
@@ -328,7 +328,7 @@ footer small a{color:inherit}
       </div>
       <div class="form-group">
         <label class="form-label">Mensaje (opcional)</label>
-        <textarea class="form-textarea" id="rsvp-mensaje" placeholder="¿Querés decirnos algo?"></textarea>
+        <textarea class="form-textarea" id="rsvp-mensaje" placeholder="¿Querés decirnos algo?" maxlength="1000"></textarea>
       </div>
       <button class="btn-rsvp" id="rsvp-btn" onclick="submitRSVP()">Enviar confirmación</button>
       <p id="rsvp-error" style="display:none;color:rgba(255,100,100,0.9);font-size:12px;margin-top:12px;text-align:center"></p>
@@ -754,11 +754,23 @@ async function submitRSVP() {
   const tasks = [];
   const _rsvpSlug = new URLSearchParams(location.search).get('i') || '';
   if (_rsvpSlug) {
-    tasks.push(fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/rsvp/' + _rsvpSlug, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, apellido, asistencia, restricciones: '', mensaje: data.mensaje })
-    }).catch(() => {}));
+    // El Worker es el registro oficial: si rechaza (datos inválidos, demasiados
+    // envíos, evento lleno) se muestra el motivo y no se manda nada más.
+    let res = null;
+    try {
+      res = await fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/rsvp/' + _rsvpSlug, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, apellido, asistencia, restricciones: '', mensaje: data.mensaje })
+      });
+    } catch (e) {}
+    if (!res || !res.ok) {
+      const err = res ? await res.json().catch(() => ({})) : {};
+      errorEl.textContent = err.error || 'Hubo un error al enviar. Intentá de nuevo.';
+      errorEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enviar confirmación';
+      return;
+    }
   }
   if (cfg.gsheet_url) tasks.push(fetch(cfg.gsheet_url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) }).catch(()=>{}));
   if (cfg.emailjs_service && cfg.emailjs_template && cfg.emailjs_key) {

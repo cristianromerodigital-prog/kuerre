@@ -236,6 +236,8 @@ async function resolveInviteLinkSlug(env, ent) {
   return null;
 }
 
+const RSVP_MAX_POR_EVENTO = 2000;
+
 function isHttpsUrl(u) {
   if (typeof u !== 'string') return false;
   try { return new URL(u).protocol === 'https:'; } catch { return false; }
@@ -2008,11 +2010,32 @@ export default {
         if (method === 'POST') {
           let body;
           try { body = await request.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
-          const { nombre, apellido, asistencia, restricciones, mensaje } = body;
-          if (!nombre || !apellido || !asistencia) return json({ error: 'Faltan campos requeridos' }, 400);
-          await env.KUERRE_DB.prepare(
-            'INSERT INTO rsvp_responses (slug, nombre, apellido, asistencia, restricciones, mensaje) VALUES (?, ?, ?, ?, ?, ?)'
-          ).bind(slug, nombre.trim(), apellido.trim(), asistencia, restricciones || '', mensaje || '').run();
+          // Endpoint público: se valida todo lo que entra y se limita por IP + evento.
+          const txt = (v, max, requerido) => {
+            if (v === undefined || v === null || v === '') return requerido ? null : '';
+            if (typeof v !== 'string') return null;
+            const t = v.trim();
+            if (requerido && !t) return null;
+            return t.length <= max ? t : null;
+          };
+          const nombre = txt(body.nombre, 80, true);
+          const apellido = txt(body.apellido, 80, true);
+          const restricciones = txt(body.restricciones, 300, false);
+          const mensaje = txt(body.mensaje, 1000, false);
+          if (nombre === null || apellido === null) return json({ error: 'Nombre y apellido son obligatorios (hasta 80 caracteres)' }, 400);
+          if (!['si', 'no'].includes(body.asistencia)) return json({ error: 'Asistencia inválida' }, 400);
+          if (restricciones === null || mensaje === null) return json({ error: 'Texto demasiado largo' }, 400);
+          if (env.RSVP_LIMITER) {
+            const ip = request.headers.get('CF-Connecting-IP') || '';
+            const { success } = await env.RSVP_LIMITER.limit({ key: ip + ':' + slug });
+            if (!success) return json({ error: 'Demasiados envíos. Probá de nuevo en un minuto.' }, 429);
+          }
+          // Tope por evento en la misma sentencia: dos envíos simultáneos no lo pasan.
+          const ins = await env.KUERRE_DB.prepare(
+            'INSERT INTO rsvp_responses (slug, nombre, apellido, asistencia, restricciones, mensaje) ' +
+            'SELECT ?1, ?2, ?3, ?4, ?5, ?6 WHERE (SELECT COUNT(*) FROM rsvp_responses WHERE slug = ?1) < ' + RSVP_MAX_POR_EVENTO
+          ).bind(slug, nombre, apellido, body.asistencia, restricciones, mensaje).run();
+          if (!ins.meta || !ins.meta.changes) return json({ error: 'Este evento ya no recibe más respuestas' }, 409);
           return json({ ok: true });
         }
         if (method === 'GET') {

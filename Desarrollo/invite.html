@@ -409,11 +409,11 @@ footer small a{color:inherit}
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Nombre</label>
-        <input class="form-input" id="rsvp-nombre" placeholder="Tu nombre" required>
+        <input class="form-input" id="rsvp-nombre" placeholder="Tu nombre" maxlength="80" required>
       </div>
       <div class="form-group">
         <label class="form-label">Apellido</label>
-        <input class="form-input" id="rsvp-apellido" placeholder="Tu apellido" required>
+        <input class="form-input" id="rsvp-apellido" placeholder="Tu apellido" maxlength="80" required>
       </div>
     </div>
     <div class="form-group">
@@ -435,11 +435,11 @@ footer small a{color:inherit}
     </div>
     <div class="form-group" id="rsvp-alergia-detail-wrap" style="display:none">
       <label class="form-label">¿Cuál alergia?</label>
-      <input class="form-input" id="rsvp-alergia-detail" placeholder="Describí tu alergia">
+      <input class="form-input" id="rsvp-alergia-detail" placeholder="Describí tu alergia" maxlength="200">
     </div>
     <div class="form-group">
       <label class="form-label">Mensaje (opcional)</label>
-      <textarea class="form-textarea" id="rsvp-mensaje" placeholder="¿Querés decirnos algo?"></textarea>
+      <textarea class="form-textarea" id="rsvp-mensaje" placeholder="¿Querés decirnos algo?" maxlength="1000"></textarea>
     </div>
     <button class="btn-rsvp" id="rsvp-btn" onclick="submitRSVP()">Enviar</button>
     <p id="rsvp-error" style="display:none;color:#e55;font-size:12px;margin-top:12px;text-align:center"></p>
@@ -1424,11 +1424,23 @@ async function submitRSVP() {
   const tasks = [];
   const _rsvpSlug = new URLSearchParams(location.search).get('i') || '';
   if (_rsvpSlug) {
-    tasks.push(fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/rsvp/' + _rsvpSlug, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, apellido, asistencia, restricciones: restricciones.length ? restricciones.join(', ') : '', mensaje: data.mensaje })
-    }).catch(() => {}));
+    // El Worker es el registro oficial: si rechaza (datos inválidos, demasiados
+    // envíos, evento lleno) se muestra el motivo y no se manda nada más.
+    let res = null;
+    try {
+      res = await fetch('https://KUERRE-worker.cristian-romero-digital.workers.dev/rsvp/' + _rsvpSlug, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, apellido, asistencia, restricciones: restricciones.length ? restricciones.join(', ') : '', mensaje: data.mensaje })
+      });
+    } catch (e) {}
+    if (!res || !res.ok) {
+      const err = res ? await res.json().catch(() => ({})) : {};
+      errorEl.textContent = err.error || 'Hubo un error al enviar. Intentá de nuevo.';
+      errorEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enviar';
+      return;
+    }
   }
   if (cfg.gsheet_url) {
     tasks.push(fetch(cfg.gsheet_url, {
