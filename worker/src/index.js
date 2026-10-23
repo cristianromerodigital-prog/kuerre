@@ -275,7 +275,14 @@ async function handleInviteOg(slug, url, env) {
   const tipo = { casamiento: 'Casamiento', quinces: '15 Años', save_the_date: 'Save the Date' }[cfg.tipo] || 'Evento';
   const ogTitle = cfg.novios || cfg.titulo || tipo;
   const ogDesc = [cfg.titulo && cfg.titulo !== ogTitle ? cfg.titulo : tipo, cfg.fecha_display, cfg.lugar_nombre].filter(Boolean).join(' · ');
-  const ogImg = cfg.media_type !== 'video' && /^https:\/\//.test(cfg.media_url || '') ? cfg.media_url : '';
+  let ogImg = cfg.media_type !== 'video' && /^https:\/\//.test(cfg.media_url || '') ? cfg.media_url : '';
+  if (!ogImg) {
+    // Portada en video (WhatsApp solo muestra imágenes): se usa el logo de la marca
+    // del cliente. El logo lo sirve el worker, no kuerre.com.ar (solo /og/* llega acá).
+    const pid = await resolvePartnerId(env, null, 'invite', slug);
+    const marca = await partnerPublic(env.KUERRE_DB, pid, env.WORKER_ORIGIN || url.origin);
+    ogImg = marca.logo_url || '';
+  }
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   const html = `<!DOCTYPE html>
@@ -1471,13 +1478,13 @@ export default {
 
       // ── Logo del partner desde R2 ─────────────────────────────────────────
       const partnerLogoMatch = path.match(/^\/api\/partners\/([a-z0-9-]{1,60})\/logo$/);
-      if (partnerLogoMatch && method === 'GET') {
+      if (partnerLogoMatch && (method === 'GET' || method === 'HEAD')) {
         const pRow = await env.KUERRE_DB.prepare('SELECT logo_key FROM partners WHERE slug = ?')
           .bind(partnerLogoMatch[1]).first();
         if (!pRow || !pRow.logo_key) return new Response('Not found', { status: 404 });
         const pObj = await env.MEDIA.get(pRow.logo_key);
         if (!pObj) return new Response('Not found', { status: 404 });
-        return new Response(pObj.body, {
+        return new Response(method === 'HEAD' ? null : pObj.body, {
           headers: {
             'Content-Type': (pObj.httpMetadata && pObj.httpMetadata.contentType) || 'image/png',
             'Cache-Control': 'public, max-age=86400',

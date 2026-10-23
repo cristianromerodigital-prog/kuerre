@@ -24,6 +24,10 @@ bucket_name = "kuerre-media"
 type = "Text"
 globs = ["**/*.html"]
 
+[vars]
+# Origen público del worker (para URLs que se sirven desde él, ej. logos en la tarjeta de WhatsApp)
+WORKER_ORIGIN = "https://kuerre-worker.cristian-romero-digital.workers.dev"
+
 # Límite de envíos del RSVP público (por IP + evento)
 [[ratelimits]]
 name = "RSVP_LIMITER"

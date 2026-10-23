@@ -27,7 +27,8 @@ export async function loadWorker() {
 
 export function makeEnv({ kv = {}, limiterOk = () => true } = {}) {
   const db = new DatabaseSync(':memory:');
-  db.exec(fs.readFileSync(path.join(WORKER_DIR, 'schema.sql'), 'utf8'));
+  // Esquema real de producción (worker/schema.sql está desactualizado).
+  db.exec(fs.readFileSync(path.join(WORKER_DIR, '../tests/fixtures/schema-prod.sql'), 'utf8'));
   const store = { ...kv };
   const D1 = {
     prepare: sql => ({
@@ -45,7 +46,8 @@ export function makeEnv({ kv = {}, limiterOk = () => true } = {}) {
     KUERRE_DB: D1,
     KUERRE_KV: { get: async k => (k in store ? store[k] : null), put: async (k, v) => { store[k] = v; }, delete: async k => { delete store[k]; } },
     RSVP_LIMITER: { limit: async ({ key }) => ({ success: limiterOk(key) }) },
-    ADMIN_JWT_SECRET: 'test-secret', CF_AUTH_TOKEN: 'test-cf'
+    ADMIN_JWT_SECRET: 'test-secret', CF_AUTH_TOKEN: 'test-cf',
+    WORKER_ORIGIN: 'https://kuerre-worker.cristian-romero-digital.workers.dev'
   };
   return { env, db, store };
 }
