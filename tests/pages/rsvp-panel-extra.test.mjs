@@ -2,6 +2,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { serve, openBrowser } from '../helpers/browser.mjs';
+import { leerXlsx } from '../helpers/xlsx.mjs';
 
 let srv, br;
 after(async () => { await br.close(); srv.close(); });
@@ -115,23 +116,35 @@ test('editar alimentación: precarga, guarda en el Worker y actualiza el caterin
   assert.ok(items.includes('Vegano/a: 2'), items.join(' | '));
 });
 
-test('el CSV empieza con el resumen para el catering y después la lista', async () => {
+test('exporta un Excel con formato: catering combinado, encabezado negro, filas intercaladas y anchos', async () => {
   await abrir();
-  const csv = await br.eval(`new Promise(res => {
+  const { nombre, tipo, bytes } = JSON.parse(await br.eval(`new Promise(res => {
     window.confirm = () => true;
     window.matchMedia = () => ({ matches: true });
     navigator.canShare = () => true;
-    navigator.share = async d => res(await d.files[0].text());
+    navigator.share = async d => { const f = d.files[0]; res(JSON.stringify({ nombre: f.name, tipo: f.type, bytes: [...new Uint8Array(await f.arrayBuffer())] })); };
     exportCSV();
-  })`);
-  const lineas = csv.split('\n');
-  // el resumen va como un texto corrido en una sola línea, fuera de la grilla de datos
-  assert.deepEqual(lineas.slice(0, 3), [
-    '"Para el catering (confirmados): Celíaco/a: 3. Alergia: maní: 1. Vegano/a: 1."',
-    '',
-    '"Nombre","Apellido","Asistencia","Restricciones","Mensaje","Mesa","Respondió el","Se modificó el"'
-  ]);
-  assert.equal(lineas.length, 3 + 5, 'después vienen las 5 respuestas');
+  })`));
+  assert.equal(nombre, 'invitados-ev-1-xxxx.xlsx');
+  assert.equal(tipo, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  const { bad, files } = leerXlsx(bytes);
+  assert.equal(bad, null, 'el zip está sano');
+  for (const f of ['[Content_Types].xml', '_rels/.rels', 'xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/styles.xml', 'xl/worksheets/sheet1.xml'])
+    assert.ok(files[f], 'falta ' + f);
+  const hoja = files['xl/worksheets/sheet1.xml'], estilos = files['xl/styles.xml'];
+  // fila 1: catering como texto, combinado en todas las columnas
+  assert.match(hoja, /<mergeCell ref="A1:H1"\/>/);
+  assert.ok(hoja.includes('<c r="A1" s="1" t="inlineStr"><is><t xml:space="preserve">Para el catering (confirmados): Celíaco/a: 3. Alergia: maní: 1. Vegano/a: 1.</t>'));
+  // encabezados en la fila 3 con estilo 2 (fondo negro, texto blanco)
+  assert.ok(hoja.includes('<c r="A3" s="2" t="inlineStr"><is><t xml:space="preserve">Nombre</t>'));
+  assert.ok(hoja.includes('<c r="H3" s="2" t="inlineStr"><is><t xml:space="preserve">Se modificó el</t>'));
+  // filas de datos intercaladas: 4 blanca (s=3), 5 gris (s=4), 6 blanca…
+  assert.ok(hoja.includes('<c r="A4" s="3" ') && hoja.includes('<c r="A5" s="4" ') && hoja.includes('<c r="A6" s="3" '));
+  assert.equal((hoja.match(/<row /g) || []).length, 3 + 5);
+  // anchos de columna ajustados
+  assert.match(hoja, /<cols>(<col min="\d" max="\d" width="[\d.]+" customWidth="1"\/>){8}<\/cols>/);
+  // estilos: fondo negro y letra blanca en negrita; gris claro para las filas intercaladas
+  assert.ok(estilos.includes('<fgColor rgb="FF000000"/>') && estilos.includes('<color rgb="FFFFFFFF"/>') && estilos.includes('<fgColor rgb="FFF2F2F2"/>'));
 });
 
 test('el buscador ignora tildes y mayúsculas (en los dos sentidos)', async () => {
