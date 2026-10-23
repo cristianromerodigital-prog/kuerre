@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.96</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.97</div>
     </div>
   </aside>
 
@@ -7868,7 +7868,7 @@ async function genRsvpPanelLink() {
     });
     const data = await res.json();
     if (!data.token) throw new Error('Sin token');
-    const url = 'https://cristianromeroproducciones.com.ar/rsvp-panel.html?slug=' + encodeURIComponent(slug) + '&t=' + encodeURIComponent(data.token);
+    const url = 'https://kuerre.com.ar/rsvp-panel.html?slug=' + encodeURIComponent(slug) + '&t=' + encodeURIComponent(data.token);
     document.getElementById('inv-rsvp-panel-url').textContent = url;
     document.getElementById('inv-rsvp-panel-url').dataset.url = url;
     document.getElementById('btn-copy-rsvp').style.display = '';
@@ -9099,11 +9099,11 @@ function parseFechaSlug(fecha) {
 
 function buildEntregaUrl(ev) {
   const slug = ev.slug || [makeEntregaSlug(ev.nombres), parseFechaSlug(ev.fecha)].filter(Boolean).join('-') || ev.numId || ev.id;
-  return 'https://cristianromeroproducciones.com.ar/entrega.html?id=' + encodeURIComponent(slug);
+  return 'https://kuerre.com.ar/entrega.html?id=' + encodeURIComponent(slug);
 }
 function buildPremiereUrl(ev) {
   const slug = ev.slug || [makeEntregaSlug(ev.nombres), parseFechaSlug(ev.fecha)].filter(Boolean).join('-') || ev.numId || ev.id;
-  return 'https://cristianromeroproducciones.com.ar/premiere.html?id=' + encodeURIComponent(slug);
+  return 'https://kuerre.com.ar/premiere.html?id=' + encodeURIComponent(slug);
 }
 function updateEntregaPreview() {
   const raw = document.getElementById('ent-folder').value.trim();
