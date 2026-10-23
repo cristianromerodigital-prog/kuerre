@@ -488,6 +488,13 @@ function applyHeroFit() {
   if (blur) blur.style.display = mismatch ? '' : 'none';
 }
 
+function heroVideoPlay() {
+  ['hero-bg-media', 'hero-bg-blur'].forEach(id => {
+    const v = document.getElementById(id);
+    if (v && v.tagName === 'VIDEO' && v.paused) v.play().catch(() => {});
+  });
+}
+
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -539,6 +546,11 @@ function renderHero(c) {
       wrap.innerHTML = `<video id="hero-bg-media" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><source src="${c.media_url}"></video>`;
       const v = document.getElementById('hero-bg-media');
       v.addEventListener('loadedmetadata', () => fitHeroMedia(v.videoWidth, v.videoHeight));
+      // iOS no siempre respeta el autoplay (ahorro de batería, navegador de WhatsApp):
+      // se pide play() explícito y, si lo bloquea, arranca con el primer toque.
+      v.muted = true;
+      heroVideoPlay();
+      ['touchstart', 'click'].forEach(ev => document.addEventListener(ev, heroVideoPlay, { once: true, passive: true }));
     } else {
       wrap.innerHTML = `<img id="hero-bg-media" src="${c.media_url}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`;
       const im = document.getElementById('hero-bg-media');
