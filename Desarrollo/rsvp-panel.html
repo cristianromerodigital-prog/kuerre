@@ -837,8 +837,8 @@ async function exportCSV() {
     if (!confirm(msg)) return;
   }
   const rows = _all.filter(r => _filter === 'todos' || r.asistencia === _filter);
-  const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa','Respondió el','Se modificó el'];
-  const datos = rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '', fmtDate(r.created_at), fmtDate(r.modificado_at)]);
+  const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa'];
+  const datos = rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '']);
   // Arriba de todo, lo que necesita el catering (mismo cálculo que el resumen del panel).
   const catering = cateringConteo();
   const textoCatering = catering.length ? 'Para el catering (confirmados): ' + catering.map(([l, n]) => l + ': ' + n + '.').join(' ') : '';

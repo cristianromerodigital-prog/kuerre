@@ -133,16 +133,18 @@ test('exporta un Excel con formato: catering combinado, encabezado negro, filas 
     assert.ok(files[f], 'falta ' + f);
   const hoja = files['xl/worksheets/sheet1.xml'], estilos = files['xl/styles.xml'];
   // fila 1: catering como texto, combinado en todas las columnas
-  assert.match(hoja, /<mergeCell ref="A1:H1"\/>/);
+  assert.match(hoja, /<mergeCell ref="A1:F1"\/>/);
   assert.ok(hoja.includes('<c r="A1" s="1" t="inlineStr"><is><t xml:space="preserve">Para el catering (confirmados): Celíaco/a: 3. Alergia: maní: 1. Vegano/a: 1.</t>'));
   // encabezados en la fila 3 con estilo 2 (fondo negro, texto blanco)
   assert.ok(hoja.includes('<c r="A3" s="2" t="inlineStr"><is><t xml:space="preserve">Nombre</t>'));
-  assert.ok(hoja.includes('<c r="H3" s="2" t="inlineStr"><is><t xml:space="preserve">Se modificó el</t>'));
+  // sin "Respondió el" ni "Se modificó el": la última columna es Mesa
+  assert.ok(hoja.includes('<c r="F3" s="2" t="inlineStr"><is><t xml:space="preserve">Mesa</t>'));
+  assert.ok(!hoja.includes('Respondió el') && !hoja.includes('Se modificó el') && !hoja.includes('r="G3"'));
   // filas de datos intercaladas: 4 blanca (s=3), 5 gris (s=4), 6 blanca…
   assert.ok(hoja.includes('<c r="A4" s="3" ') && hoja.includes('<c r="A5" s="4" ') && hoja.includes('<c r="A6" s="3" '));
   assert.equal((hoja.match(/<row /g) || []).length, 3 + 5);
   // anchos de columna ajustados
-  assert.match(hoja, /<cols>(<col min="\d" max="\d" width="[\d.]+" customWidth="1"\/>){8}<\/cols>/);
+  assert.match(hoja, /<cols>(<col min="\d" max="\d" width="[\d.]+" customWidth="1"\/>){6}<\/cols>/);
   // estilos: fondo negro y letra blanca en negrita; gris claro para las filas intercaladas
   assert.ok(estilos.includes('<fgColor rgb="FF000000"/>') && estilos.includes('<color rgb="FFFFFFFF"/>') && estilos.includes('<fgColor rgb="FFF2F2F2"/>'));
 });
