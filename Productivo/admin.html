@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.94</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.95</div>
     </div>
   </aside>
 
@@ -931,6 +931,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <!-- DRESSCODE -->
             <div class="inv-modal-section">
               <div class="inv-modal-section-title">Dresscode</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <input type="checkbox" id="inv-dresscode-activo" style="accent-color:var(--gold);width:15px;height:15px" checked>
+                <label for="inv-dresscode-activo" style="font-size:12px;color:var(--gray2);cursor:pointer">Mostrar dresscode en la invitación</label>
+              </div>
               <div class="inv-form-2col">
                 <div class="form-group">
                   <label class="form-label">Vestimenta</label>
@@ -1289,6 +1293,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
               <div class="inv-modal-section">
                 <div class="inv-modal-section-title">Contenido</div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                    <input type="checkbox" id="inv-s-dresscode-activo" style="accent-color:var(--gold);width:16px;height:16px" checked>
+                    Mostrar dress code en la invitación
+                  </label>
+                </div>
                 <div class="inv-form-2col">
                   <div class="form-group">
                     <label class="form-label">Dress Code</label>
@@ -7604,6 +7614,7 @@ function openInviteModal(id) {
     document.getElementById('inv-lugar-maps').value = c.lugar_maps || '';
     document.getElementById('inv-dresscode').value = c.dresscode || '';
     document.getElementById('inv-dresscode-nota').value = c.dresscode_nota || '';
+    document.getElementById('inv-dresscode-activo').checked = c.dresscode_activo !== false;
     document.getElementById('inv-alias').value = c.alias_mp || '';
     document.getElementById('inv-alias-banco').value = c.alias_banco || '';
     document.getElementById('inv-alias-titular').value = c.alias_titular || '';
@@ -7654,6 +7665,7 @@ function openInviteModal(id) {
     document.getElementById('inv-s-lugar-maps').value = c.lugar_maps || '';
     document.getElementById('inv-s-dresscode').value = c.dresscode || '';
     document.getElementById('inv-s-dresscode-nota').value = c.dresscode_nota || '';
+    document.getElementById('inv-s-dresscode-activo').checked = c.dresscode_activo !== false;
     document.getElementById('inv-frase-emotiva').value = c.frase_emotiva || '';
     document.getElementById('inv-album-url').value = c.album_url || '';
     document.getElementById('inv-s-regalo-texto').value = c.regalo_texto || '';
@@ -7695,6 +7707,7 @@ function openInviteModal(id) {
     document.getElementById('inv-regalo-titulo').value = '';
     document.getElementById('inv-regalo-texto').value = '';
     document.getElementById('inv-env-mostrar').checked = true;
+    document.getElementById('inv-dresscode-activo').checked = true;
     selectEnvColor('negro');
     document.getElementById('inv-rsvp-activo').checked = true;
     document.getElementById('inv-fecha-iso').value = '';
@@ -7746,6 +7759,7 @@ function readInviteForm() {
       lugar_maps: document.getElementById('inv-lugar-maps').value.trim(),
       dresscode: document.getElementById('inv-dresscode').value.trim(),
       dresscode_nota: document.getElementById('inv-dresscode-nota').value.trim(),
+      dresscode_activo: document.getElementById('inv-dresscode-activo').checked,
       alias_mp: document.getElementById('inv-alias').value.trim(),
       alias_banco: document.getElementById('inv-alias-banco').value.trim(),
       alias_titular: document.getElementById('inv-alias-titular').value.trim(),
@@ -7797,6 +7811,7 @@ function readInviteForm() {
       lugar_maps: document.getElementById('inv-s-lugar-maps').value.trim(),
       dresscode: document.getElementById('inv-s-dresscode').value.trim(),
       dresscode_nota: document.getElementById('inv-s-dresscode-nota').value.trim(),
+      dresscode_activo: document.getElementById('inv-s-dresscode-activo').checked,
       frase_emotiva: document.getElementById('inv-frase-emotiva').value.trim(),
       album_url: document.getElementById('inv-album-url').value.trim(),
       regalo_texto: document.getElementById('inv-s-regalo-texto').value.trim(),
@@ -8181,7 +8196,7 @@ const HERO_PREVIEW_WATCH_FIELDS = ['inv-novios', 'inv-titulo', 'inv-fecha-displa
   'inv-wedding-script', 'inv-formato', 'inv-color-esquema', 'inv-wedding-fx', 'inv-media-type', 'inv-tipo',
   'inv-subtitulo', 'inv-presentacion', 'inv-ceremonia-hora', 'inv-ceremonia-lugar', 'inv-ceremonia-dir',
   'inv-recepcion-hora', 'inv-fin-fiesta-hora', 'inv-lugar-nombre', 'inv-lugar-dir', 'inv-lugar-maps',
-  'inv-dresscode', 'inv-dresscode-nota', 'inv-alias', 'inv-alias-banco', 'inv-alias-titular', 'inv-cbu',
+  'inv-dresscode', 'inv-dresscode-nota', 'inv-dresscode-activo', 'inv-alias', 'inv-alias-banco', 'inv-alias-titular', 'inv-cbu',
   'inv-rsvp-activo', 'inv-rsvp-limite', 'inv-spotify', 'inv-regalo-label', 'inv-regalo-titulo', 'inv-regalo-texto'];
 
 function defaultHeroLayout(tx, ty) {
@@ -8221,6 +8236,7 @@ function buildInvitePreviewCfg() {
     lugar_maps: document.getElementById('inv-lugar-maps').value.trim(),
     dresscode: document.getElementById('inv-dresscode').value.trim(),
     dresscode_nota: document.getElementById('inv-dresscode-nota').value.trim(),
+    dresscode_activo: document.getElementById('inv-dresscode-activo').checked,
     alias_mp: document.getElementById('inv-alias').value.trim(),
     alias_banco: document.getElementById('inv-alias-banco').value.trim(),
     alias_titular: document.getElementById('inv-alias-titular').value.trim(),

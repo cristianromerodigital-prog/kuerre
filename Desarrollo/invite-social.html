@@ -568,6 +568,7 @@ function renderDonde(c) {
 }
 
 function renderDresscode(c) {
+  if (c.dresscode_activo === false) { document.getElementById('dresscode').style.display = 'none'; return; }
   document.getElementById('dresscode-val').textContent = c.dresscode || 'Formal';
   const notaEl = document.getElementById('dresscode-nota');
   if (c.dresscode_nota) notaEl.textContent = c.dresscode_nota;
