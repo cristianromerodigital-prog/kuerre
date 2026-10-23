@@ -297,8 +297,9 @@ function serializeRestr(p) {
   return r.join(', ');
 }
 
-// Restricciones de los confirmados, para pasarle al catering.
-function renderCatering() {
+// Restricciones de los confirmados, para pasarle al catering: [[texto, cantidad], ...]
+// de mayor a menor. Lo usan el resumen del panel y el CSV.
+function cateringConteo() {
   const cont = {}, label = {};
   const sumar = t => { const k = t.toLowerCase(); cont[k] = (cont[k] || 0) + 1; if (!label[k]) label[k] = t; };
   _all.filter(r => r.asistencia === 'si').forEach(r => {
@@ -307,11 +308,14 @@ function renderCatering() {
     p.otros.forEach(sumar);
     if (p.alergia) sumar('Alergia: ' + p.alergia);
   });
-  const keys = Object.keys(cont).sort((a, b) => cont[b] - cont[a] || label[a].localeCompare(label[b], 'es'));
+  return Object.keys(cont).sort((a, b) => cont[b] - cont[a] || label[a].localeCompare(label[b], 'es')).map(k => [label[k], cont[k]]);
+}
+function renderCatering() {
+  const items = cateringConteo();
   const el = document.getElementById('catering');
-  if (!keys.length) { el.replaceChildren(); return; }
+  if (!items.length) { el.replaceChildren(); return; }
   const t = document.createElement('span'); t.className = 'cat-t'; t.textContent = 'Para el catering';
-  el.replaceChildren(t, ...keys.map(k => { const s = document.createElement('span'); s.className = 'cat-item'; s.textContent = label[k] + ': ' + cont[k]; return s; }));
+  el.replaceChildren(t, ...items.map(([l, n]) => { const s = document.createElement('span'); s.className = 'cat-item'; s.textContent = l + ': ' + n; return s; }));
 }
 
 let _restrId = null;
@@ -523,7 +527,11 @@ async function exportCSV() {
   }
   const rows = _all.filter(r => _filter === 'todos' || r.asistencia === _filter);
   const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa','Respondió el','Se modificó el'];
-  const csv = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '', fmtDate(r.created_at), fmtDate(r.modificado_at)])].map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const celdas = fila => fila.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',');
+  const lista = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '', fmtDate(r.created_at), fmtDate(r.modificado_at)])].map(celdas);
+  // Arriba de todo, lo que necesita el catering (mismo cálculo que el resumen del panel).
+  const catering = cateringConteo();
+  const csv = (catering.length ? [celdas(['Para el catering (confirmados)', 'Cantidad']), ...catering.map(celdas), ''] : []).concat(lista).join('\n');
   const name = 'invitados-' + slug + '.csv';
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
   // En el celular (iPhone, navegador de WhatsApp) los links de descarga no bajan

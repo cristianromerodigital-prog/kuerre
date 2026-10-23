@@ -114,3 +114,24 @@ test('editar alimentación: precarga, guarda en el Worker y actualiza el caterin
   assert.ok(items.includes('Alergia: maní, nueces: 1'), items.join(' | '));
   assert.ok(items.includes('Vegano/a: 2'), items.join(' | '));
 });
+
+test('el CSV empieza con el resumen para el catering y después la lista', async () => {
+  await abrir();
+  const csv = await br.eval(`new Promise(res => {
+    window.confirm = () => true;
+    window.matchMedia = () => ({ matches: true });
+    navigator.canShare = () => true;
+    navigator.share = async d => res(await d.files[0].text());
+    exportCSV();
+  })`);
+  const lineas = csv.split('\n');
+  assert.deepEqual(lineas.slice(0, 6), [
+    '"Para el catering (confirmados)","Cantidad"',
+    '"Celíaco/a","3"',
+    '"Alergia: maní","1"',
+    '"Vegano/a","1"',
+    '',
+    '"Nombre","Apellido","Asistencia","Restricciones","Mensaje","Mesa","Respondió el","Se modificó el"'
+  ]);
+  assert.equal(lineas.length, 6 + 5, 'después vienen las 5 respuestas');
+});
