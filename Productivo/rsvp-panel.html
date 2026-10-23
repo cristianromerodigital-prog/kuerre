@@ -37,6 +37,12 @@ tr:last-child td{border-bottom:none}
 .mesa-select:focus{border-color:#00c896}
 #search{background:#0a1416;border:1px solid #15201f;color:#fff;padding:10px 16px;font-size:12px;font-family:inherit;outline:none;width:100%;max-width:300px;margin-bottom:16px}
 #search::placeholder{color:#444}
+/* Pie igual al de la invitación (tema oscuro) */
+footer{padding:60px 24px;text-align:center;border-top:1px solid rgba(255,255,255,0.05);margin-top:48px}
+footer p{font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase}
+footer small{font-size:10px;color:rgba(255,255,255,0.3);margin-top:8px;display:block}
+footer small a{color:inherit}
+#footer-logo{display:none;margin:16px auto 12px;max-height:56px;max-width:180px;object-fit:contain;filter:invert(1)}
 </style>
 </head>
 <body>
@@ -58,6 +64,12 @@ tr:last-child td{border-bottom:none}
   <button class="filter-btn" data-f="no" onclick="setFilter('no',this)">No asisten</button>
 </div>
 <div id="table-wrap"></div>
+<footer>
+  <p id="footer-names"></p>
+  <img id="footer-logo" alt="Logo">
+  <small>Invitación digital · <a id="invite-footer-web" data-brand="web" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px"><span data-brand="nombre">KUERRE</span></a> · <a id="invite-footer-ig" data-brand="ig" href="#" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px">@KUERRE.com.ar</a></small>
+  <small id="credito-line" data-brand="credito" style="display:none;opacity:.55;font-size:9px;letter-spacing:.06em"><a href="https://kuerre.com.ar" target="_blank" rel="noopener">Sitio realizado por Kuerre · Experiencias digitales para eventos</a></small>
+</footer>
 <script>
 const params = new URLSearchParams(location.search);
 const slug = params.get('slug') || '';
@@ -66,7 +78,63 @@ const WORKER = 'https://KUERRE-worker.cristian-romero-digital.workers.dev';
 let _all = [];
 let _filter = 'todos';
 
+// ── Marca (white-label) — mismo código que invite.html ─────────────────────
+function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
+
+async function loadBrand(scope, id) {
+  const fallback = { nombre: 'KUERRE', slogan: '', logo_url: '', whatsapp: '', instagram: '', web: 'https://kuerre.com.ar', credito: false };
+  try {
+    const brandPartner = new URLSearchParams(location.search).get('m') || '';
+    const r = await fetch(WORKER + '/brand?scope=' + scope + '&id=' + encodeURIComponent(id || '') + (brandPartner ? '&partner=' + encodeURIComponent(brandPartner) : ''));
+    if (!r.ok) throw new Error('brand ' + r.status);
+    return Object.assign(fallback, await r.json());
+  } catch (e) { return fallback; }
+}
+
+function applyBrand(b) {
+  document.querySelectorAll('[data-brand]').forEach(function (el) {
+    const k = el.getAttribute('data-brand');
+    if (k === 'nombre') { el.textContent = b.nombre; return; }
+    if (k === 'slogan') { if (b.slogan) el.textContent = b.slogan; else el.style.display = 'none'; return; }
+    // El filtro y el blend vienen de la marca: las piezas traen un invert(1) en
+    // el CSS pensado para el logo de Kuerre, que es oscuro, y un logo ya claro
+    // invertido queda negro sobre fondo negro.
+    if (k === 'logo')   { if (b.logo_url) { el.src = b.logo_url; el.style.display = ''; if (b.logo_filter) el.style.filter = b.logo_filter; if (b.logo_blend) el.style.mixBlendMode = b.logo_blend; } else el.style.display = 'none'; return; }
+    // Ojo: varios de estos anchors arrancan con display:none inline, así que
+    // cuando el dato existe hay que mostrarlos explícitamente.
+    if (k === 'web')    { if (b.web) { el.href = b.web; el.style.display = ''; } else el.style.display = 'none'; return; }
+    if (k === 'ig')     { if (b.instagram) { el.href = brandIgUrl(b.instagram); el.style.display = ''; } else el.style.display = 'none'; return; }
+    if (k === 'wa')     { if (b.whatsapp) { el.href = 'https://wa.me/' + b.whatsapp.replace(/\D/g, ''); el.style.display = ''; } else el.style.display = 'none'; return; }
+    if (k === 'credito') { el.style.display = b.credito ? '' : 'none'; return; }
+  });
+}
+
+// Pie igual al de la invitación: nombre del evento, logo (el propio de la
+// invitación o el de la marca asignada al cliente), web/IG de la marca y crédito.
+async function renderFooter() {
+  const [cfgInv, brand] = await Promise.all([
+    fetch(WORKER + '/invite/' + slug).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+    loadBrand('invite', slug)
+  ]);
+  document.getElementById('footer-names').textContent = cfgInv.novios || '';
+  applyBrand(brand);
+  const igEl = document.getElementById('invite-footer-ig');
+  if (igEl && brand.instagram) {
+    igEl.textContent = '@' + brandIgUrl(brand.instagram)
+      .replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '');
+  }
+  const le = document.getElementById('footer-logo');
+  if (cfgInv.logo_dark) {
+    le.src = cfgInv.logo_dark; le.style.display = 'block';
+  } else if (brand.logo_url) {
+    le.src = brand.logo_url; le.style.display = 'block';
+    if (brand.logo_filter) le.style.filter = brand.logo_filter;
+    if (brand.logo_blend)  le.style.mixBlendMode = brand.logo_blend;
+  }
+}
+
 async function init() {
+  if (slug) renderFooter();
   if (!slug || !token) {
     document.getElementById('table-wrap').innerHTML = '<div class="empty">URL inválida. Pedile el link al organizador.</div>';
     return;
