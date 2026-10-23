@@ -133,3 +133,12 @@ test('el CSV empieza con el resumen para el catering y después la lista', async
   ]);
   assert.equal(lineas.length, 3 + 5, 'después vienen las 5 respuestas');
 });
+
+test('el buscador ignora tildes y mayúsculas (en los dos sentidos)', async () => {
+  await abrir();
+  const buscar = async q => { await br.eval(`(() => { const s = document.getElementById('search'); s.value = ${JSON.stringify(q)}; s.dispatchEvent(new Event('input')); })()`); return nombres(); };
+  assert.deepEqual((await buscar('gomez')).sort(), ['Ana Gómez']);
+  assert.deepEqual((await buscar('JOSÉ')).sort(), ['jose   perez', 'José Pérez'].sort());
+  assert.deepEqual((await buscar('jose perez')).sort(), ['jose   perez', 'José Pérez'].sort(), 'espacios de más no importan');
+  assert.deepEqual(await buscar('díaz'), ['Bruno Díaz']);
+});
