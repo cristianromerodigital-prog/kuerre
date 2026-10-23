@@ -7,8 +7,8 @@ import { makeEnv, call } from '../helpers/worker.mjs';
 const T = '?t=TOK';
 function evento({ invitados = [], mesas } = {}) {
   const kv = { 'rsvp_token:ev-1': 'TOK' };
-  if (mesas) kv['rsvp_mesas:ev-1'] = String(mesas);
   const ctx = makeEnv({ kv });
+  if (mesas) ctx.db.prepare('INSERT INTO rsvp_config (slug, mesas) VALUES (?, ?)').run('ev-1', mesas);
   const ins = ctx.db.prepare("INSERT INTO rsvp_responses (slug,nombre,apellido,asistencia,mesa) VALUES (?,?,?,?,?)");
   for (const [i, inv] of invitados.entries()) ins.run(inv.slug || 'ev-1', 'Inv' + i, 'X', inv.asistencia || 'si', inv.mesa ?? null);
   ctx.fila = id => ctx.db.prepare('SELECT asistencia, mesa, modificado_at FROM rsvp_responses WHERE id=?').get(id);
@@ -73,14 +73,13 @@ test('configurar cantidad de mesas: valida rango y requiere token', async () => 
   assert.equal((await call(env, 'PUT', '/rsvp/ev-1/config' + T, { mesas: 61 })).status, 400);
   assert.equal((await call(env, 'PUT', '/rsvp/ev-1/config?t=MAL', { mesas: 30 })).status, 401);
   assert.equal((await call(env, 'PUT', '/rsvp/ev-1/config' + T, { mesas: 30 })).status, 200);
-  assert.equal(store['rsvp_mesas:ev-1'], '30');
   assert.equal((await call(env, 'GET', '/rsvp/ev-1' + T)).data.mesas, 30);
 });
 test('reducir mesas ocupadas → 409 con la lista', async () => {
   const { env, store } = evento({ invitados: [{ mesa: 18 }, { mesa: 15 }, { asistencia: 'no', mesa: 19 }] });
   const r = await call(env, 'PUT', '/rsvp/ev-1/config' + T, { mesas: 14 });
   assert.equal(r.status, 409); assert.equal(r.data.error, 'mesas_ocupadas'); assert.deepEqual(r.data.mesas, [15, 18]);
-  assert.equal(store['rsvp_mesas:ev-1'], undefined);
+  assert.equal((await call(env, 'GET', '/rsvp/ev-1' + T)).data.mesas, 20, 'no se guardó');
 });
 
 // ── conflicto ──
@@ -95,4 +94,23 @@ test('prev desactualizado → 409 conflicto con el estado actual, sin pisar', as
 test('prev con mesa null coincide con una fila sin mesa', async () => {
   const { env } = evento({ invitados: [{}] });
   assert.equal((await patch(env, 1, { mesa: 1, prev: { asistencia: 'si', mesa: null } })).status, 200);
+});
+
+// ── revisión final: cantidad de mesas y asignación no pueden pisarse ──
+test('bajar mesas mientras alguien asigna una mesa que desaparece: nunca queda alguien fuera de rango', async () => {
+  for (let vuelta = 0; vuelta < 20; vuelta++) {
+    const { env, db } = evento({ invitados: [{}] });
+    const orden = vuelta % 2 ? [() => patch(env, 1, { mesa: 15 }), () => call(env, 'PUT', '/rsvp/ev-1/config' + T, { mesas: 12 })]
+                             : [() => call(env, 'PUT', '/rsvp/ev-1/config' + T, { mesas: 12 }), () => patch(env, 1, { mesa: 15 })];
+    await Promise.all(orden.map(f => f()));
+    const mesas = (await call(env, 'GET', '/rsvp/ev-1' + T)).data.mesas;
+    const sentado = db.prepare('SELECT mesa FROM rsvp_responses WHERE id=1').get().mesa;
+    assert.ok(sentado === null || sentado <= mesas, `vuelta ${vuelta}: mesas=${mesas} pero el invitado quedó en la ${sentado}`);
+  }
+});
+test('la cantidad de mesas vive en la base (no en KV)', async () => {
+  const { env, db, store } = evento();
+  assert.equal((await call(env, 'PUT', '/rsvp/ev-1/config' + T, { mesas: 30 })).status, 200);
+  assert.equal(db.prepare("SELECT mesas FROM rsvp_config WHERE slug='ev-1'").get().mesas, 30);
+  assert.equal(store['rsvp_mesas:ev-1'], undefined);
 });

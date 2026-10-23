@@ -241,10 +241,12 @@ const RSVP_CAPACIDAD_MESA = 10;
 const RSVP_MESAS_DEFAULT = 20;
 const RSVP_MESAS_MAX = 60;
 
-// Cantidad de mesas del evento (la configura el panel RSVP; default 20).
+// Cantidad de mesas del evento (la configura el panel RSVP; default 20). Vive en D1
+// (rsvp_config) para validarse en la misma sentencia que asigna la mesa.
+const SQL_MESAS = 'COALESCE((SELECT mesas FROM rsvp_config WHERE slug = ?3), ' + RSVP_MESAS_DEFAULT + ')';
 async function rsvpMesas(env, slug) {
-  const n = Number(await env.KUERRE_KV.get('rsvp_mesas:' + slug));
-  return Number.isInteger(n) && n >= 1 && n <= RSVP_MESAS_MAX ? n : RSVP_MESAS_DEFAULT;
+  const row = await env.KUERRE_DB.prepare('SELECT mesas FROM rsvp_config WHERE slug = ?').bind(slug).first();
+  return row ? row.mesas : RSVP_MESAS_DEFAULT;
 }
 
 function isHttpsUrl(u) {
@@ -2088,14 +2090,20 @@ export default {
         const body = await request.json().catch(() => ({}));
         const mesas = Number(body.mesas);
         if (!Number.isInteger(mesas) || mesas < 1 || mesas > RSVP_MESAS_MAX) return json({ error: 'Cantidad de mesas inválida', mensaje: 'Entre 1 y ' + RSVP_MESAS_MAX }, 400);
-        const { results } = await env.KUERRE_DB.prepare(
-          "SELECT DISTINCT mesa FROM rsvp_responses WHERE slug = ? AND asistencia = 'si' AND mesa > ? ORDER BY mesa"
-        ).bind(slug, mesas).all();
-        if (results && results.length) {
-          const ocupadas = results.map(r => r.mesa);
+        // Una sola sentencia: solo se guarda si nadie confirmado quedaría en una mesa que
+        // desaparece. Una asignación simultánea a esa mesa valida contra este mismo valor.
+        const r = await env.KUERRE_DB.prepare(
+          "INSERT INTO rsvp_config (slug, mesas) SELECT ?1, ?2 WHERE NOT EXISTS " +
+          "(SELECT 1 FROM rsvp_responses WHERE slug = ?1 AND asistencia = 'si' AND mesa > ?2) " +
+          "ON CONFLICT(slug) DO UPDATE SET mesas = excluded.mesas"
+        ).bind(slug, mesas).run();
+        if (!r.meta || !r.meta.changes) {
+          const { results } = await env.KUERRE_DB.prepare(
+            "SELECT DISTINCT mesa FROM rsvp_responses WHERE slug = ? AND asistencia = 'si' AND mesa > ? ORDER BY mesa"
+          ).bind(slug, mesas).all();
+          const ocupadas = (results || []).map(x => x.mesa);
           return json({ error: 'mesas_ocupadas', mensaje: 'Hay invitados sentados en las mesas ' + ocupadas.join(', '), mesas: ocupadas }, 409);
         }
-        await env.KUERRE_KV.put('rsvp_mesas:' + slug, String(mesas));
         return json({ ok: true, mesas });
       }
 
@@ -2139,6 +2147,8 @@ export default {
           if (prev && (f.asistencia !== prevArgs[0] || f.mesa !== prevArgs[1]))
             return json({ error: 'conflicto', mensaje: 'Otra persona cambió a este invitado mientras editabas', actual: f }, 409);
           if (f.asistencia !== 'si') return json({ error: 'no_asiste', mensaje: 'Solo se puede asignar mesa a quien asiste' }, 409);
+          const total = await rsvpMesas(env, slug);
+          if (mesa > total) return json({ error: 'Mesa inválida', mensaje: 'La mesa tiene que estar entre 1 y ' + total }, 400);
           return json({ error: 'mesa_llena', mensaje: 'La mesa ' + mesa + ' ya tiene ' + RSVP_CAPACIDAD_MESA + ' invitados' }, 409);
         };
         if (cambiaAsistencia) {
@@ -2157,7 +2167,7 @@ export default {
           // lugar a la vez no pueden entrar las dos (D1 serializa las escrituras).
           const condPrevMesa = prev && !cambiaAsistencia ? condPrev : '';
           const r = await env.KUERRE_DB.prepare(
-            "UPDATE rsvp_responses SET mesa = ?1 WHERE id = ?2 AND slug = ?3 AND (?1 IS NULL OR (asistencia = 'si' AND " +
+            "UPDATE rsvp_responses SET mesa = ?1 WHERE id = ?2 AND slug = ?3 AND (?1 IS NULL OR (asistencia = 'si' AND ?1 <= " + SQL_MESAS + " AND " +
             "(SELECT COUNT(*) FROM rsvp_responses WHERE slug = ?3 AND mesa = ?1 AND asistencia = 'si' AND id <> ?2) < ?4))" + condPrevMesa
           ).bind(mesa, rid, slug, RSVP_CAPACIDAD_MESA, ...(condPrevMesa ? [null, null, null, null, ...prevArgs] : [])).run();
           if (!r.meta || !r.meta.changes) return motivo();
