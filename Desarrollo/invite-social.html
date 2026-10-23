@@ -388,6 +388,9 @@ const CONFIG = {
 
 // ── Marca (white-label) ─────────────────────────────────────────────────────
 // Copiado igual en invite.html, invite-social.html, fiestas.html y premiere.html.
+// La config puede venir del cliente (formulario de estilos / solicitud): una URL
+// se usa solo si es https, así nunca entra un javascript: ni algo que rompa el atributo.
+function safeHttpsUrl(u) { try { return new URL(String(u || '')).protocol === 'https:' ? String(u) : ''; } catch (e) { return ''; } }
 function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
 
 async function loadBrand(scope, id) {
@@ -541,10 +544,14 @@ function renderHero(c) {
     document.getElementById('hero-title-script').textContent = c.novios || c.titulo || '';
   }
   const wrap = document.getElementById('hero-bg-wrap');
-  if (c.media_url) {
+  const mediaUrl = safeHttpsUrl(c.media_url);
+  if (mediaUrl) {
     if (c.media_type === 'video') {
-      wrap.innerHTML = `<video id="hero-bg-media" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"><source src="${c.media_url}"></video>`;
+      wrap.innerHTML = `<video id="hero-bg-media" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>`;
       const v = document.getElementById('hero-bg-media');
+      const source = document.createElement('source');
+      source.src = mediaUrl;
+      v.appendChild(source);
       v.addEventListener('loadedmetadata', () => fitHeroMedia(v.videoWidth, v.videoHeight));
       // iOS no siempre respeta el autoplay (ahorro de batería, navegador de WhatsApp):
       // se pide play() explícito y, si lo bloquea, arranca con el primer toque.
@@ -552,8 +559,12 @@ function renderHero(c) {
       heroVideoPlay();
       ['touchstart', 'click'].forEach(ev => document.addEventListener(ev, heroVideoPlay, { once: true, passive: true }));
     } else {
-      wrap.innerHTML = `<img id="hero-bg-media" src="${c.media_url}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`;
-      const im = document.getElementById('hero-bg-media');
+      const im = document.createElement('img');
+      im.id = 'hero-bg-media';
+      im.alt = '';
+      im.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
+      im.src = mediaUrl;
+      wrap.replaceChildren(im);
       if (im.complete && im.naturalWidth) fitHeroMedia(im.naturalWidth, im.naturalHeight);
       else im.addEventListener('load', () => fitHeroMedia(im.naturalWidth, im.naturalHeight));
     }
@@ -576,7 +587,7 @@ function renderDonde(c) {
   document.getElementById('donde-nombre').textContent = c.lugar_nombre || '';
   document.getElementById('donde-dir').textContent = c.lugar_direccion || '';
   const btn = document.getElementById('btn-maps');
-  if (c.lugar_maps) { btn.href = c.lugar_maps; btn.style.display = 'inline-block'; }
+  if (safeHttpsUrl(c.lugar_maps)) { btn.href = safeHttpsUrl(c.lugar_maps); btn.style.display = 'inline-block'; }
 }
 
 function renderDresscode(c) {
@@ -588,17 +599,27 @@ function renderDresscode(c) {
 }
 
 function renderFotos(c) {
-  if (!c.album_url) return;
+  if (!safeHttpsUrl(c.album_url)) return;
   document.getElementById('fotos').style.display = '';
-  document.getElementById('btn-album').href = c.album_url;
+  document.getElementById('btn-album').href = safeHttpsUrl(c.album_url);
 }
 
-function buildCarrusel(trackId, wrapId, images) {
-  if (!images || !images.length) return;
+function buildCarrusel(trackId, wrapId, imagesIn) {
+  const images = (imagesIn || []).map(safeHttpsUrl).filter(Boolean);
+  if (!images.length) return;
   const wrap = document.getElementById(wrapId);
   const track = document.getElementById(trackId);
   wrap.style.display = '';
-  track.innerHTML = images.map(url => `<div class="carousel-slide"><img src="${url}" loading="lazy" alt=""></div>`).join('');
+  track.replaceChildren(...images.map(url => {
+    const slide = document.createElement('div');
+    slide.className = 'carousel-slide';
+    const img = document.createElement('img');
+    img.loading = 'lazy';
+    img.alt = '';
+    img.src = url;
+    slide.appendChild(img);
+    return slide;
+  }));
   let current = 0;
   const n = images.length;
   function scrollTo(idx) {

@@ -236,6 +236,11 @@ async function resolveInviteLinkSlug(env, ent) {
   return null;
 }
 
+function isHttpsUrl(u) {
+  if (typeof u !== 'string') return false;
+  try { return new URL(u).protocol === 'https:'; } catch { return false; }
+}
+
 function genRsvpToken() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let token = '';
@@ -1161,6 +1166,16 @@ export default {
         const incoming = { ...body.config };
         ['novios', 'fecha_display', 'fecha_iso', 'tipo', 'form_completado', 'form_completado_at', 'estilo_elegido',
          'logo_dark', 'logo_light', 'logo_filter', 'emailjs_key', 'emailjs_service', 'gsheet_url'].forEach(k => delete incoming[k]);
+        // Toda URL del cliente termina como src/href en la invitación de cada invitado:
+        // solo https; si no, se descarta y queda la que ya había.
+        for (const k of Object.keys(incoming)) {
+          if (/_url$|_embed$|^lugar_maps$/.test(k)) {
+            if (!isHttpsUrl(incoming[k])) delete incoming[k];
+          } else if (/^carousel_images_\d+$/.test(k)) {
+            if (Array.isArray(incoming[k])) incoming[k] = incoming[k].filter(isHttpsUrl);
+            else delete incoming[k];
+          }
+        }
         const merged = {
           ...existing, ...incoming,
           form_completado: true,

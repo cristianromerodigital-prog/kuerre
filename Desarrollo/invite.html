@@ -575,6 +575,10 @@ function toggleSound() {
   btn.textContent = vid.muted ? '🔇' : '🔊';
 }
 
+// La config puede venir del cliente (formulario de estilos / solicitud): una URL
+// se usa solo si es https, así nunca entra un javascript: ni algo que rompa el atributo.
+function safeHttpsUrl(u) { try { return new URL(String(u || '')).protocol === 'https:' ? String(u) : ''; } catch (e) { return ''; } }
+
 function fmtHs(h) { if (!h) return ''; const t = h.trim(); return /hs\.?\s*$/i.test(t) ? t : t + ' hs.'; }
 
 async function parseConfig() {
@@ -1186,7 +1190,10 @@ function renderHero(c) {
     const names = c.novios || '';
     const parts = names.split('&');
     if (parts.length === 2) {
-      document.getElementById('hero-names').innerHTML = `${parts[0].trim()} <span class="hero-ampersand">&</span> ${parts[1].trim()}`;
+      const amp = document.createElement('span');
+      amp.className = 'hero-ampersand';
+      amp.textContent = '&';
+      document.getElementById('hero-names').replaceChildren(parts[0].trim() + ' ', amp, ' ' + parts[1].trim());
     } else {
       document.getElementById('hero-names').textContent = names;
     }
@@ -1197,16 +1204,24 @@ function renderHero(c) {
   applyHeroLayout(heroLayout);
 
   const wrap = document.getElementById('hero-media-wrap');
-  if (c.media_url) {
+  const mediaUrl = safeHttpsUrl(c.media_url);
+  if (mediaUrl) {
     if (c.media_type === 'video') {
-      wrap.innerHTML = `<video id="hero-media" autoplay muted loop playsinline><source src="${c.media_url}"></video><button id="btn-sound" onclick="toggleSound()" style="position:absolute;bottom:80px;right:24px;z-index:10;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.3);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)" title="Activar sonido">🔇</button>`;
+      wrap.innerHTML = `<video id="hero-media" autoplay muted loop playsinline></video><button id="btn-sound" onclick="toggleSound()" style="position:absolute;bottom:80px;right:24px;z-index:10;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.3);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)" title="Activar sonido">🔇</button>`;
+      const source = document.createElement('source');
+      source.src = mediaUrl;
+      document.getElementById('hero-media').appendChild(source);
       // iOS no siempre respeta el autoplay (ahorro de batería, navegador de WhatsApp):
       // se pide play() explícito y, si lo bloquea, arranca con el primer toque.
       document.getElementById('hero-media').muted = true;
       heroVideoPlay();
       ['touchstart', 'click'].forEach(ev => document.addEventListener(ev, heroVideoPlay, { once: true, passive: true }));
     } else {
-      wrap.innerHTML = `<img id="hero-media" src="${c.media_url}" alt="">`;
+      const img = document.createElement('img');
+      img.id = 'hero-media';
+      img.alt = '';
+      img.src = mediaUrl;
+      wrap.replaceChildren(img);
     }
   } else {
     document.getElementById('hero-overlay').style.background = 'rgba(12,12,12,0.6)';
@@ -1266,17 +1281,27 @@ function renderLugar(c) {
   document.getElementById('lugar-nombre').textContent = c.lugar_nombre || '';
   document.getElementById('lugar-dir').textContent = c.lugar_direccion || '';
   const mapsBtn = document.getElementById('btn-maps');
-  if (c.lugar_maps) {
-    mapsBtn.href = c.lugar_maps;
+  if (safeHttpsUrl(c.lugar_maps)) {
+    mapsBtn.href = safeHttpsUrl(c.lugar_maps);
   } else {
     mapsBtn.style.display = 'none';
   }
   const embedWrap = document.getElementById('maps-embed-wrap');
-  if (c.lugar_maps_embed) {
-    embedWrap.innerHTML = `<iframe class="maps-embed" src="${c.lugar_maps_embed}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" frameborder="0"></iframe>`;
+  let mapSrc = '';
+  if (safeHttpsUrl(c.lugar_maps_embed)) {
+    mapSrc = safeHttpsUrl(c.lugar_maps_embed);
   } else if (c.lugar_nombre && c.lugar_direccion) {
-    const q = encodeURIComponent((c.lugar_nombre + ' ' + c.lugar_direccion).trim());
-    embedWrap.innerHTML = `<iframe class="maps-embed" src="https://maps.google.com/maps?q=${q}&output=embed" allowfullscreen loading="lazy" frameborder="0"></iframe>`;
+    mapSrc = 'https://maps.google.com/maps?q=' + encodeURIComponent((c.lugar_nombre + ' ' + c.lugar_direccion).trim()) + '&output=embed';
+  }
+  if (mapSrc) {
+    const frame = document.createElement('iframe');
+    frame.className = 'maps-embed';
+    frame.allowFullscreen = true;
+    frame.loading = 'lazy';
+    frame.referrerPolicy = 'no-referrer-when-downgrade';
+    frame.setAttribute('frameborder', '0');
+    frame.src = mapSrc;
+    embedWrap.replaceChildren(frame);
   }
 }
 
@@ -1340,10 +1365,19 @@ function renderSpotify(c) {
   if (titleCustom) titleEl.textContent = titleCustom;
   else titleEl.innerHTML = 'La <em>playlist</em>';
   document.getElementById('spotify-body').textContent = (c.text_content && c.text_content['spotify-body']) || '¿Querés que suene tu canción favorita? La playlist es colaborativa — agregá los temas que quieras.';
-  document.getElementById('btn-spotify').href = c.spotify_url;
+  const spotifyUrl = safeHttpsUrl(c.spotify_url);
+  document.getElementById('btn-spotify').href = spotifyUrl || '#';
   const embedWrap = document.getElementById('spotify-embed-wrap');
-  const embedUrl = c.spotify_url.replace('open.spotify.com/', 'open.spotify.com/embed/');
-  embedWrap.innerHTML = `<iframe class="spotify-embed" src="${embedUrl}" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+  if (spotifyUrl) {
+    const frame = document.createElement('iframe');
+    frame.className = 'spotify-embed';
+    frame.height = '380';
+    frame.setAttribute('frameborder', '0');
+    frame.setAttribute('allowtransparency', 'true');
+    frame.allow = 'encrypted-media';
+    frame.src = spotifyUrl.replace('open.spotify.com/', 'open.spotify.com/embed/');
+    embedWrap.replaceChildren(frame);
+  }
 }
 
 function renderNav(c) {
