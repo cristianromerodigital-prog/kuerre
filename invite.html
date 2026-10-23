@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Invitación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://maps.google.com">
-<link rel="preconnect" href="https://www.google.com">
-<link rel="preconnect" href="https://maps.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&family=Mrs+Saint+Delafield&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1275,20 +1272,11 @@ function renderLugar(c) {
     mapsBtn.style.display = 'none';
   }
   const embedWrap = document.getElementById('maps-embed-wrap');
-  let mapHtml = '';
   if (c.lugar_maps_embed) {
-    mapHtml = `<iframe class="maps-embed" src="${c.lugar_maps_embed}" allowfullscreen referrerpolicy="no-referrer-when-downgrade" frameborder="0"></iframe>`;
+    embedWrap.innerHTML = `<iframe class="maps-embed" src="${c.lugar_maps_embed}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" frameborder="0"></iframe>`;
   } else if (c.lugar_nombre && c.lugar_direccion) {
     const q = encodeURIComponent((c.lugar_nombre + ' ' + c.lugar_direccion).trim());
-    mapHtml = `<iframe class="maps-embed" src="https://maps.google.com/maps?q=${q}&output=embed" allowfullscreen frameborder="0"></iframe>`;
-  }
-  if (mapHtml) {
-    // Google Maps tarda varios segundos en armarse. Con loading="lazy" recién empezaba
-    // al llegar a la sección; ahora se precarga en segundo plano apenas terminó de
-    // cargar la página (sin competir con la portada), así al llegar ya está listo.
-    const mount = () => { embedWrap.innerHTML = mapHtml; };
-    if (document.readyState === 'complete') mount();
-    else window.addEventListener('load', mount, { once: true });
+    embedWrap.innerHTML = `<iframe class="maps-embed" src="https://maps.google.com/maps?q=${q}&output=embed" allowfullscreen loading="lazy" frameborder="0"></iframe>`;
   }
 }
 
