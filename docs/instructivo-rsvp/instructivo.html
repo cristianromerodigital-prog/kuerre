@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cómo usar tu panel de invitados</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@400;500;600&display=swap">
+<style>
+@page { size: A4; margin: 16mm 16mm 18mm; }
+@page :first { margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --oro: #a38b3b; --oro-claro: #f6f1e3; --tinta: #1c1c1c; --gris: #5f5f5f; }
+body { font-family: 'Montserrat', sans-serif; color: var(--tinta); font-size: 11pt; line-height: 1.55; }
+.portada { page-break-after: always; width: 210mm; height: 297mm; padding: 0 22mm; background: #060d0f; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.portada img { width: 120mm; margin-bottom: 22mm; }
+.portada h1 { font-family: 'Cormorant Garamond', serif; font-weight: 400; color: #c9a84c; font-size: 34pt; line-height: 1.15; margin-bottom: 8mm; }
+.portada p { color: #b8b8b8; font-size: 12pt; letter-spacing: .5px; }
+.portada .sep { width: 30mm; height: 1px; background: #c9a84c; margin: 10mm auto; opacity: .7; }
+h2 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 21pt; color: var(--tinta); margin: 0 0 3mm;
+  display: flex; align-items: baseline; gap: 4mm; }
+h2 .n { color: var(--oro); font-size: 26pt; }
+.sec { break-inside: avoid; margin-bottom: 10mm; }
+.nueva { break-before: page; }
+.lead { color: var(--gris); margin-bottom: 4mm; }
+ol, ul { margin: 0 0 4mm 6mm; padding-left: 4mm; }
+li { margin-bottom: 1.6mm; }
+b { font-weight: 600; }
+.fila { display: flex; gap: 7mm; align-items: flex-start; }
+.fila > div { flex: 1; }
+.shot { display: block; border-radius: 3mm; box-shadow: 0 1.5mm 5mm rgba(0,0,0,.18); }
+.cel { width: 62mm; }
+.ancho { width: 100%; }
+.tip { background: var(--oro-claro); border-left: 1.2mm solid var(--oro); padding: 3mm 4mm; border-radius: 1.5mm; font-size: 10pt; margin: 3mm 0 0; }
+.tip b { color: #7d6a2a; }
+.chip { display: inline-block; padding: .2mm 2.5mm; border-radius: 3mm; font-size: 9pt; font-weight: 600; }
+.dorado { background: #f3ead0; color: #7d6a2a; } .rojo { background: #fbe3e3; color: #b23b3b; } .verde { background: #e2f3e6; color: #2f7d43; }
+.indice { columns: 2; column-gap: 10mm; margin: 2mm 0 8mm; }
+.indice div { break-inside: avoid; padding: 1.8mm 0; border-bottom: 1px solid #eee; }
+.indice span { color: var(--oro); font-weight: 600; margin-right: 2mm; }
+.pie { margin-top: 10mm; text-align: center; color: #999; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<section class="portada">
+  <img src="img/logo.png" alt="Palacio Nijash">
+  <h1>Cómo usar tu panel<br>de invitados</h1>
+  <div class="sep"></div>
+  <p>Confirmaciones · Mesas · Alimentación</p>
+</section>
+
+<div class="sec">
+  <h2>Antes de empezar</h2>
+  <p class="lead">El panel es la página donde ves quién confirmó su asistencia a tu evento y organizás las mesas. Funciona igual en el celular y en la computadora.</p>
+  <ul>
+    <li>Entrás con el <b>link personal</b> que te enviamos. Guardalo en favoritos para tenerlo a mano.</li>
+    <li>Ese link es solo para vos y quienes organizan el evento: <b>no lo compartas con los invitados</b>.</li>
+    <li>Lo que cambiás se guarda en el momento. No hay botón de “guardar”.</li>
+  </ul>
+  <div class="indice">
+    <div><span>1</span>Ver las confirmaciones</div>
+    <div><span>2</span>Buscar un invitado</div>
+    <div><span>3</span>Asistencia, mesa y alimentación</div>
+    <div><span>4</span>Organizar las mesas</div>
+    <div><span>5</span>Agregar un invitado</div>
+    <div><span>6</span>Posibles duplicados</div>
+    <div><span>7</span>Eliminar y recuperar</div>
+    <div><span>8</span>Catering y Excel</div>
+  </div>
+</div>
+
+<div class="sec">
+  <h2><span class="n">1</span>Ver las confirmaciones</h2>
+  <div class="fila">
+    <div>
+      <p class="lead">Arriba de todo vas a ver el resumen de tu evento.</p>
+      <ul>
+        <li><b>Total:</b> todas las personas que respondieron.</li>
+        <li><b>Confirmados:</b> los que van a ir.</li>
+        <li><b>No asisten:</b> los que avisaron que no pueden.</li>
+      </ul>
+      <p>Los números se actualizan solos a medida que tus invitados responden desde la invitación. Si tenés el panel abierto hace rato, recargá la página para ver las últimas respuestas.</p>
+    </div>
+    <img class="shot cel" src="img/01-resumen.png" alt="">
+  </div>
+</div>
+
+<div class="sec">
+  <h2><span class="n">2</span>Buscar un invitado</h2>
+  <div class="fila">
+    <div>
+      <ol>
+        <li>Escribí el nombre o el apellido en <b>Buscar por nombre</b>. No hace falta poner tildes ni mayúsculas: “lucia” encuentra a “Lucía”.</li>
+        <li>Con <b>Todos / Confirmados / No asisten</b> ves solo ese grupo.</li>
+        <li>Con <b>Todas las mesas</b> elegís una mesa para ver quiénes están sentados ahí, o <b>Sin mesa</b> para ver a quién te falta ubicar.</li>
+      </ol>
+      <p class="tip"><b>Tip:</b> los filtros se combinan. Por ejemplo, “Confirmados” + “Sin mesa” te muestra exactamente a quién te queda sentar.</p>
+    </div>
+    <img class="shot cel" src="img/03-buscar.png" alt="">
+  </div>
+</div>
+
+<div class="sec">
+  <h2><span class="n">3</span>Asistencia, mesa y alimentación</h2>
+  <p class="lead">Cada invitado ocupa una fila. Desde ahí podés corregir lo que respondió y ubicarlo en una mesa.</p>
+  <img class="shot ancho" src="img/04-tabla.png" alt="">
+  <ul style="margin-top:5mm">
+    <li><b>Asistencia:</b> cambiá entre <span class="chip verde">Asiste</span> y <span class="chip rojo">No asiste</span>. Si alguien pasa a “No asiste”, se le libera la mesa.</li>
+    <li><b>Mesa:</b> elegila de la lista. Cada mesa muestra cuántos tiene, por ejemplo “Mesa 2 (2/10)”. Entran <b>hasta 10 invitados por mesa</b>; las llenas no se pueden elegir.</li>
+    <li><b>Alimentación ✎:</b> tocá el lápiz para marcar si es celíaco, vegetariano, vegano o tiene otra alergia.</li>
+  </ul>
+  <p class="tip">Las filas con una <b>línea dorada</b> a la izquierda son invitados <b>confirmados que todavía no tienen mesa</b>.</p>
+</div>
+
+<div class="sec">
+  <div class="fila">
+    <div>
+      <h2 style="font-size:17pt">Editar la alimentación</h2>
+      <ol>
+        <li>Tocá el <b>✎</b> en la columna Alimentación.</li>
+        <li>Marcá las opciones que correspondan o escribí otra alergia.</li>
+        <li>Tocá <b>Guardar</b>.</li>
+      </ol>
+      <p class="tip"><b>En el celular</b> la tabla es más ancha que la pantalla: deslizala con el dedo hacia la izquierda para ver Alimentación, Mesa y el tacho para eliminar.</p>
+    </div>
+    <img class="shot cel" src="img/09-alimentacion.png" alt="">
+  </div>
+</div>
+
+<div class="sec">
+  <h2><span class="n">4</span>Organizar las mesas</h2>
+  <div class="fila">
+    <div>
+      <ol>
+        <li>En <b>Cantidad</b> poné cuántas mesas tiene tu evento y tocá <b>Guardar</b>.</li>
+        <li>Abrí <b>Ver ocupación de las mesas</b> para ver todas de un vistazo.</li>
+        <li>Tocá una mesa para ver quiénes están sentados ahí.</li>
+      </ol>
+      <p><span class="chip dorado">Sin mesa</span> confirmados que te faltan ubicar.<br><span class="chip rojo">Mesa 3 · 10/10</span> mesa completa.</p>
+      <p class="tip">Si querés <b>bajar la cantidad</b> de mesas y alguna de las que se van tiene gente sentada, el panel te avisa cuáles para que primero los cambies de mesa.</p>
+    </div>
+    <img class="shot cel" src="img/06-ocupacion.png" alt="">
+  </div>
+</div>
+
+<div class="sec">
+  <h2><span class="n">5</span>Agregar un invitado</h2>
+  <div class="fila">
+    <div>
+      <p class="lead">Para alguien que te confirmó por teléfono o en persona.</p>
+      <ol>
+        <li>Tocá <b>+ Agregar invitado</b>, arriba de todo.</li>
+        <li>Completá nombre y apellido.</li>
+        <li>Elegí si asiste, su alimentación y, si querés, la mesa.</li>
+        <li>Tocá <b>Agregar</b>. Aparece en la lista al instante.</li>
+      </ol>
+      <img class="shot" style="width:78mm;margin-top:3mm" src="img/02-botones.png" alt="">
+    </div>
+    <img class="shot cel" src="img/10-agregar.png" alt="">
+  </div>
+</div>
+
+<div class="sec">
+  <h2><span class="n">6</span>Posibles duplicados</h2>
+  <p class="lead">Si alguien respondió dos veces, el panel lo marca y te dice con qué fila coincide. Reconoce el mismo nombre aunque esté escrito distinto (“Lucía Romero” y “lucia romero”).</p>
+  <img class="shot" style="width:120mm" src="img/08-duplicado.png" alt="">
+  <p class="tip">Revisá las dos filas y <b>eliminá la que sobra</b> (sección 7). El número de fila es el de la primera columna de la tabla.</p>
+</div>
+
+<div class="sec">
+  <h2><span class="n">7</span>Eliminar y recuperar</h2>
+  <div class="fila">
+    <div>
+      <ol>
+        <li>Para uno solo, tocá el <b>tacho 🗑</b> al final de su fila.</li>
+        <li>Para varios, marcá las casillas de cada fila. <b>Seleccionar todos</b> marca todos los que estás viendo (si filtraste, solo esos).</li>
+        <li>Tocá <b>Eliminar seleccionados</b>.</li>
+        <li>Aparece un aviso con la lista: confirmá con <b>Eliminar</b> o arrepentite con <b>Cancelar</b>.</li>
+      </ol>
+    </div>
+    <img class="shot cel" src="img/12-aviso.png" alt="">
+  </div>
+</div>
+
+<div class="sec">
+  <div class="fila">
+    <div>
+      <h2 style="font-size:17pt">¿Lo borraste sin querer?</h2>
+      <ul>
+        <li>Justo después de borrar aparece <b>Deshacer</b> por unos segundos.</li>
+        <li>Si ya pasó, bajá hasta <b>Eliminados</b>, al final de la página, y tocá <b>Restaurar</b>. Lo eliminado se guarda <b>30 días</b>.</li>
+        <li>Si vuelve a una mesa que se llenó mientras tanto, queda sin mesa para que lo ubiques de nuevo.</li>
+        <li><b>Eliminar definitivo</b> lo borra para siempre: ese ya no se puede recuperar.</li>
+      </ul>
+      <img class="shot" style="width:70mm;margin-top:3mm;box-shadow:none" src="img/13-deshacer.png" alt="">
+    </div>
+    <img class="shot cel" src="img/14-eliminados.png" alt="">
+  </div>
+</div>
+
+<div class="sec">
+  <h2><span class="n">8</span>Catering y Excel</h2>
+  <p class="lead">Debajo de las mesas tenés el resumen <b>Para el catering</b>: cuántos confirmados necesitan cada tipo de menú. Se actualiza solo.</p>
+  <img class="shot" style="width:110mm" src="img/07-catering.png" alt="">
+  <h2 style="font-size:17pt;margin-top:8mm">Exportar la lista</h2>
+  <ol>
+    <li>Tocá <b>Exportar Excel</b>.</li>
+    <li>Si hay confirmados sin mesa, el panel te avisa quiénes son. Podés exportar igual o cancelar para ubicarlos primero.</li>
+    <li>En la computadora se descarga el archivo. En el celular se abre el menú para guardarlo o mandarlo por WhatsApp.</li>
+  </ol>
+  <p>El Excel trae arriba el resumen para el catering y después la lista con fila, nombre, asistencia, alimentación, mensaje y mesa, listo para mandarle al salón o al catering.</p>
+  <p class="tip">El botón <b>WhatsApp</b> sirve para mandarle el link del panel a otra persona que organice con vos.</p>
+  <p class="pie">Ante cualquier duda, escribinos. ¡Que disfruten la fiesta!</p>
+</div>
+
+</body>
+</html>
