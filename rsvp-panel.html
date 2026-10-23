@@ -36,6 +36,9 @@ tr:last-child td{border-bottom:none}
 .empty{text-align:center;padding:64px 0;color:#444;font-size:13px}
 .mesa-select{background:#0a1416;border:1px solid #15201f;color:#ccc;padding:6px 10px;font-size:11px;font-family:inherit;outline:none;border-radius:4px;cursor:pointer}
 .mesa-select:focus{border-color:#00c896}
+.mesa-select:disabled{opacity:.35;cursor:not-allowed}
+.asis-select.si{color:#4caf50;border-color:#4caf5040}
+.asis-select.no{color:#e57373;border-color:#e5737340}
 #search{background:#0a1416;border:1px solid #15201f;color:#fff;padding:10px 16px;font-size:12px;font-family:inherit;outline:none;width:100%;max-width:300px;margin:0 auto 16px;display:block}
 #search::placeholder{color:#444}
 /* Pie igual al de la invitación (tema oscuro) */
@@ -145,9 +148,7 @@ async function init() {
     if (!res.ok) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Acceso denegado o invitación no encontrada.</div>'; return; }
     const data = await res.json();
     _all = data.responses || [];
-    document.getElementById('st-total').textContent = data.total;
-    document.getElementById('st-si').textContent = data.total_si;
-    document.getElementById('st-no').textContent = data.total_no;
+    updateStats();
     document.getElementById('panel-titulo').textContent = slug.split('-').slice(0,-1).join(' ') || 'Invitados';
     document.getElementById('panel-meta').textContent = 'Confirmaciones de asistencia';
     renderTable();
@@ -172,7 +173,7 @@ function renderTable() {
   });
   if (!rows.length) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
   document.getElementById('table-wrap').innerHTML = `<table>
-    <thead><tr><th>#</th><th>Nombre</th><th>Asistencia</th><th>Fecha</th><th>Mesa</th></tr></thead>
+    <thead><tr><th>#</th><th>Nombre</th><th>Asistencia</th><th>Respondió el</th><th>Se modificó el</th><th>Mesa</th></tr></thead>
     <tbody>${rows.map((r, i) => `<tr>
       <td style="color:#555">${i+1}</td>
       <td>
@@ -180,9 +181,13 @@ function renderTable() {
         ${r.restricciones ? '<div class="restricciones">🥗 ' + esc(r.restricciones) + '</div>' : ''}
         ${r.mensaje ? '<div class="restricciones">💬 ' + esc(r.mensaje) + '</div>' : ''}
       </td>
-      <td><span class="badge ${r.asistencia}">${r.asistencia === 'si' ? 'Confirma ✓' : 'No asiste'}</span></td>
+      <td><select class="mesa-select asis-select ${r.asistencia === 'si' ? 'si' : 'no'}" onchange="setAsistencia(${r.id}, this.value)">
+        <option value="si"${r.asistencia === 'si' ? ' selected' : ''}>Asiste</option>
+        <option value="no"${r.asistencia === 'si' ? '' : ' selected'}>No asiste</option>
+      </select></td>
       <td style="color:#555;white-space:nowrap">${fmtDate(r.created_at)}</td>
-      <td><select class="mesa-select" onchange="setMesa(${r.id}, this.value)">${mesaOptions(r.mesa)}</select></td>
+      <td style="color:#555;white-space:nowrap">${r.modificado_at ? fmtDate(r.modificado_at) : '—'}</td>
+      <td><select class="mesa-select" onchange="setMesa(${r.id}, this.value)"${r.asistencia === 'si' ? '' : ' disabled title="Solo se asigna mesa a quien asiste"'}>${mesaOptions(r.asistencia === 'si' ? r.mesa : null)}</select></td>
     </tr>`).join('')}</tbody>
   </table>`;
 }
@@ -193,23 +198,52 @@ function mesaOptions(current) {
   for (let n = 1; n <= 20; n++) opts += `<option value="${n}"${current === n ? ' selected' : ''}>Mesa ${n}</option>`;
   return opts;
 }
-async function setMesa(id, value) {
-  try {
-    await fetch(WORKER + '/rsvp/' + slug + '/' + id + '?t=' + encodeURIComponent(token), {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mesa: value || null })
-    });
-    const r = _all.find(r => r.id === id);
-    if (r) r.mesa = value ? Number(value) : null;
-  } catch(e) {}
+function updateStats() {
+  const si = _all.filter(r => r.asistencia === 'si').length;
+  document.getElementById('st-total').textContent = _all.length;
+  document.getElementById('st-si').textContent = si;
+  document.getElementById('st-no').textContent = _all.length - si;
 }
-function fmtDate(s) { if (!s) return ''; const d = new Date(s+'Z'); return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); }
+async function patchRsvp(id, body) {
+  const res = await fetch(WORKER + '/rsvp/' + slug + '/' + id + '?t=' + encodeURIComponent(token), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'HTTP ' + res.status);
+}
+async function setMesa(id, value) {
+  const r = _all.find(r => r.id === id);
+  try {
+    await patchRsvp(id, { mesa: value || null });
+    if (r) r.mesa = value ? Number(value) : null;
+  } catch(e) {
+    alert('No se pudo guardar la mesa: ' + e.message);
+    renderTable();
+  }
+}
+async function setAsistencia(id, value) {
+  const r = _all.find(r => r.id === id);
+  try {
+    await patchRsvp(id, { asistencia: value });
+    if (r) {
+      if (!(r.asistencia === 'si' && value === 'si')) r.mesa = null;
+      // Mismo formato que guarda el worker (UTC, sin zona): fmtDate le agrega la Z.
+      if (r.asistencia !== value) r.modificado_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      r.asistencia = value;
+    }
+    updateStats();
+  } catch(e) {
+    alert('No se pudo cambiar la asistencia: ' + e.message);
+  }
+  renderTable();
+}
+function fmtDate(s) { if (!s) return ''; const d = new Date(s+'Z'); return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) + ' hs'; }
 
 async function exportCSV() {
   const rows = _all.filter(r => _filter === 'todos' || r.asistencia === _filter);
-  const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa','Fecha'];
-  const csv = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', r.mesa||'', r.created_at])].map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa','Respondió el','Se modificó el'];
+  const csv = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '', fmtDate(r.created_at), fmtDate(r.modificado_at)])].map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
   const name = 'invitados-' + slug + '.csv';
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
   // En el celular (iPhone, navegador de WhatsApp) los links de descarga no bajan
