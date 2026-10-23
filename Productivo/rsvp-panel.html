@@ -39,6 +39,10 @@ tr:last-child td{border-bottom:none}
 .mesa-select:disabled{opacity:.35;cursor:not-allowed}
 .asis-select.si{color:#4caf50;border-color:#4caf5040}
 .asis-select.no{color:#e57373;border-color:#e5737340}
+/* Confirmado sin mesa: hay que asignarle una */
+tr.sin-mesa td{background:rgba(201,168,76,0.08)}
+tr.sin-mesa td:first-child{box-shadow:inset 3px 0 0 #c9a84c}
+tr.sin-mesa .mesa-select:not(.asis-select){border-color:#c9a84c;color:#c9a84c}
 #search{background:#0a1416;border:1px solid #15201f;color:#fff;padding:10px 16px;font-size:12px;font-family:inherit;outline:none;width:100%;max-width:300px;margin:0 auto 16px;display:block}
 #search::placeholder{color:#444}
 /* Pie igual al de la invitación (tema oscuro) */
@@ -174,7 +178,7 @@ function renderTable() {
   if (!rows.length) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
   document.getElementById('table-wrap').innerHTML = `<table>
     <thead><tr><th>#</th><th>Nombre</th><th>Asistencia</th><th>Respondió el</th><th>Se modificó el</th><th>Mesa</th></tr></thead>
-    <tbody>${rows.map((r, i) => `<tr>
+    <tbody>${rows.map((r, i) => `<tr${r.asistencia === 'si' && !r.mesa ? ' class="sin-mesa" title="Confirmado sin mesa asignada"' : ''}>
       <td style="color:#555">${i+1}</td>
       <td>
         <div>${esc(r.nombre)} ${esc(r.apellido)}</div>
@@ -217,6 +221,7 @@ async function setMesa(id, value) {
   try {
     await patchRsvp(id, { mesa: value || null });
     if (r) r.mesa = value ? Number(value) : null;
+    renderTable(); // actualiza el remarcado de "confirmado sin mesa"
   } catch(e) {
     alert('No se pudo guardar la mesa: ' + e.message);
     renderTable();
@@ -241,6 +246,16 @@ async function setAsistencia(id, value) {
 function fmtDate(s) { if (!s) return ''; const d = new Date(s+'Z'); return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) + ' hs'; }
 
 async function exportCSV() {
+  // confirm() es sincrónico y va antes de cualquier await: el toque sigue siendo
+  // un gesto válido para el menú Compartir del celular.
+  const sinMesa = _all.filter(r => r.asistencia === 'si' && !r.mesa);
+  if (sinMesa.length) {
+    const nombres = sinMesa.slice(0, 15).map(r => '• ' + r.nombre + ' ' + r.apellido).join('\n');
+    const resto = sinMesa.length > 15 ? '\n…y ' + (sinMesa.length - 15) + ' más' : '';
+    const msg = (sinMesa.length === 1 ? 'Este invitado confirmado no tiene mesa asignada:' : 'Estos ' + sinMesa.length + ' invitados confirmados no tienen mesa asignada:')
+      + '\n\n' + nombres + resto + '\n\n¿Exportar igual?';
+    if (!confirm(msg)) return;
+  }
   const rows = _all.filter(r => _filter === 'todos' || r.asistencia === _filter);
   const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa','Respondió el','Se modificó el'];
   const csv = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', (r.asistencia === 'si' && r.mesa) || '', fmtDate(r.created_at), fmtDate(r.modificado_at)])].map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
