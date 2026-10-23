@@ -48,6 +48,13 @@ tr:last-child td{border-bottom:none}
 .mesa-chip.llena{border-color:#e5737360;color:#e57373}
 .mesa-chip.sin{border-color:#c9a84c80;color:#c9a84c}
 .mesa-chip.active{background:#00c89618;border-color:#00c896;color:#00c896}
+/* Catering y duplicados */
+.catering{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;align-items:center;margin:0 auto 20px;font-size:11px;color:#888}
+.catering .cat-t{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555}
+.catering .cat-item{color:#ccc}
+.dup{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#f0a35e;border:1px solid #f0a35e60}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:#00c896}
 /* Confirmado sin mesa: hay que asignarle una */
 tr.sin-mesa td{background:rgba(201,168,76,0.08)}
 tr.sin-mesa td:first-child{box-shadow:inset 3px 0 0 #c9a84c}
@@ -88,6 +95,7 @@ footer small a{color:inherit}
   </div>
   <div id="mesas-chips" class="mesas-chips"></div>
 </div>
+<div id="catering" class="catering"></div>
 <div id="table-wrap"></div>
 <footer>
   <p id="footer-names"></p>
@@ -104,6 +112,7 @@ let _all = [];
 let _filter = 'todos';
 let _mesas = 20, _capacidad = 10;
 let _mesaFilter = null; // null = todas, 0 = confirmados sin mesa, n = mesa n
+let _sort = { col: null, dir: 1 };
 
 // ── Marca (white-label) — mismo código que invite.html ─────────────────────
 function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
@@ -184,6 +193,7 @@ async function loadData() {
     document.getElementById('mesas-wrap').style.display = '';
     updateStats();
     renderMesas();
+    renderCatering();
     renderTable();
   } catch(e) {
     document.getElementById('table-wrap').innerHTML = '<div class="empty">Error al cargar. Intentá de nuevo.</div>';
@@ -216,6 +226,54 @@ function renderMesas() {
   document.getElementById('mesas-chips').replaceChildren(...chips);
 }
 
+// Restricciones de los confirmados, para pasarle al catering.
+function renderCatering() {
+  const cont = {}, label = {};
+  _all.filter(r => r.asistencia === 'si').forEach(r => String(r.restricciones || '').split(',').forEach(x => {
+    const t = x.trim(); if (!t) return;
+    const k = t.toLowerCase();
+    cont[k] = (cont[k] || 0) + 1;
+    if (!label[k]) label[k] = t;
+  }));
+  const keys = Object.keys(cont).sort((a, b) => cont[b] - cont[a] || label[a].localeCompare(label[b], 'es'));
+  const el = document.getElementById('catering');
+  if (!keys.length) { el.replaceChildren(); return; }
+  const t = document.createElement('span'); t.className = 'cat-t'; t.textContent = 'Para el catering';
+  el.replaceChildren(t, ...keys.map(k => { const s = document.createElement('span'); s.className = 'cat-item'; s.textContent = label[k] + ': ' + cont[k]; return s; }));
+}
+
+// Misma persona respondiendo dos veces: nombre + apellido sin mayúsculas, tildes ni espacios extra.
+function dupKey(r) {
+  return (r.nombre + ' ' + r.apellido).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+const SORTS = {
+  nombre:     r => (r.nombre + ' ' + r.apellido).replace(/\s+/g, ' ').trim(),
+  asistencia: r => r.asistencia === 'si' ? 0 : 1,
+  respondido: r => r.created_at || '',
+  modificado: r => r.modificado_at,             // null = nunca, siempre al final
+  mesa:       r => r.asistencia === 'si' && r.mesa ? r.mesa : null
+};
+function sortBy(col) {
+  _sort = _sort.col === col ? { col, dir: -_sort.dir } : { col, dir: 1 };
+  renderTable();
+}
+function ordenar(rows) {
+  if (!_sort.col) return rows;
+  const key = SORTS[_sort.col];
+  return rows.slice().sort((a, b) => {
+    const x = key(a), y = key(b);
+    if (x === null || y === null) return x === y ? 0 : x === null ? 1 : -1;
+    const c = typeof x === 'string' ? x.localeCompare(y, 'es') : x - y;
+    return c * _sort.dir;
+  });
+}
+function th(texto, col) {
+  if (!col) return '<th>' + texto + '</th>';
+  const flecha = _sort.col === col ? (_sort.dir === 1 ? ' ▲' : ' ▼') : '';
+  return '<th class="sortable" onclick="sortBy(\'' + col + '\')">' + texto + flecha + '</th>';
+}
+
 async function saveMesas() {
   const n = Number(document.getElementById('mesas-cant').value);
   try {
@@ -244,6 +302,8 @@ function setFilter(f, btn) {
 
 function renderTable() {
   const q = document.getElementById('search').value.toLowerCase();
+  const cuenta = {};
+  _all.forEach(r => { const k = dupKey(r); cuenta[k] = (cuenta[k] || 0) + 1; });
   let rows = _all.filter(r => {
     const matchFilter = _filter === 'todos' || r.asistencia === _filter;
     const matchSearch = !q || (r.nombre + ' ' + r.apellido).toLowerCase().includes(q);
@@ -252,12 +312,13 @@ function renderTable() {
   });
   if (!rows.length) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
   const occ = ocupacion();
+  rows = ordenar(rows);
   document.getElementById('table-wrap').innerHTML = `<table>
-    <thead><tr><th>#</th><th>Nombre</th><th>Asistencia</th><th>Respondió el</th><th>Se modificó el</th><th>Mesa</th></tr></thead>
+    <thead><tr>${th('#')}${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}</tr></thead>
     <tbody>${rows.map((r, i) => `<tr${r.asistencia === 'si' && !r.mesa ? ' class="sin-mesa" title="Confirmado sin mesa asignada"' : ''}>
       <td style="color:#555">${i+1}</td>
       <td>
-        <div>${esc(r.nombre)} ${esc(r.apellido)}</div>
+        <div>${esc(r.nombre)} ${esc(r.apellido)}${cuenta[dupKey(r)] > 1 ? '<span class="dup" title="Hay otra respuesta con el mismo nombre">Posible duplicado</span>' : ''}</div>
         ${r.restricciones ? '<div class="restricciones">🥗 ' + esc(r.restricciones) + '</div>' : ''}
         ${r.mensaje ? '<div class="restricciones">💬 ' + esc(r.mensaje) + '</div>' : ''}
       </td>
@@ -333,6 +394,7 @@ async function setAsistencia(id, value) {
     r.asistencia = value;
     updateStats();
     renderMesas();
+    renderCatering();
     renderTable();
   } catch(e) {
     await onPatchError(e, r, 'cambiar la asistencia');
