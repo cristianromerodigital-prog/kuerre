@@ -62,6 +62,19 @@ th.sortable{cursor:pointer;user-select:none}
 .restr-txt{color:#aaa;font-size:11px}
 .restr-edit{margin-left:6px;background:none;border:1px solid #1e2c2e;color:#888;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px}
 .restr-edit:hover{border-color:#00c896;color:#00c896}
+/* Selección y borrado */
+.sel-fila,#sel-todos{accent-color:#00c896;margin-right:6px;vertical-align:middle;cursor:pointer}
+.del-fila{background:none;border:1px solid #1e2c2e;color:#e57373;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px}
+.del-fila:hover{border-color:#e57373}
+#sel-bar{display:none;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:0 auto 14px;font-size:11px;color:#ccc}
+#sel-bar.on{display:flex}
+#del-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;align-items:center;justify-content:center;padding:16px}
+#del-modal.open{display:flex}
+#del-modal .box{background:#0a1416;border:1px solid #e5737360;border-radius:8px;padding:20px;width:100%;max-width:380px}
+#del-modal h3{font-family:'Cormorant Garamond',serif;font-weight:400;color:#e57373;font-size:20px;margin-bottom:8px}
+#del-texto{font-size:12px;color:#ccc;line-height:1.6;margin-bottom:10px}
+#del-lista{font-size:12px;color:#888;line-height:1.7;margin-bottom:16px;max-height:200px;overflow-y:auto;white-space:pre-line}
+#del-modal .acciones{display:flex;gap:10px;justify-content:flex-end}
 #restr-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;align-items:center;justify-content:center;padding:16px}
 #restr-modal.open{display:flex}
 #restr-modal .box{background:#0a1416;border:1px solid #15201f;border-radius:8px;padding:20px;width:100%;max-width:360px}
@@ -116,6 +129,22 @@ footer small a{color:inherit}
   </details>
 </div>
 <div id="catering" class="catering"></div>
+<div id="sel-bar">
+  <span id="sel-count"></span>
+  <button class="btn" id="del-sel" style="border-color:#e57373;color:#e57373;padding:6px 14px" onclick="pedirBorrar([..._selected])">Eliminar seleccionados</button>
+  <button class="btn" style="padding:6px 14px" onclick="limpiarSel()">Quitar selección</button>
+</div>
+<div id="del-modal">
+  <div class="box">
+    <h3>Eliminar invitados</h3>
+    <div id="del-texto"></div>
+    <div id="del-lista"></div>
+    <div class="acciones">
+      <button class="btn" id="del-cancelar" onclick="cerrarBorrar()">Cancelar</button>
+      <button class="btn" id="del-ok" style="border-color:#e57373;color:#e57373" onclick="confirmarBorrar()">Eliminar</button>
+    </div>
+  </div>
+</div>
 <div id="restr-modal">
   <div class="box">
     <h3>Alimentación</h3>
@@ -147,6 +176,9 @@ let _filter = 'todos';
 let _mesas = 20, _capacidad = 10;
 let _mesaFilter = null; // null = todas, 0 = confirmados sin mesa, n = mesa n
 let _sort = { col: null, dir: 1 };
+let _selected = new Set();   // ids elegidos para borrar
+let _visibles = [];          // ids que muestra la tabla ahora (filtros aplicados)
+let _porBorrar = [];
 
 // ── Marca (white-label) — mismo código que invite.html ─────────────────────
 function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
@@ -349,6 +381,55 @@ async function saveRestr() {
   }
 }
 
+// ── Selección y borrado ──
+function renderSelBar() {
+  const bar = document.getElementById('sel-bar');
+  bar.classList.toggle('on', _selected.size > 0);
+  document.getElementById('sel-count').textContent = _selected.size + (_selected.size === 1 ? ' seleccionado' : ' seleccionados');
+  const todos = document.getElementById('sel-todos');
+  if (todos) todos.checked = _visibles.length > 0 && _visibles.every(id => _selected.has(id));
+}
+function toggleSel(id, on) { if (on) _selected.add(id); else _selected.delete(id); renderSelBar(); }
+// "Elegir todos" = todos los que se están viendo (respeta buscador y filtros).
+function toggleTodos(on) { _visibles.forEach(id => on ? _selected.add(id) : _selected.delete(id)); renderTable(); }
+function limpiarSel() { _selected.clear(); renderTable(); }
+function pedirBorrar(ids) {
+  _porBorrar = ids.filter(id => _all.some(r => r.id === id));
+  if (!_porBorrar.length) return;
+  const n = _porBorrar.length;
+  document.getElementById('del-texto').textContent = 'Vas a eliminar ' + n + (n === 1 ? ' invitado' : ' invitados') + '. Esta acción no se puede deshacer.';
+  const quienes = _porBorrar.map(id => _all.find(r => r.id === id)).map(r => '#' + numero(r) + ' · ' + r.nombre + ' ' + r.apellido);
+  document.getElementById('del-lista').textContent = quienes.slice(0, 10).join('\n') + (n > 10 ? '\n…y ' + (n - 10) + ' más' : '');
+  document.getElementById('del-modal').classList.add('open');
+}
+function cerrarBorrar() { document.getElementById('del-modal').classList.remove('open'); _porBorrar = []; }
+async function confirmarBorrar() {
+  const ids = _porBorrar;
+  const btn = document.getElementById('del-ok');
+  btn.disabled = true;
+  try {
+    const res = await fetch(WORKER + '/rsvp/' + slug + '/delete?t=' + encodeURIComponent(token), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.mensaje || d.error || 'HTTP ' + res.status); }
+    const borrar = new Set(ids);
+    _all = _all.filter(r => !borrar.has(r.id));
+    ids.forEach(id => _selected.delete(id));
+    cerrarBorrar();
+    updateStats();
+    renderMesas();
+    renderCatering();
+    renderTable();
+  } catch (e) {
+    cerrarBorrar();
+    alert('No se pudo eliminar: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 // Número fijo de cada respuesta (orden de llegada): no cambia al ordenar ni filtrar,
 // así "Posible duplicado de #12" siempre apunta a la misma fila.
 function numero(r) { return _all.indexOf(r) + 1; }
@@ -422,15 +503,17 @@ function renderTable() {
     const matchMesa = _mesaFilter === null || (r.asistencia === 'si' && (_mesaFilter === 0 ? !r.mesa : r.mesa === _mesaFilter));
     return matchFilter && matchSearch && matchMesa;
   });
+  _visibles = rows.map(r => r.id);
+  renderSelBar();
   if (!rows.length) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
   const occ = ocupacion();
   rows = ordenar(rows);
   document.getElementById('table-wrap').innerHTML = `<table>
-    <thead><tr>${th('#')}${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Alimentación')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}</tr></thead>
+    <thead><tr><th><input type="checkbox" id="sel-todos" title="Elegir todos los que se ven" onclick="toggleTodos(this.checked)"${_visibles.every(id => _selected.has(id)) ? ' checked' : ''}>#</th>${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Alimentación')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}<th></th></tr></thead>
     <tbody>${rows.map((r, i) => `<tr${r.asistencia === 'si' && !r.mesa ? ' class="sin-mesa" title="Confirmado sin mesa asignada"' : ''}>
-      <td style="color:#555">${numero(r)}</td>
+      <td style="color:#555;white-space:nowrap"><input type="checkbox" class="sel-fila" aria-label="Elegir"${_selected.has(r.id) ? ' checked' : ''} onclick="toggleSel(${r.id}, this.checked)">${numero(r)}</td>
       <td>
-        <div>${esc(r.nombre)} ${esc(r.apellido)}${dupDe(r).length ? '<span class="dup" title="Hay otra respuesta con el mismo nombre">Posible duplicado de ' + dupDe(r).map(n => '#' + n).join(', ') + '</span>' : ''}</div>
+        <div class="nombre-txt">${esc(r.nombre)} ${esc(r.apellido)}${dupDe(r).length ? '<span class="dup" title="Hay otra respuesta con el mismo nombre">Posible duplicado de ' + dupDe(r).map(n => '#' + n).join(', ') + '</span>' : ''}</div>
         ${r.mensaje ? '<div class="restricciones">💬 ' + esc(r.mensaje) + '</div>' : ''}
       </td>
       <td><select class="mesa-select asis-select ${r.asistencia === 'si' ? 'si' : 'no'}" onchange="setAsistencia(${r.id}, this.value)">
@@ -441,6 +524,7 @@ function renderTable() {
       <td style="color:#555;white-space:nowrap">${fmtDate(r.created_at)}</td>
       <td style="color:#555;white-space:nowrap">${r.modificado_at ? fmtDate(r.modificado_at) : '—'}</td>
       <td><select class="mesa-select" onchange="setMesa(${r.id}, this.value)"${r.asistencia === 'si' ? '' : ' disabled title="Solo se asigna mesa a quien asiste"'}>${mesaOptions(r.asistencia === 'si' ? r.mesa : null, occ)}</select></td>
+      <td><button type="button" class="del-fila" title="Eliminar a ${esc(r.nombre)} ${esc(r.apellido)}" onclick="pedirBorrar([${r.id}])">🗑</button></td>
     </tr>`).join('')}</tbody>
   </table>`;
 }
