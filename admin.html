@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.98</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.99</div>
     </div>
   </aside>
 
@@ -1458,6 +1458,28 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px">
             <button class="btn-sm" onclick="closeReabrirModal()">Cancelar</button>
             <button class="btn-add" onclick="confirmReabrirEstilos()" id="reabrir-btn-ok">Sí, reabrir</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RSVP: LISTA DE INVITADOS -->
+      <div class="modal-bg" id="rsvp-list-modal" style="z-index:650">
+        <div class="modal" style="max-width:560px;width:100%">
+          <div class="modal-header">
+            <span>Invitados que respondieron</span>
+            <button class="modal-close" onclick="closeRsvpListModal()">✕</button>
+          </div>
+          <div class="modal-body" style="padding:20px 24px">
+            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+              <input class="form-input" id="rsvp-list-buscar" placeholder="Buscar por nombre..." style="flex:1;min-width:160px" oninput="renderRsvpList()">
+              <select class="form-input" id="rsvp-list-filtro" style="width:auto" onchange="renderRsvpList()">
+                <option value="">Todos</option>
+                <option value="si">Asisten</option>
+                <option value="no">No asisten</option>
+              </select>
+            </div>
+            <div id="rsvp-list-count" style="font-size:11px;color:var(--gray2);margin-bottom:8px"></div>
+            <div id="rsvp-list-rows" style="display:flex;flex-direction:column;gap:4px"></div>
           </div>
         </div>
       </div>
@@ -7901,27 +7923,58 @@ async function loadRsvpSummary(slug) {
     el.innerHTML = data.total
       ? '✅ ' + data.total_si + ' confirmados · ❌ ' + data.total_no + ' no asisten · Total: ' + data.total
       : 'Aún no hay confirmaciones.';
-    // Lista con botón eliminar. Los nombres los escriben los invitados: van por
-    // textContent, nunca interpolados en HTML.
-    const lista = document.createElement('div');
-    lista.style.cssText = 'margin-top:10px;display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto';
-    (data.responses || []).forEach(r => {
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:4px';
-      const txt = document.createElement('span');
-      txt.style.cssText = 'flex:1;font-size:11px;color:var(--white)';
-      txt.textContent = (r.asistencia === 'si' ? '✅ ' : '❌ ') + r.nombre + ' ' + r.apellido;
+    _rsvpListSlug = slug;
+    _rsvpResponses = data.responses || [];
+    if (_rsvpResponses.length) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'btn-sm';
-      btn.style.color = 'var(--red)';
-      btn.textContent = 'Eliminar';
-      btn.onclick = () => deleteRsvpResponse(slug, r.id, r.nombre + ' ' + r.apellido);
-      row.append(txt, btn);
-      lista.appendChild(row);
-    });
-    el.appendChild(lista);
+      btn.style.cssText = 'display:block;margin-top:10px';
+      btn.textContent = 'Ver invitados (' + _rsvpResponses.length + ')';
+      btn.onclick = openRsvpListModal;
+      el.appendChild(btn);
+    }
+    if (document.getElementById('rsvp-list-modal').classList.contains('open')) renderRsvpList();
   } catch(e) {}
+}
+
+let _rsvpListSlug = '';
+let _rsvpResponses = [];
+function openRsvpListModal() {
+  document.getElementById('rsvp-list-buscar').value = '';
+  document.getElementById('rsvp-list-filtro').value = '';
+  renderRsvpList();
+  document.getElementById('rsvp-list-modal').classList.add('open');
+}
+function closeRsvpListModal() {
+  document.getElementById('rsvp-list-modal').classList.remove('open');
+}
+// Los nombres los escriben los invitados: van por textContent, nunca interpolados en HTML.
+function renderRsvpList() {
+  const q = document.getElementById('rsvp-list-buscar').value.trim().toLowerCase();
+  const filtro = document.getElementById('rsvp-list-filtro').value;
+  const list = _rsvpResponses.filter(r =>
+    (!filtro || r.asistencia === filtro) &&
+    (!q || (r.nombre + ' ' + r.apellido).toLowerCase().includes(q)));
+  document.getElementById('rsvp-list-count').textContent =
+    list.length + ' de ' + _rsvpResponses.length + ' respuestas';
+  const wrap = document.getElementById('rsvp-list-rows');
+  wrap.innerHTML = '';
+  list.forEach(r => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:4px';
+    const txt = document.createElement('span');
+    txt.style.cssText = 'flex:1;font-size:12px;color:var(--white)';
+    txt.textContent = (r.asistencia === 'si' ? '✅ ' : '❌ ') + r.nombre + ' ' + r.apellido;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-sm';
+    btn.style.color = 'var(--red)';
+    btn.textContent = 'Eliminar';
+    btn.onclick = () => deleteRsvpResponse(_rsvpListSlug, r.id, r.nombre + ' ' + r.apellido);
+    row.append(txt, btn);
+    wrap.appendChild(row);
+  });
 }
 
 async function deleteRsvpResponse(slug, id, nombre) {
