@@ -112,3 +112,19 @@ test('cantidad de mesas aceptada: el selector y los chips pasan a 25', async () 
   assert.equal(await J(`document.querySelectorAll('#mesas-chips .mesa-chip').length`), 27);
   assert.equal(await J(`document.querySelectorAll('#table-wrap tbody tr')[150].querySelectorAll('select')[1].options.length`), 26);
 });
+
+test('filtro de mesas como desplegable; la grilla de ocupación arranca cerrada', async () => {
+  await abrir();
+  const r = await J(`({
+    opciones: [...document.getElementById('mesa-filtro').options].map(o => o.textContent),
+    cerrado: !document.getElementById('mesas-detalle').open
+  })`);
+  assert.equal(r.cerrado, true);
+  assert.equal(r.opciones.length, 22);
+  assert.deepEqual(r.opciones.slice(0, 3), ['Todas las mesas', 'Sin mesa (50)', 'Mesa 1 · 10/10 · llena']);
+  await br.eval(`(() => { const s = document.getElementById('mesa-filtro'); s.value = '3'; s.dispatchEvent(new Event('change')); })()`);
+  const mesas = await J(`[...document.querySelectorAll('#table-wrap tbody tr')].map(tr => tr.querySelectorAll('select')[1].value)`);
+  assert.ok(mesas.length > 0 && mesas.every(m => m === '3'));
+  // el chip y el desplegable muestran el mismo filtro
+  assert.equal(await J(`document.querySelector('#mesas-chips .mesa-chip.active').textContent.startsWith('Mesa 3 ')`), true);
+});

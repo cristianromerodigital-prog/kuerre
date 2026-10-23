@@ -114,3 +114,23 @@ test('la cantidad de mesas vive en la base (no en KV)', async () => {
   assert.equal(db.prepare("SELECT mesas FROM rsvp_config WHERE slug='ev-1'").get().mesas, 30);
   assert.equal(store['rsvp_mesas:ev-1'], undefined);
 });
+
+// ── restricciones alimentarias editables desde el panel ──
+test('el panel puede modificar las restricciones del invitado', async () => {
+  const { env, db } = evento({ invitados: [{}] });
+  const r = await patch(env, 1, { restricciones: 'Celíaco/a, Alergia: maní, nueces' });
+  assert.equal(r.status, 200);
+  assert.equal(db.prepare('SELECT restricciones FROM rsvp_responses WHERE id=1').get().restricciones, 'Celíaco/a, Alergia: maní, nueces');
+});
+test('restricciones: vacío las borra; más de 300 caracteres o no-texto → 400', async () => {
+  const { env, db } = evento({ invitados: [{}] });
+  assert.equal((await patch(env, 1, { restricciones: '' })).status, 200);
+  assert.equal(db.prepare('SELECT restricciones FROM rsvp_responses WHERE id=1').get().restricciones, '');
+  assert.equal((await patch(env, 1, { restricciones: 'x'.repeat(301) })).status, 400);
+  assert.equal((await patch(env, 1, { restricciones: ['Celíaco/a'] })).status, 400);
+});
+test('restricciones: token inválido → 401; fila de otro evento → 404', async () => {
+  const { env } = evento({ invitados: [{}, { slug: 'otro' }] });
+  assert.equal((await patch(env, 1, { restricciones: 'Vegano/a' }, '?t=MAL')).status, 401);
+  assert.equal((await patch(env, 2, { restricciones: 'Vegano/a' })).status, 404);
+});

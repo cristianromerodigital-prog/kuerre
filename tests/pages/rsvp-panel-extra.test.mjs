@@ -23,6 +23,7 @@ before(async () => {
     const real = window.fetch;
     window.fetch = async (u, o = {}) => {
       u = String(u);
+      if (u.includes('/rsvp/') && o.method === 'PATCH') { (window.__patches = window.__patches || []).push(JSON.parse(o.body)); return new Response('{"ok":true}'); }
       if (u.includes('/rsvp/')) return new Response(JSON.stringify({ responses: rows, total: 5, total_si: 4, total_no: 1, mesas: 20, capacidad: 10 }));
       if (u.includes('/invite/') || u.includes('/brand')) return new Response('{}');
       return real(u, o);
@@ -74,4 +75,42 @@ test('el encabezado ordenado muestra la flecha', async () => {
   await ordenarPor('Respondió');
   assert.match(await J(`[...document.querySelectorAll('#table-wrap th')].find(th => th.textContent.startsWith('Respondió')).textContent`), /▲$/);
   assert.deepEqual((await nombres())[0], 'jose   perez');
+});
+
+const fila = nombre => `[...document.querySelectorAll('#table-wrap tbody tr')].find(tr => tr.children[1].textContent.includes('${nombre}'))`;
+
+test('# es el número fijo de la respuesta: no cambia al ordenar', async () => {
+  await abrir();
+  await ordenarPor('Nombre');
+  assert.equal(await J(`${fila('Ana')}.children[0].textContent.trim()`), '3');
+  assert.equal(await J(`${fila('Carla')}.children[0].textContent.trim()`), '5');
+});
+
+test('posible duplicado indica el número de la otra respuesta', async () => {
+  await abrir();
+  assert.equal(await J(`${fila('José')}.querySelector('.dup').textContent`), 'Posible duplicado de #2');
+  assert.equal(await J(`${fila('jose')}.querySelector('.dup').textContent`), 'Posible duplicado de #1');
+});
+
+test('columna Alimentación muestra lo elegido', async () => {
+  await abrir();
+  const headers = await J(`[...document.querySelectorAll('#table-wrap th')].map(t => t.textContent.replace(/ [▲▼]$/, ''))`);
+  assert.ok(headers.includes('Alimentación'), headers.join(','));
+  const col = headers.indexOf('Alimentación');
+  assert.equal(await J(`${fila('Carla')}.children[${col}].querySelector('.restr-txt').textContent`), 'Alergia: maní');
+  assert.equal(await J(`${fila('Ana')}.children[1].textContent.includes('Celíaco')`), false, 'ya no se repite debajo del nombre');
+});
+
+test('editar alimentación: precarga, guarda en el Worker y actualiza el catering', async () => {
+  await abrir();
+  await br.eval(`${fila('Carla')}.querySelector('.restr-edit').click()`);
+  const pre = await J(`({ cel: document.getElementById('restr-celiaco').checked, veg: document.getElementById('restr-vegano').checked, alergia: document.getElementById('restr-alergia').value })`);
+  assert.deepEqual(pre, { cel: false, veg: false, alergia: 'maní' });
+  await br.eval(`document.getElementById('restr-vegano').checked = true; document.getElementById('restr-alergia').value = 'maní, nueces'; saveRestr()`);
+  await br.sleep(300);
+  assert.deepEqual(await J(`window.__patches`), [{ restricciones: 'Vegano/a, Alergia: maní, nueces' }]);
+  assert.equal(await J(`${fila('Carla')}.querySelector('.restr-txt').textContent`), 'Vegano/a, Alergia: maní, nueces');
+  const items = await J(`[...document.querySelectorAll('#catering .cat-item')].map(e => e.textContent)`);
+  assert.ok(items.includes('Alergia: maní, nueces: 1'), items.join(' | '));
+  assert.ok(items.includes('Vegano/a: 2'), items.join(' | '));
 });

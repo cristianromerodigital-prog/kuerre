@@ -2130,7 +2130,10 @@ export default {
         try { body = await request.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
         const cambiaAsistencia = body.asistencia !== undefined;
         const cambiaMesa = body.mesa !== undefined;
-        if (!cambiaAsistencia && !cambiaMesa) return json({ error: 'Nada para actualizar' }, 400);
+        const cambiaRestr = body.restricciones !== undefined;
+        if (!cambiaAsistencia && !cambiaMesa && !cambiaRestr) return json({ error: 'Nada para actualizar' }, 400);
+        if (cambiaRestr && (typeof body.restricciones !== 'string' || body.restricciones.trim().length > 300))
+          return json({ error: 'Restricciones inválidas', mensaje: 'Hasta 300 caracteres' }, 400);
         if (cambiaAsistencia && !['si', 'no'].includes(body.asistencia)) return json({ error: 'Asistencia inválida' }, 400);
         const mesas = await rsvpMesas(env, slug);
         let mesa = cambiaMesa ? body.mesa : null;
@@ -2156,6 +2159,11 @@ export default {
           if (mesa > total) return json({ error: 'Mesa inválida', mensaje: 'La mesa tiene que estar entre 1 y ' + total }, 400);
           return json({ error: 'mesa_llena', mensaje: 'La mesa ' + mesa + ' ya tiene ' + RSVP_CAPACIDAD_MESA + ' invitados' }, 409);
         };
+        if (cambiaRestr) {
+          const r = await env.KUERRE_DB.prepare('UPDATE rsvp_responses SET restricciones = ? WHERE id = ? AND slug = ?')
+            .bind(body.restricciones.trim(), rid, slug).run();
+          if (!r.meta || !r.meta.changes) return json({ error: 'Not found' }, 404);
+        }
         if (cambiaAsistencia) {
           // La mesa solo sobrevive si ya asistía y sigue asistiendo (en el SET, "asistencia"
           // es el valor previo). Pasar a "no asiste" la libera, y quien vuelve a asistir
