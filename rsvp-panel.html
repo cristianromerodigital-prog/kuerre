@@ -45,7 +45,10 @@ tr:last-child td{border-bottom:none}
 #mesas-wrap{margin:0 auto 20px;max-width:900px}
 .mesas-head{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;font-size:10px;letter-spacing:2px;color:#555;text-transform:uppercase;margin-bottom:10px}
 #mesas-cant{width:64px;background:#0a1416;border:1px solid #15201f;color:#fff;padding:6px 8px;font-family:inherit;font-size:12px;border-radius:4px;text-align:center}
-.mesas-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.mesas-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+#mesa-filtro{display:block;margin:0 auto 10px;width:100%;max-width:300px;background:#0a1416;border:1px solid #15201f;color:#ccc;padding:10px 12px;font-family:inherit;font-size:12px;border-radius:4px}
+#mesas-detalle summary{text-align:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;cursor:pointer;list-style-position:inside}
+#mesas-detalle summary:hover{color:#00c896}
 .mesa-chip{padding:5px 10px;border:1px solid #15201f;background:transparent;color:#888;font-size:10px;letter-spacing:1px;cursor:pointer;font-family:inherit;border-radius:14px}
 .mesa-chip.llena{border-color:#e5737360;color:#e57373}
 .mesa-chip.sin{border-color:#c9a84c80;color:#c9a84c}
@@ -56,6 +59,17 @@ tr:last-child td{border-bottom:none}
 .catering .cat-item{color:#ccc}
 .dup{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#f0a35e;border:1px solid #f0a35e60}
 th.sortable{cursor:pointer;user-select:none}
+.restr-txt{color:#aaa;font-size:11px}
+.restr-edit{margin-left:6px;background:none;border:1px solid #1e2c2e;color:#888;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px}
+.restr-edit:hover{border-color:#00c896;color:#00c896}
+#restr-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;align-items:center;justify-content:center;padding:16px}
+#restr-modal.open{display:flex}
+#restr-modal .box{background:#0a1416;border:1px solid #15201f;border-radius:8px;padding:20px;width:100%;max-width:360px}
+#restr-modal h3{font-family:'Cormorant Garamond',serif;font-weight:400;color:#c9a84c;font-size:20px;margin-bottom:4px}
+#restr-modal .quien{font-size:11px;color:#888;margin-bottom:14px}
+#restr-modal label{display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc;margin-bottom:10px;cursor:pointer}
+#restr-alergia{width:100%;background:#060d0f;border:1px solid #15201f;color:#fff;padding:9px 12px;font-family:inherit;font-size:12px;border-radius:4px;margin-bottom:16px}
+#restr-modal .acciones{display:flex;gap:10px;justify-content:flex-end}
 th.sortable:hover{color:#00c896}
 /* Confirmado sin mesa: hay que asignarle una */
 tr.sin-mesa td{background:rgba(201,168,76,0.08)}
@@ -95,9 +109,27 @@ footer small a{color:inherit}
     <label>Cantidad <input id="mesas-cant" type="number" min="1" max="60"></label>
     <button class="btn" style="padding:6px 14px" onclick="saveMesas()">Guardar</button>
   </div>
-  <div id="mesas-chips" class="mesas-chips"></div>
+  <select id="mesa-filtro" onchange="setMesaFilter(this.value)" aria-label="Filtrar por mesa"></select>
+  <details id="mesas-detalle">
+    <summary>Ver ocupación de las mesas</summary>
+    <div id="mesas-chips" class="mesas-chips"></div>
+  </details>
 </div>
 <div id="catering" class="catering"></div>
+<div id="restr-modal">
+  <div class="box">
+    <h3>Alimentación</h3>
+    <div class="quien" id="restr-quien"></div>
+    <label><input type="checkbox" id="restr-celiaco"> Celíaco/a</label>
+    <label><input type="checkbox" id="restr-vegetariano"> Vegetariano/a</label>
+    <label><input type="checkbox" id="restr-vegano"> Vegano/a</label>
+    <input id="restr-alergia" maxlength="200" placeholder="Otra alergia o restricción (opcional)">
+    <div class="acciones">
+      <button class="btn" onclick="closeRestr()">Cancelar</button>
+      <button class="btn" style="border-color:#00c896;color:#00c896" onclick="saveRestr()">Guardar</button>
+    </div>
+  </div>
+</div>
 <div id="table-wrap"></div>
 <footer>
   <p id="footer-names"></p>
@@ -226,23 +258,96 @@ function renderMesas() {
     chips.push(chip('Mesa ' + n + ' · ' + c + '/' + _capacidad, n, c >= _capacidad ? 'llena' : ''));
   }
   document.getElementById('mesas-chips').replaceChildren(...chips);
+  // Desplegable con lo mismo (en el celular la grilla de chips ocupa demasiado).
+  const sel = document.getElementById('mesa-filtro');
+  const opt = (texto, valor) => { const o = document.createElement('option'); o.value = valor; o.textContent = texto; return o; };
+  const opts = [opt('Todas las mesas', ''), opt('Sin mesa (' + sinMesa + ')', '0')];
+  for (let n = 1; n <= _mesas; n++) {
+    const c = occ[n] || 0;
+    opts.push(opt('Mesa ' + n + ' · ' + c + '/' + _capacidad + (c >= _capacidad ? ' · llena' : ''), String(n)));
+  }
+  sel.replaceChildren(...opts);
+  sel.value = _mesaFilter === null ? '' : String(_mesaFilter);
+}
+function setMesaFilter(v) {
+  _mesaFilter = v === '' ? null : Number(v);
+  renderMesas();
+  renderTable();
+}
+
+// Las mismas opciones que el formulario de la invitación. Lo guardado es texto:
+// "Celíaco/a, Vegano/a, Alergia: maní, nueces" (la alergia va última y puede tener comas).
+const RESTR_OPCIONES = [['celiaco', 'Celíaco/a'], ['vegetariano', 'Vegetariano/a'], ['vegano', 'Vegano/a']];
+function parseRestr(str) {
+  const out = { celiaco: false, vegetariano: false, vegano: false, alergia: '', otros: [] };
+  const partes = String(str || '').split(',');
+  for (let i = 0; i < partes.length; i++) {
+    const t = partes[i].trim();
+    if (!t) continue;
+    const op = RESTR_OPCIONES.find(([, l]) => l.toLowerCase() === t.toLowerCase());
+    if (op) { out[op[0]] = true; continue; }
+    if (/^alergia\s*:/i.test(t)) { out.alergia = partes.slice(i).join(',').trim().replace(/^alergia\s*:\s*/i, ''); break; }
+    out.otros.push(t); // datos viejos con texto libre ("Kosher", "Sin lactosa")
+  }
+  return out;
+}
+function serializeRestr(p) {
+  const r = RESTR_OPCIONES.filter(([k]) => p[k]).map(([, l]) => l);
+  if (p.alergia) r.push('Alergia: ' + p.alergia);
+  return r.join(', ');
 }
 
 // Restricciones de los confirmados, para pasarle al catering.
 function renderCatering() {
   const cont = {}, label = {};
-  _all.filter(r => r.asistencia === 'si').forEach(r => String(r.restricciones || '').split(',').forEach(x => {
-    const t = x.trim(); if (!t) return;
-    const k = t.toLowerCase();
-    cont[k] = (cont[k] || 0) + 1;
-    if (!label[k]) label[k] = t;
-  }));
+  const sumar = t => { const k = t.toLowerCase(); cont[k] = (cont[k] || 0) + 1; if (!label[k]) label[k] = t; };
+  _all.filter(r => r.asistencia === 'si').forEach(r => {
+    const p = parseRestr(r.restricciones);
+    RESTR_OPCIONES.forEach(([k, l]) => { if (p[k]) sumar(l); });
+    p.otros.forEach(sumar);
+    if (p.alergia) sumar('Alergia: ' + p.alergia);
+  });
   const keys = Object.keys(cont).sort((a, b) => cont[b] - cont[a] || label[a].localeCompare(label[b], 'es'));
   const el = document.getElementById('catering');
   if (!keys.length) { el.replaceChildren(); return; }
   const t = document.createElement('span'); t.className = 'cat-t'; t.textContent = 'Para el catering';
   el.replaceChildren(t, ...keys.map(k => { const s = document.createElement('span'); s.className = 'cat-item'; s.textContent = label[k] + ': ' + cont[k]; return s; }));
 }
+
+let _restrId = null;
+function openRestr(id) {
+  const r = _all.find(x => x.id === id);
+  if (!r) return;
+  _restrId = id;
+  const p = parseRestr(r.restricciones);
+  RESTR_OPCIONES.forEach(([k]) => { document.getElementById('restr-' + k).checked = p[k]; });
+  // Texto libre viejo + alergia van al mismo campo: es lo que el panel puede editar.
+  document.getElementById('restr-alergia').value = [...p.otros, p.alergia].filter(Boolean).join(', ');
+  document.getElementById('restr-quien').textContent = '#' + numero(r) + ' · ' + r.nombre + ' ' + r.apellido;
+  document.getElementById('restr-modal').classList.add('open');
+}
+function closeRestr() { document.getElementById('restr-modal').classList.remove('open'); _restrId = null; }
+async function saveRestr() {
+  const r = _all.find(x => x.id === _restrId);
+  if (!r) return closeRestr();
+  const p = { alergia: document.getElementById('restr-alergia').value.trim() };
+  RESTR_OPCIONES.forEach(([k]) => { p[k] = document.getElementById('restr-' + k).checked; });
+  const valor = serializeRestr(p);
+  try {
+    await patchRsvp(r.id, { restricciones: valor });
+    r.restricciones = valor;
+    closeRestr();
+    renderCatering();
+    renderTable();
+  } catch (e) {
+    closeRestr();
+    await onPatchError(e, r, 'guardar la alimentación');
+  }
+}
+
+// Número fijo de cada respuesta (orden de llegada): no cambia al ordenar ni filtrar,
+// así "Posible duplicado de #12" siempre apunta a la misma fila.
+function numero(r) { return _all.indexOf(r) + 1; }
 
 // Misma persona respondiendo dos veces: nombre + apellido sin mayúsculas, tildes ni espacios extra.
 function dupKey(r) {
@@ -304,8 +409,9 @@ function setFilter(f, btn) {
 
 function renderTable() {
   const q = document.getElementById('search').value.toLowerCase();
-  const cuenta = {};
-  _all.forEach(r => { const k = dupKey(r); cuenta[k] = (cuenta[k] || 0) + 1; });
+  const grupos = {};
+  _all.forEach(r => { const k = dupKey(r); (grupos[k] = grupos[k] || []).push(numero(r)); });
+  const dupDe = r => grupos[dupKey(r)].filter(n => n !== numero(r));
   let rows = _all.filter(r => {
     const matchFilter = _filter === 'todos' || r.asistencia === _filter;
     const matchSearch = !q || (r.nombre + ' ' + r.apellido).toLowerCase().includes(q);
@@ -316,18 +422,18 @@ function renderTable() {
   const occ = ocupacion();
   rows = ordenar(rows);
   document.getElementById('table-wrap').innerHTML = `<table>
-    <thead><tr>${th('#')}${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}</tr></thead>
+    <thead><tr>${th('#')}${th('Nombre', 'nombre')}${th('Asistencia', 'asistencia')}${th('Alimentación')}${th('Respondió el', 'respondido')}${th('Se modificó el', 'modificado')}${th('Mesa', 'mesa')}</tr></thead>
     <tbody>${rows.map((r, i) => `<tr${r.asistencia === 'si' && !r.mesa ? ' class="sin-mesa" title="Confirmado sin mesa asignada"' : ''}>
-      <td style="color:#555">${i+1}</td>
+      <td style="color:#555">${numero(r)}</td>
       <td>
-        <div>${esc(r.nombre)} ${esc(r.apellido)}${cuenta[dupKey(r)] > 1 ? '<span class="dup" title="Hay otra respuesta con el mismo nombre">Posible duplicado</span>' : ''}</div>
-        ${r.restricciones ? '<div class="restricciones">🥗 ' + esc(r.restricciones) + '</div>' : ''}
+        <div>${esc(r.nombre)} ${esc(r.apellido)}${dupDe(r).length ? '<span class="dup" title="Hay otra respuesta con el mismo nombre">Posible duplicado de ' + dupDe(r).map(n => '#' + n).join(', ') + '</span>' : ''}</div>
         ${r.mensaje ? '<div class="restricciones">💬 ' + esc(r.mensaje) + '</div>' : ''}
       </td>
       <td><select class="mesa-select asis-select ${r.asistencia === 'si' ? 'si' : 'no'}" onchange="setAsistencia(${r.id}, this.value)">
         <option value="si"${r.asistencia === 'si' ? ' selected' : ''}>Asiste</option>
         <option value="no"${r.asistencia === 'si' ? '' : ' selected'}>No asiste</option>
       </select></td>
+      <td><span class="restr-txt">${r.restricciones ? esc(r.restricciones) : '—'}</span><button type="button" class="restr-edit" title="Modificar alimentación" onclick="openRestr(${r.id})">✎</button></td>
       <td style="color:#555;white-space:nowrap">${fmtDate(r.created_at)}</td>
       <td style="color:#555;white-space:nowrap">${r.modificado_at ? fmtDate(r.modificado_at) : '—'}</td>
       <td><select class="mesa-select" onchange="setMesa(${r.id}, this.value)"${r.asistencia === 'si' ? '' : ' disabled title="Solo se asigna mesa a quien asiste"'}>${mesaOptions(r.asistencia === 'si' ? r.mesa : null, occ)}</select></td>
