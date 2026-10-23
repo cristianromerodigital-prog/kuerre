@@ -125,13 +125,11 @@ test('el CSV empieza con el resumen para el catering y después la lista', async
     exportCSV();
   })`);
   const lineas = csv.split('\n');
-  assert.deepEqual(lineas.slice(0, 6), [
-    '"Para el catering (confirmados)","Cantidad"',
-    '"Celíaco/a","3"',
-    '"Alergia: maní","1"',
-    '"Vegano/a","1"',
+  // el resumen va como un texto corrido en una sola línea, fuera de la grilla de datos
+  assert.deepEqual(lineas.slice(0, 3), [
+    '"Para el catering (confirmados): Celíaco/a: 3. Alergia: maní: 1. Vegano/a: 1."',
     '',
     '"Nombre","Apellido","Asistencia","Restricciones","Mensaje","Mesa","Respondió el","Se modificó el"'
   ]);
-  assert.equal(lineas.length, 6 + 5, 'después vienen las 5 respuestas');
+  assert.equal(lineas.length, 3 + 5, 'después vienen las 5 respuestas');
 });

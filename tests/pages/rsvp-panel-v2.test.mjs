@@ -31,9 +31,17 @@ const J = async expr => JSON.parse(await br.eval(`JSON.stringify(${expr})`));
 const nombres = () => J(`[...document.querySelectorAll('#table-wrap tbody tr')].map(tr => tr.querySelector('.nombre-txt').textContent.trim())`);
 const centro = sel => J(`(() => { const e = document.querySelector('${sel}'); e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height }; })()`);
 
-test('el encabezado dice "Seleccionar todos" (no #)', async () => {
+test('"Seleccionar todos" va arriba de la tabla y "Fila" es un encabezado más', async () => {
   await abrir();
-  assert.match(await J(`document.querySelector('#table-wrap thead th').textContent`), /Seleccionar todos/);
+  const r = await J(`(() => {
+    const sel = document.getElementById('sel-todos').closest('label');
+    const ths = [...document.querySelectorAll('#table-wrap thead th')];
+    const top = el => Math.round(el.getBoundingClientRect().top);
+    return { fueraDeTabla: !document.getElementById('table-wrap').contains(sel), texto: sel.textContent.trim(),
+             primero: ths[0].textContent.trim(), mismoNivel: ths[0].id === 'sort-fila' && top(ths[0]) === top(ths[1]),
+             arriba: sel.getBoundingClientRect().bottom <= ths[0].getBoundingClientRect().top };
+  })()`);
+  assert.deepEqual(r, { fueraDeTabla: true, texto: 'Seleccionar todos', primero: 'Fila', mismoNivel: true, arriba: true });
 });
 
 test('casilla de fila: al menos 20px y se marca tocando el número de la fila', async () => {
