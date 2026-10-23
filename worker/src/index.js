@@ -255,6 +255,26 @@ function isHttpsUrl(u) {
   try { return new URL(u).protocol === 'https:'; } catch { return false; }
 }
 
+// Datos de una respuesta RSVP (formulario de la invitación o carga desde el panel).
+// Devuelve { error } o los campos ya recortados.
+function validarRespuestaRsvp(body) {
+  const txt = (v, max, requerido) => {
+    if (v === undefined || v === null || v === '') return requerido ? null : '';
+    if (typeof v !== 'string') return null;
+    const t = v.trim();
+    if (requerido && !t) return null;
+    return t.length <= max ? t : null;
+  };
+  const nombre = txt(body.nombre, 80, true);
+  const apellido = txt(body.apellido, 80, true);
+  const restricciones = txt(body.restricciones, 300, false);
+  const mensaje = txt(body.mensaje, 1000, false);
+  if (nombre === null || apellido === null) return { error: 'Nombre y apellido son obligatorios (hasta 80 caracteres)' };
+  if (!['si', 'no'].includes(body.asistencia)) return { error: 'Asistencia inválida' };
+  if (restricciones === null || mensaje === null) return { error: 'Texto demasiado largo' };
+  return { nombre, apellido, asistencia: body.asistencia, restricciones, mensaje };
+}
+
 function genRsvpToken() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let token = '';
@@ -2029,21 +2049,10 @@ export default {
         if (method === 'POST') {
           let body;
           try { body = await request.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
-          // Endpoint público: se valida todo lo que entra y se limita por IP + evento.
-          const txt = (v, max, requerido) => {
-            if (v === undefined || v === null || v === '') return requerido ? null : '';
-            if (typeof v !== 'string') return null;
-            const t = v.trim();
-            if (requerido && !t) return null;
-            return t.length <= max ? t : null;
-          };
-          const nombre = txt(body.nombre, 80, true);
-          const apellido = txt(body.apellido, 80, true);
-          const restricciones = txt(body.restricciones, 300, false);
-          const mensaje = txt(body.mensaje, 1000, false);
-          if (nombre === null || apellido === null) return json({ error: 'Nombre y apellido son obligatorios (hasta 80 caracteres)' }, 400);
-          if (!['si', 'no'].includes(body.asistencia)) return json({ error: 'Asistencia inválida' }, 400);
-          if (restricciones === null || mensaje === null) return json({ error: 'Texto demasiado largo' }, 400);
+          // Endpoint público: se valida todo lo que entra y se limita por IP.
+          const v = validarRespuestaRsvp(body);
+          if (v.error) return json({ error: v.error }, 400);
+          const { nombre, apellido, restricciones, mensaje } = v;
           // Límite por IP (no por evento: cambiar de slug no lo esquiva).
           if (env.RSVP_LIMITER) {
             const ip = request.headers.get('CF-Connecting-IP') || '';
@@ -2108,6 +2117,55 @@ export default {
           "UPDATE rsvp_responses SET borrado_at = datetime('now') WHERE slug = ?1 AND borrado_at IS NULL AND id IN (SELECT value FROM json_each(?2))"
         ).bind(slug, JSON.stringify(ids)).run();
         return json({ ok: true, borrados: (r.meta && r.meta.changes) || 0 });
+      }
+
+      // Eliminar definitivamente desde la papelera (token del evento, o admin). Solo
+      // filas ya eliminadas: un invitado activo siempre pasa antes por la papelera.
+      const rsvpPurgeMatch = path.match(/^\/rsvp\/([a-z0-9-]+)\/purge$/);
+      if (rsvpPurgeMatch && method === 'POST') {
+        const slug = rsvpPurgeMatch[1];
+        const tokenParam = url.searchParams.get('t') || '';
+        const storedToken = await env.KUERRE_KV.get('rsvp_token:' + slug);
+        if (!(storedToken && tokenParam === storedToken) && !await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const body = await request.json().catch(() => ({}));
+        const ids = body.ids;
+        if (!Array.isArray(ids) || !ids.length || ids.length > RSVP_MAX_POR_EVENTO || !ids.every(n => Number.isInteger(n) && n > 0))
+          return json({ error: 'ids inválidos' }, 400);
+        const r = await env.KUERRE_DB.prepare(
+          'DELETE FROM rsvp_responses WHERE slug = ?1 AND borrado_at IS NOT NULL AND id IN (SELECT value FROM json_each(?2))'
+        ).bind(slug, JSON.stringify(ids)).run();
+        return json({ ok: true, eliminados: (r.meta && r.meta.changes) || 0 });
+      }
+
+      // Agregar un invitado a mano desde el panel RSVP (token del evento, o admin).
+      // Tope del evento, rango y cupo de la mesa van en la misma sentencia del INSERT.
+      const rsvpAddMatch = path.match(/^\/rsvp\/([a-z0-9-]+)\/add$/);
+      if (rsvpAddMatch && method === 'POST') {
+        const slug = rsvpAddMatch[1];
+        const tokenParam = url.searchParams.get('t') || '';
+        const storedToken = await env.KUERRE_KV.get('rsvp_token:' + slug);
+        if (!(storedToken && tokenParam === storedToken) && !await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const body = await request.json().catch(() => ({}));
+        const v = validarRespuestaRsvp(body);
+        if (v.error) return json({ error: v.error, mensaje: v.error }, 400);
+        let mesa = body.mesa === undefined || body.mesa === null || body.mesa === '' ? null : Number(body.mesa);
+        if (mesa !== null) {
+          if (v.asistencia !== 'si') return json({ error: 'no_asiste', mensaje: 'Solo se puede asignar mesa a quien asiste' }, 409);
+          const total = await rsvpMesas(env, slug);
+          if (!Number.isInteger(mesa) || mesa < 1 || mesa > total) return json({ error: 'Mesa inválida', mensaje: 'La mesa tiene que estar entre 1 y ' + total }, 400);
+        }
+        const r = await env.KUERRE_DB.prepare(
+          'INSERT INTO rsvp_responses (slug, nombre, apellido, asistencia, restricciones, mensaje, mesa) ' +
+          'SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7 WHERE (SELECT COUNT(*) FROM rsvp_responses WHERE slug = ?1) < ' + RSVP_MAX_POR_EVENTO +
+          " AND (?7 IS NULL OR (?7 <= COALESCE((SELECT mesas FROM rsvp_config WHERE slug = ?1), " + RSVP_MESAS_DEFAULT + ") AND " +
+          "(SELECT COUNT(*) FROM rsvp_responses WHERE slug = ?1 AND mesa = ?7 AND asistencia = 'si' AND borrado_at IS NULL) < " + RSVP_CAPACIDAD_MESA + '))'
+        ).bind(slug, v.nombre, v.apellido, v.asistencia, v.restricciones, v.mensaje, mesa).run();
+        if (!r.meta || !r.meta.changes) {
+          const n = await env.KUERRE_DB.prepare('SELECT COUNT(*) n FROM rsvp_responses WHERE slug = ?').bind(slug).first();
+          if (n && n.n >= RSVP_MAX_POR_EVENTO) return json({ error: 'evento_lleno', mensaje: 'Este evento ya llegó al máximo de respuestas' }, 409);
+          return json({ error: 'mesa_llena', mensaje: 'La mesa ' + mesa + ' ya tiene ' + RSVP_CAPACIDAD_MESA + ' invitados' }, 409);
+        }
+        return json({ ok: true, id: r.meta.last_row_id });
       }
 
       // Restaurar desde la papelera. Uno por uno y en orden (batch = una transacción):

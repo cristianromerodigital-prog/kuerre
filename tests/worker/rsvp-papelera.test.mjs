@@ -104,3 +104,22 @@ test('la tarea diaria borra de verdad lo eliminado hace más de 30 días', async
   await runScheduled(env);
   assert.deepEqual(db.prepare('SELECT nombre FROM rsvp_responses ORDER BY id').all().map(r => r.nombre), ['Reciente', 'Activo']);
 });
+
+// ── eliminar definitivamente desde la papelera ──
+const purgar = (env, ids, t = T) => call(env, 'POST', '/rsvp/ev-1/purge' + t, { ids });
+test('eliminar definitivo borra de verdad solo lo que está en la papelera', async () => {
+  const { env, db } = evento([{ nombre: 'Ana' }, { nombre: 'Beto' }, { nombre: 'Cami' }]);
+  await borrar(env, [1, 2]);
+  const r = await purgar(env, [1, 3]);   // 3 está activo: no se toca
+  assert.equal(r.status, 200); assert.equal(r.data.eliminados, 1);
+  assert.deepEqual(db.prepare('SELECT nombre FROM rsvp_responses ORDER BY id').all().map(x => x.nombre), ['Beto', 'Cami']);
+  assert.deepEqual((await get(env)).eliminados.map(x => x.nombre), ['Beto']);
+});
+test('eliminar definitivo: token inválido → 401, ids inválidos → 400, nunca otro evento', async () => {
+  const { env, db } = evento([{}, { slug: 'otro' }]);
+  db.exec("UPDATE rsvp_responses SET borrado_at = datetime('now')");
+  assert.equal((await purgar(env, [1], '?t=MAL')).status, 401);
+  assert.equal((await purgar(env, [])).status, 400);
+  assert.equal((await purgar(env, [1, 2])).data.eliminados, 1);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM rsvp_responses').get().n, 1, 'queda el de otro evento');
+});

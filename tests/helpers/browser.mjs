@@ -57,6 +57,12 @@ export async function openBrowser({ mobile = false } = {}) {
     },
     // inyecta un script antes de que corra el de la página (mocks de fetch, etc.)
     async beforeLoad(source) { await send('Page.addScriptToEvaluateOnNewDocument', { source }); },
+    // Toque de dedo real (touchstart/touchend), como en un celular.
+    async tap(x, y) {
+      await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+      await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await sleep(300);
+    },
     async screenshot(file) { const m = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(file, Buffer.from(m.result.data, 'base64')); },
     sleep,
     // goto() debe fallar fuerte si la página no cargó (404 → página de error de Chrome)

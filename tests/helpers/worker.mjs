@@ -35,7 +35,7 @@ export function makeEnv({ kv = {}, limiterOk = () => true } = {}) {
     batch: async stmts => { db.exec('BEGIN'); try { const out = []; for (const st of stmts) out.push(await st.run()); db.exec('COMMIT'); return out; } catch (e) { db.exec('ROLLBACK'); throw e; } },
     prepare: sql => ({
       bind: (...a) => ({
-        run: async () => { const r = db.prepare(sql).run(...a); return { meta: { changes: Number(r.changes) } }; },
+        run: async () => { const r = db.prepare(sql).run(...a); return { meta: { changes: Number(r.changes), last_row_id: Number(r.lastInsertRowid) } }; },
         first: async () => db.prepare(sql).get(...a) ?? null,
         all: async () => ({ results: db.prepare(sql).all(...a) })
       }),

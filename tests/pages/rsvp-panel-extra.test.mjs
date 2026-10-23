@@ -88,8 +88,8 @@ test('# es el número fijo de la respuesta: no cambia al ordenar', async () => {
 
 test('posible duplicado indica el número de la otra respuesta', async () => {
   await abrir();
-  assert.equal(await J(`${fila('José')}.querySelector('.dup').textContent`), 'Posible duplicado de #2');
-  assert.equal(await J(`${fila('jose')}.querySelector('.dup').textContent`), 'Posible duplicado de #1');
+  assert.equal(await J(`${fila('José')}.querySelector('.dup').textContent`), 'Posible duplicado de la fila 2');
+  assert.equal(await J(`${fila('jose')}.querySelector('.dup').textContent`), 'Posible duplicado de la fila 1');
 });
 
 test('columna Alimentación muestra lo elegido', async () => {
