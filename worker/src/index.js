@@ -2043,11 +2043,16 @@ export default {
           if (nombre === null || apellido === null) return json({ error: 'Nombre y apellido son obligatorios (hasta 80 caracteres)' }, 400);
           if (!['si', 'no'].includes(body.asistencia)) return json({ error: 'Asistencia inválida' }, 400);
           if (restricciones === null || mensaje === null) return json({ error: 'Texto demasiado largo' }, 400);
+          // Límite por IP (no por evento: cambiar de slug no lo esquiva).
           if (env.RSVP_LIMITER) {
             const ip = request.headers.get('CF-Connecting-IP') || '';
-            const { success } = await env.RSVP_LIMITER.limit({ key: ip + ':' + slug });
+            const { success } = await env.RSVP_LIMITER.limit({ key: ip });
             if (!success) return json({ error: 'Demasiados envíos. Probá de nuevo en un minuto.' }, 429);
           }
+          // Solo invitaciones que existen y tienen el RSVP activo reciben respuestas.
+          let invCfg = null;
+          try { invCfg = JSON.parse(await env.KUERRE_KV.get('invite_cfg_' + slug) || 'null'); } catch {}
+          if (!invCfg || !invCfg.rsvp_activo) return json({ error: 'Esta invitación no recibe confirmaciones' }, 404);
           // Tope por evento en la misma sentencia: dos envíos simultáneos no lo pasan.
           const ins = await env.KUERRE_DB.prepare(
             'INSERT INTO rsvp_responses (slug, nombre, apellido, asistencia, restricciones, mensaje) ' +

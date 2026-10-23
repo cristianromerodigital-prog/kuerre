@@ -2,7 +2,10 @@
 // pone un tope de respuestas por evento.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { makeEnv, call } from '../helpers/worker.mjs';
+import { makeEnv as makeEnvBase, call } from '../helpers/worker.mjs';
+
+const CFG = { 'invite_cfg_ev-1': JSON.stringify({ novios: 'A', rsvp_activo: true }) };
+const makeEnv = (o = {}) => makeEnvBase({ ...o, kv: { ...CFG, ...(o.kv || {}) } });
 
 const valido = { nombre: 'Ana', apellido: 'Pérez', asistencia: 'si', restricciones: 'Celíaco/a', mensaje: '¡Vamos!' };
 const filas = db => db.prepare("SELECT COUNT(*) n FROM rsvp_responses WHERE slug='ev-1'").get().n;
@@ -43,7 +46,7 @@ test('demasiados envíos → 429 y no guarda', async () => {
   const r = await call(env, 'POST', '/rsvp/ev-1', valido);
   assert.equal(r.status, 429);
   assert.equal(filas(db), 0);
-  assert.deepEqual(claves, ['1.2.3.4:ev-1'], 'el límite es por IP + evento');
+  assert.deepEqual(claves, ['1.2.3.4'], 'el límite es por IP: cambiar de evento no lo esquiva');
 });
 
 test('con 2000 respuestas el evento no acepta más', async () => {
@@ -53,4 +56,17 @@ test('con 2000 respuestas el evento no acepta más', async () => {
   const r = await call(env, 'POST', '/rsvp/ev-1', valido);
   assert.equal(r.status, 409);
   assert.equal(filas(db), 2000);
+});
+
+test('evento inexistente → 404 y no guarda', async () => {
+  const { env, db } = makeEnv();
+  const r = await call(env, 'POST', '/rsvp/no-existe-1', valido);
+  assert.equal(r.status, 404);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM rsvp_responses").get().n, 0);
+});
+
+test('invitación con RSVP desactivado → 404', async () => {
+  const { env, db } = makeEnv({ kv: { 'invite_cfg_ev-1': JSON.stringify({ novios: 'A', rsvp_activo: false }) } });
+  assert.equal((await call(env, 'POST', '/rsvp/ev-1', valido)).status, 404);
+  assert.equal(filas(db), 0);
 });
