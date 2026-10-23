@@ -1,6 +1,10 @@
 name = "kuerre-worker"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
+workers_dev = true
+routes = [
+  { pattern = "kuerre.com.ar/og/*", zone_name = "kuerre.com.ar" }
+]
 
 [[d1_databases]]
 binding = "KUERRE_DB"

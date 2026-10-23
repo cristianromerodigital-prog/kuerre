@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.95</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.96</div>
     </div>
   </aside>
 
@@ -7331,9 +7331,7 @@ async function confirmReabrirEstilos() {
   if (!inv) { closeReabrirModal(); return; }
   const btn = document.getElementById('reabrir-btn-ok');
   btn.disabled = true; btn.textContent = 'Reabriendo…';
-  const nombre = toSlug(inv.config.novios || inv.config.titulo || 'invitacion');
-  const fecha = toSlug(inv.config.fecha_display || inv.config.fecha_iso || '');
-  const slug = nombre + (fecha ? '-' + fecha : '') + '-' + String(inv.id).slice(-4);
+  const slug = invLinkSlug(inv);
   try {
     const res = await fetch(CONFIG.CF_URL + '/invite/' + slug + '/reabrir', {
       method: 'POST',
@@ -7355,9 +7353,7 @@ async function confirmReabrirEstilos() {
 function copyEstilosLink(invId) {
   const inv = getInvites().find(i => i.id === invId);
   if (!inv) return;
-  const nombre = toSlug(inv.config.novios || inv.config.titulo || 'invitacion');
-  const fecha = toSlug(inv.config.fecha_display || inv.config.fecha_iso || '');
-  const slug = nombre + (fecha ? '-' + fecha : '') + '-' + String(inv.id).slice(-4);
+  const slug = invLinkSlug(inv);
   navigator.clipboard.writeText(getEstilosBase() + 'estilos.html?i=' + slug);
   toast('Link de estilos copiado — mandáselo al cliente');
 }
@@ -7458,12 +7454,18 @@ function getInvBaseUrl() {
   return location.href.replace(/[^/]*$/, 'invite.html');
 }
 
-async function genInviteUrl(inv) {
+// [COMPARTIDA] Slug público de la invitación. El primero que se publica queda fijo
+// (link_slug, lo guarda el worker): cambiar el nombre no cambia el link ya enviado.
+// Mismo orden que resolveInviteLinkSlug del worker (panel de la marca).
+function invLinkSlug(inv) {
+  if (inv.link_slug) return inv.link_slug;
   const nombre = toSlug(inv.config.novios || inv.config.titulo || 'invitacion');
-  const fechaRaw = inv.config.fecha_display || inv.config.fecha_iso || '';
-  const fecha = toSlug(fechaRaw);
-  const suffix = String(inv.id).slice(-4);
-  const slug = nombre + (fecha ? '-' + fecha : '') + '-' + suffix;
+  const fecha = toSlug(inv.config.fecha_display || inv.config.fecha_iso || '');
+  return nombre + (fecha ? '-' + fecha : '') + '-' + String(inv.id).slice(-4);
+}
+
+async function genInviteUrl(inv) {
+  const slug = invLinkSlug(inv);
   const base = inv.config.modelo === 'social' ? getInvSocialBaseUrl() : getInvBaseUrl();
   try {
     const res = await fetch(CONFIG.CF_URL + '/invite/' + slug + '?invite_id=' + encodeURIComponent(inv.id), {
@@ -7471,7 +7473,17 @@ async function genInviteUrl(inv) {
       headers: { 'Content-Type': 'application/json', 'Authorization': CONFIG.CF_AUTH },
       body: JSON.stringify(inv.config)
     });
-    if (res.ok) return base + '?i=' + slug;
+    if (res.ok) {
+      // El worker ya lo fijó en crd_invites; reflejarlo en la copia local para que
+      // el próximo guardado de la lista no lo borre.
+      if (!inv.link_slug) {
+        inv.link_slug = slug;
+        const list = getInvites();
+        const e = list.find(x => x.id === inv.id);
+        if (e && !e.link_slug) { e.link_slug = slug; localStorage.setItem(INV_KEY, JSON.stringify(list)); }
+      }
+      return base + '?i=' + slug;
+    }
   } catch(e) {}
   const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inv.config)))));
   return base + '?c=' + encoded;
@@ -7547,11 +7559,7 @@ function renderInvitesPage() {
   }
   const tipos = { casamiento:'Casamiento', quinces:'15 Años', save_the_date:'Save the Date', otro:'Evento' };
   wrap.innerHTML = list.map(inv => {
-    const nombre = toSlug(inv.config.novios || inv.config.titulo || 'invitacion');
-    const fechaRaw = inv.config.fecha_display || inv.config.fecha_iso || '';
-    const fecha = toSlug(fechaRaw);
-    const suffix = String(inv.id).slice(-4);
-    const slug = nombre + (fecha ? '-' + fecha : '') + '-' + suffix;
+    const slug = invLinkSlug(inv);
     const base = inv.config.modelo === 'social' ? getInvSocialBaseUrl() : getInvBaseUrl();
     const url = base + '?i=' + slug;
     const estiloNombre = inv.config.estilo_elegido
@@ -7839,6 +7847,8 @@ function readInviteForm() {
 
 function getRealInviteSlug() {
   if (!invEditingId) return '';
+  const saved = getInvites().find(i => i.id === invEditingId);
+  if (saved && saved.link_slug) return saved.link_slug;
   const nombre = toSlug(document.getElementById('inv-novios').value.trim() || document.getElementById('inv-titulo').value.trim() || 'invitacion');
   const fechaRaw = document.getElementById('inv-fecha-display').value || document.getElementById('inv-fecha-iso').value || '';
   const fecha = toSlug(fechaRaw);
@@ -7958,7 +7968,7 @@ function copyInviteWa(id) {
   genInviteUrl(inv).then(url => {
     const slug = new URLSearchParams(url.split('?')[1] || '').get('i');
     if (!slug) { navigator.clipboard.writeText(url).then(() => toast('URL copiada ✓')); return; }
-    const waUrl = 'https://cristianromeroproducciones.com.ar/og/' + slug;
+    const waUrl = 'https://kuerre.com.ar/og/' + slug;
     navigator.clipboard.writeText(waUrl).then(() => toast('URL WhatsApp copiada ✓'));
   });
 }
@@ -7976,6 +7986,7 @@ async function duplicateInvite(id) {
   const copy = JSON.parse(JSON.stringify(inv));
   copy.id = 'inv_' + Date.now();
   copy.created = new Date().toISOString();
+  delete copy.link_slug;
   copy.config.novios = (copy.config.novios || '') + ' (copia)';
   list.unshift(copy);
   saveInvites(list);

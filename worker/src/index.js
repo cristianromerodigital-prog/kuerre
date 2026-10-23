@@ -223,6 +223,63 @@ function toSlugW(str) {
     .replace(/^-+|-+$/g, '');
 }
 
+// Slug público de una entrada de crd_invites, en el mismo orden que el admin
+// (invLinkSlug): link fijo, si no la fórmula nombre+fecha+id, si no el slug de
+// la auto-creación. Solo devuelve uno cuya config exista de verdad en KV.
+async function resolveInviteLinkSlug(env, ent) {
+  const c = ent.config || {};
+  const fecha = toSlugW(c.fecha_display || c.fecha_iso || '');
+  const formula = toSlugW(c.novios || c.titulo || 'invitacion') + (fecha ? '-' + fecha : '') + '-' + String(ent.id).slice(-4);
+  for (const s of [ent.link_slug, formula, ent.slug]) {
+    if (s && await env.KUERRE_KV.get('invite_cfg_' + s) !== null) return s;
+  }
+  return null;
+}
+
+async function handleInviteOg(slug, url, env) {
+  // Desde workers.dev el invitado igual tiene que terminar en el dominio público.
+  const site = url.hostname.endsWith('workers.dev') ? 'https://kuerre.com.ar' : url.origin;
+  let cfg = null;
+  try {
+    const raw = await env.KUERRE_KV.get('invite_cfg_' + slug);
+    if (raw) cfg = JSON.parse(raw);
+  } catch (e) {}
+  const page = cfg && cfg.modelo === 'social' ? '/invite-social.html' : '/invite.html';
+  const inviteUrl = site + page + '?i=' + slug;
+  if (!cfg) return Response.redirect(inviteUrl, 302);
+
+  const tipo = { casamiento: 'Casamiento', quinces: '15 Años', save_the_date: 'Save the Date' }[cfg.tipo] || 'Evento';
+  const ogTitle = cfg.novios || cfg.titulo || tipo;
+  const ogDesc = [cfg.titulo && cfg.titulo !== ogTitle ? cfg.titulo : tipo, cfg.fecha_display, cfg.lugar_nombre].filter(Boolean).join(' · ');
+  const ogImg = cfg.media_type !== 'video' && /^https:\/\//.test(cfg.media_url || '') ? cfg.media_url : '';
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>${esc(ogTitle)}</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="${esc(ogTitle)}">
+<meta property="og:description" content="${esc(ogDesc)}">
+${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">` : ''}
+<meta property="og:url" content="${esc(inviteUrl)}">
+<meta name="twitter:card" content="${ogImg ? 'summary_large_image' : 'summary'}">
+<meta http-equiv="refresh" content="0;url=${esc(inviteUrl)}">
+</head>
+<body><a href="${esc(inviteUrl)}">${esc(ogTitle)}</a></body>
+</html>`;
+  return new Response(html, {
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'public, max-age=300',
+      'Content-Security-Policy': "default-src 'none'; img-src https:",
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'strict-origin-when-cross-origin'
+    }
+  });
+}
+
 function nowISO() { return new Date().toISOString(); }
 
 async function handleSolicitudesCreate(request, env) {
@@ -1013,6 +1070,14 @@ export default {
         return json(await resetDemoEvent(env));
       }
 
+      // ── Invitaciones: preview para WhatsApp/redes — /og/{slug} ─────────────
+      // WhatsApp no ejecuta JS: la tarjeta (nombre, fecha, foto) sale de estos
+      // meta tags y el invitado sigue a la invitación por meta refresh.
+      const ogMatch = path.match(/^\/og\/([a-z0-9][a-z0-9-]{1,79})$/);
+      if (ogMatch && method === 'GET') {
+        return handleInviteOg(ogMatch[1], url, env);
+      }
+
       // ── Invitaciones: config por slug ──────────────────────────────────────
       const invCfgMatch = path.match(/^\/invite\/([a-z0-9][a-z0-9-]{1,79})$/);
       if (invCfgMatch && method === 'GET') {
@@ -1038,7 +1103,22 @@ export default {
         // mapeo slug→invitación para que resolvePartnerId resuelva la marca
         // aunque este slug no coincida con el que armó la auto-creación.
         const inviteId = url.searchParams.get('invite_id');
-        if (inviteId) await env.KUERRE_KV.put('invite_slug_' + invCfgMatch[1], inviteId);
+        if (inviteId) {
+          await env.KUERRE_KV.put('invite_slug_' + invCfgMatch[1], inviteId);
+          // El primer slug publicado queda como link fijo de la invitación
+          // (link_slug): admin y panel de la marca usan siempre ese.
+          try {
+            const invitesRaw = await env.KUERRE_KV.get('crd_invites');
+            const invitesList = invitesRaw ? JSON.parse(invitesRaw) : [];
+            const entry = invitesList.find(x => String(x.id).toLowerCase() === inviteId.toLowerCase());
+            if (entry && !entry.link_slug) {
+              entry.link_slug = invCfgMatch[1];
+              const invitesStr = JSON.stringify(invitesList);
+              await env.KUERRE_KV.put('crd_invites', invitesStr);
+              await env.KUERRE_DB.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').bind('crd_invites', invitesStr).run();
+            }
+          } catch (e) { console.log('invite POST: no se pudo fijar link_slug', e.message); }
+        }
         return json({ ok: true });
       }
 
@@ -1084,7 +1164,7 @@ export default {
         try {
           const invitesRaw = await env.KUERRE_KV.get('crd_invites');
           const invitesList = invitesRaw ? JSON.parse(invitesRaw) : [];
-          const entry = invitesList.find(x => x.slug === cSlug);
+          const entry = invitesList.find(x => x.link_slug === cSlug || x.slug === cSlug);
           if (entry) {
             entry.config = merged;
             entry.tipo = merged.tipo || entry.tipo;
@@ -1111,7 +1191,7 @@ export default {
         try {
           const invitesRaw = await env.KUERRE_KV.get('crd_invites');
           const invitesList = invitesRaw ? JSON.parse(invitesRaw) : [];
-          const entry = invitesList.find(x => x.slug === rSlug);
+          const entry = invitesList.find(x => x.link_slug === rSlug || x.slug === rSlug);
           if (entry) {
             entry.config = rCfg;
             const invitesStr = JSON.stringify(invitesList);
@@ -1277,10 +1357,10 @@ export default {
             // que puede desincronizarse del que realmente arma el link publico.
             // Confirmamos contra la config real antes de emitir el link; si no
             // esta, mismo comportamiento que "sin slug resoluble": link vacio y log.
-            const cfgExiste = ent && ent.slug ? await env.KUERRE_KV.get('invite_cfg_' + ent.slug) : null;
-            if (cfgExiste !== null) {
+            const linkSlug = ent ? await resolveInviteLinkSlug(env, ent) : null;
+            if (linkSlug) {
               const esSocial = !!(ent.config && ent.config.modelo === 'social');
-              linkInvitacion = (esSocial ? '/invite-social.html?i=' : '/invite.html?i=') + encodeURIComponent(ent.slug);
+              linkInvitacion = (esSocial ? '/invite-social.html?i=' : '/invite.html?i=') + encodeURIComponent(linkSlug);
             } else {
               console.log('partner/clientes: invitacion sin slug resoluble', 'cliente=' + r.id, 'invite_id=' + r.invite_id);
             }
