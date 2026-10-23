@@ -236,6 +236,14 @@ async function resolveInviteLinkSlug(env, ent) {
   return null;
 }
 
+function genRsvpToken() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let token = '';
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  for (const b of bytes) token += chars[b % chars.length];
+  return token;
+}
+
 async function handleInviteOg(slug, url, env) {
   // Desde workers.dev el invitado igual tiene que terminar en el dominio público.
   const site = url.hostname.endsWith('workers.dev') ? 'https://kuerre.com.ar' : url.origin;
@@ -1350,6 +1358,7 @@ export default {
           const entregaOk = !!(r.entrega_folder && String(r.entrega_folder).trim());
 
           let linkInvitacion = '';
+          let linkRsvp = '';
           if (inviteOk) {
             const ent = invites.find(x => String(x.id).toLowerCase() === String(r.invite_id).toLowerCase());
             // crd_invites[].slug no siempre es el slug que existe de verdad en
@@ -1361,6 +1370,16 @@ export default {
             if (linkSlug) {
               const esSocial = !!(ent.config && ent.config.modelo === 'social');
               linkInvitacion = (esSocial ? '/invite-social.html?i=' : '/invite.html?i=') + encodeURIComponent(linkSlug);
+              // Panel de confirmaciones: reusa el token vigente (el que generó el
+              // admin) para no invalidar links ya compartidos; solo crea si no hay.
+              if (ent.config && ent.config.rsvp_activo) {
+                let token = await env.KUERRE_KV.get('rsvp_token:' + linkSlug);
+                if (!token) {
+                  token = genRsvpToken();
+                  await env.KUERRE_KV.put('rsvp_token:' + linkSlug, token, { expirationTtl: 365 * 24 * 3600 });
+                }
+                linkRsvp = '/rsvp-panel.html?slug=' + encodeURIComponent(linkSlug) + '&t=' + encodeURIComponent(token);
+              }
             } else {
               console.log('partner/clientes: invitacion sin slug resoluble', 'cliente=' + r.id, 'invite_id=' + r.invite_id);
             }
@@ -1389,7 +1408,7 @@ export default {
             estados:  { invitacion: inviteOk ? 'lista' : 'pendiente',
                         fiesta:     fiestaOk ? 'activa' : 'pendiente',
                         entrega:    entregaOk ? 'lista' : 'pendiente' },
-            links:    { invitacion: linkInvitacion, fiesta: linkFiesta, entrega: linkEntrega }
+            links:    { invitacion: linkInvitacion, rsvp: linkRsvp, fiesta: linkFiesta, entrega: linkEntrega }
           };
         }));
 
@@ -1999,10 +2018,7 @@ export default {
       if (rsvpTokenMatch && method === 'POST') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const slug = rsvpTokenMatch[1];
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let token = '';
-        const bytes = crypto.getRandomValues(new Uint8Array(8));
-        for (const b of bytes) token += chars[b % chars.length];
+        const token = genRsvpToken();
         await env.KUERRE_KV.put('rsvp_token:' + slug, token, { expirationTtl: 365 * 24 * 3600 });
         return json({ token });
       }

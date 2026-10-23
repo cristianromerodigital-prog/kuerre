@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.97</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.98</div>
     </div>
   </aside>
 
@@ -7901,7 +7901,42 @@ async function loadRsvpSummary(slug) {
     el.innerHTML = data.total
       ? '✅ ' + data.total_si + ' confirmados · ❌ ' + data.total_no + ' no asisten · Total: ' + data.total
       : 'Aún no hay confirmaciones.';
+    // Lista con botón eliminar. Los nombres los escriben los invitados: van por
+    // textContent, nunca interpolados en HTML.
+    const lista = document.createElement('div');
+    lista.style.cssText = 'margin-top:10px;display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto';
+    (data.responses || []).forEach(r => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:4px';
+      const txt = document.createElement('span');
+      txt.style.cssText = 'flex:1;font-size:11px;color:var(--white)';
+      txt.textContent = (r.asistencia === 'si' ? '✅ ' : '❌ ') + r.nombre + ' ' + r.apellido;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-sm';
+      btn.style.color = 'var(--red)';
+      btn.textContent = 'Eliminar';
+      btn.onclick = () => deleteRsvpResponse(slug, r.id, r.nombre + ' ' + r.apellido);
+      row.append(txt, btn);
+      lista.appendChild(row);
+    });
+    el.appendChild(lista);
   } catch(e) {}
+}
+
+async function deleteRsvpResponse(slug, id, nombre) {
+  if (!confirm('¿Eliminar la respuesta de ' + nombre + '?')) return;
+  try {
+    const res = await fetch(CONFIG.CRCLUB_URL + '/rsvp/' + slug + '/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + getAdminJWT() }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('Respuesta eliminada ✓');
+    loadRsvpSummary(slug);
+  } catch(e) {
+    toast('No se pudo eliminar: ' + e.message, 'error');
+  }
 }
 
 async function saveInvite() {

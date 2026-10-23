@@ -239,6 +239,7 @@ function render() {
     const contacto = [c.contacto.nombre, c.contacto.tel, c.contacto.email].filter(Boolean).map(esc).join(' · ');
     const links = [
       c.links.invitacion ? '<button onclick="copiar(' + i + ',\'invitacion\')">Invitación</button>' : '',
+      c.links.rsvp       ? '<button onclick="copiar(' + i + ',\'rsvp\')">RSVP</button>' : '',
       c.links.fiesta     ? '<button onclick="copiar(' + i + ',\'fiesta\')">QR Fiestas</button>' : '',
       c.links.entrega    ? '<button onclick="copiar(' + i + ',\'entrega\')">Entrega</button>' : ''
     ].filter(Boolean).join(' ');
