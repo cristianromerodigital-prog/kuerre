@@ -205,14 +205,28 @@ async function setMesa(id, value) {
 }
 function fmtDate(s) { if (!s) return ''; const d = new Date(s+'Z'); return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}) + ' ' + d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); }
 
-function exportCSV() {
+async function exportCSV() {
   const rows = _all.filter(r => _filter === 'todos' || r.asistencia === _filter);
   const header = ['Nombre','Apellido','Asistencia','Restricciones','Mensaje','Mesa','Fecha'];
   const csv = [header, ...rows.map(r => [r.nombre, r.apellido, r.asistencia === 'si' ? 'Confirma' : 'No asiste', r.restricciones||'', r.mensaje||'', r.mesa||'', r.created_at])].map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const name = 'invitados-' + slug + '.csv';
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  // En el celular (iPhone, navegador de WhatsApp) los links de descarga no bajan
+  // nada: se abre el menú Compartir del sistema (Guardar en Archivos, abrir con
+  // Excel/Numbers/Sheets, mandar por WhatsApp). En la compu, descarga directa.
+  const file = new File([blob], name, { type: 'text/csv' });
+  if (matchMedia('(pointer: coarse)').matches && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: name }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,﻿' + encodeURIComponent(csv);
-  a.download = 'invitados-' + slug + '.csv';
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
 function shareUrl() {
