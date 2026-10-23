@@ -137,7 +137,8 @@ test('restricciones: token inválido → 401; fila de otro evento → 404', asyn
 
 // ── borrar respuestas desde el panel ──
 const borrar = (env, ids, t = T, slug = 'ev-1') => call(env, 'POST', `/rsvp/${slug}/delete${t}`, { ids });
-const quedan = db => db.prepare('SELECT id FROM rsvp_responses ORDER BY id').all().map(r => r.id);
+// con la papelera, "quedan" = las activas (las borradas siguen en la tabla marcadas)
+const quedan = db => db.prepare('SELECT id FROM rsvp_responses WHERE borrado_at IS NULL ORDER BY id').all().map(r => r.id);
 test('borrar varias respuestas del evento', async () => {
   const { env, db } = evento({ invitados: [{}, {}, {}] });
   const r = await borrar(env, [1, 3]);

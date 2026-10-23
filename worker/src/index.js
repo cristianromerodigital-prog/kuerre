@@ -240,6 +240,7 @@ const RSVP_MAX_POR_EVENTO = 2000;
 const RSVP_CAPACIDAD_MESA = 10;
 const RSVP_MESAS_DEFAULT = 20;
 const RSVP_MESAS_MAX = 60;
+const RSVP_PAPELERA_DIAS = 30;
 
 // Cantidad de mesas del evento (la configura el panel RSVP; default 20). Vive en D1
 // (rsvp_config) para validarse en la misma sentencia que asigna la mesa.
@@ -2068,11 +2069,14 @@ export default {
           const admin = await isAdmin(request, coreEnv);
           if (!validToken && !admin) return json({ error: 'Unauthorized' }, 401);
           const rows = await env.KUERRE_DB.prepare(
-            'SELECT id, nombre, apellido, asistencia, restricciones, mensaje, mesa, created_at, modificado_at FROM rsvp_responses WHERE slug = ? ORDER BY created_at ASC'
+            'SELECT id, nombre, apellido, asistencia, restricciones, mensaje, mesa, created_at, modificado_at FROM rsvp_responses WHERE slug = ? AND borrado_at IS NULL ORDER BY created_at ASC'
           ).bind(slug).all();
           const responses = rows.results || [];
+          const borrados = await env.KUERRE_DB.prepare(
+            'SELECT id, nombre, apellido, asistencia, restricciones, mensaje, mesa, created_at, modificado_at, borrado_at FROM rsvp_responses WHERE slug = ? AND borrado_at IS NOT NULL ORDER BY borrado_at DESC'
+          ).bind(slug).all();
           return json({ responses, total_si: responses.filter(r => r.asistencia === 'si').length, total_no: responses.filter(r => r.asistencia === 'no').length, total: responses.length,
-            mesas: await rsvpMesas(env, slug), capacidad: RSVP_CAPACIDAD_MESA });
+            mesas: await rsvpMesas(env, slug), capacidad: RSVP_CAPACIDAD_MESA, eliminados: borrados.results || [] });
         }
       }
 
@@ -2097,11 +2101,40 @@ export default {
         const ids = body.ids;
         if (!Array.isArray(ids) || !ids.length || ids.length > RSVP_MAX_POR_EVENTO || !ids.every(n => Number.isInteger(n) && n > 0))
           return json({ error: 'ids inválidos' }, 400);
-        // Los ids van como un solo parámetro JSON: D1 admite pocos parámetros por sentencia.
+        // Papelera: se marca, no se elimina (se restaura con /restore; la tarea diaria
+        // borra de verdad a los RSVP_PAPELERA_DIAS). Los ids van como un solo parámetro
+        // JSON: D1 admite pocos parámetros por sentencia.
         const r = await env.KUERRE_DB.prepare(
-          'DELETE FROM rsvp_responses WHERE slug = ?1 AND id IN (SELECT value FROM json_each(?2))'
+          "UPDATE rsvp_responses SET borrado_at = datetime('now') WHERE slug = ?1 AND borrado_at IS NULL AND id IN (SELECT value FROM json_each(?2))"
         ).bind(slug, JSON.stringify(ids)).run();
         return json({ ok: true, borrados: (r.meta && r.meta.changes) || 0 });
+      }
+
+      // Restaurar desde la papelera. Uno por uno y en orden (batch = una transacción):
+      // cada restaurado ve a los anteriores, así nunca se pasa el cupo de una mesa.
+      // Si su mesa se llenó o ya no existe, vuelve sin mesa.
+      const rsvpRestMatch = path.match(/^\/rsvp\/([a-z0-9-]+)\/restore$/);
+      if (rsvpRestMatch && method === 'POST') {
+        const slug = rsvpRestMatch[1];
+        const tokenParam = url.searchParams.get('t') || '';
+        const storedToken = await env.KUERRE_KV.get('rsvp_token:' + slug);
+        if (!(storedToken && tokenParam === storedToken) && !await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const body = await request.json().catch(() => ({}));
+        const ids = body.ids;
+        if (!Array.isArray(ids) || !ids.length || ids.length > RSVP_MAX_POR_EVENTO || !ids.every(n => Number.isInteger(n) && n > 0))
+          return json({ error: 'ids inválidos' }, 400);
+        const sql =
+          "UPDATE rsvp_responses SET borrado_at = NULL, mesa = CASE " +
+          "WHEN mesa IS NULL OR asistencia <> 'si' THEN mesa " +
+          "WHEN mesa > COALESCE((SELECT mesas FROM rsvp_config WHERE slug = ?1), " + RSVP_MESAS_DEFAULT + ") " +
+          "  OR (SELECT COUNT(*) FROM rsvp_responses r2 WHERE r2.slug = ?1 AND r2.mesa = rsvp_responses.mesa AND r2.asistencia = 'si' AND r2.borrado_at IS NULL) >= " + RSVP_CAPACIDAD_MESA + " THEN NULL " +
+          "ELSE mesa END WHERE id = ?2 AND slug = ?1 AND borrado_at IS NOT NULL";
+        let restaurados = 0;
+        for (let i = 0; i < ids.length; i += 100) {
+          const res = await env.KUERRE_DB.batch(ids.slice(i, i + 100).map(id => env.KUERRE_DB.prepare(sql).bind(slug, id)));
+          restaurados += res.reduce((a, x) => a + ((x.meta && x.meta.changes) || 0), 0);
+        }
+        return json({ ok: true, restaurados });
       }
 
       // Cantidad de mesas del evento (panel RSVP con su token, o admin)
@@ -2118,12 +2151,12 @@ export default {
         // desaparece. Una asignación simultánea a esa mesa valida contra este mismo valor.
         const r = await env.KUERRE_DB.prepare(
           "INSERT INTO rsvp_config (slug, mesas) SELECT ?1, ?2 WHERE NOT EXISTS " +
-          "(SELECT 1 FROM rsvp_responses WHERE slug = ?1 AND asistencia = 'si' AND mesa > ?2) " +
+          "(SELECT 1 FROM rsvp_responses WHERE slug = ?1 AND asistencia = 'si' AND mesa > ?2 AND borrado_at IS NULL) " +
           "ON CONFLICT(slug) DO UPDATE SET mesas = excluded.mesas"
         ).bind(slug, mesas).run();
         if (!r.meta || !r.meta.changes) {
           const { results } = await env.KUERRE_DB.prepare(
-            "SELECT DISTINCT mesa FROM rsvp_responses WHERE slug = ? AND asistencia = 'si' AND mesa > ? ORDER BY mesa"
+            "SELECT DISTINCT mesa FROM rsvp_responses WHERE slug = ? AND asistencia = 'si' AND mesa > ? AND borrado_at IS NULL ORDER BY mesa"
           ).bind(slug, mesas).all();
           const ocupadas = (results || []).map(x => x.mesa);
           return json({ error: 'mesas_ocupadas', mensaje: 'Hay invitados sentados en las mesas ' + ocupadas.join(', '), mesas: ocupadas }, 409);
@@ -2135,7 +2168,7 @@ export default {
       if (rsvpDelMatch && method === 'DELETE') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         const [, slug, id] = rsvpDelMatch;
-        await env.KUERRE_DB.prepare('DELETE FROM rsvp_responses WHERE id = ? AND slug = ?').bind(Number(id), slug).run();
+        await env.KUERRE_DB.prepare("UPDATE rsvp_responses SET borrado_at = datetime('now') WHERE id = ? AND slug = ? AND borrado_at IS NULL").bind(Number(id), slug).run();
         return json({ ok: true });
       }
       if (rsvpDelMatch && method === 'PATCH') {
@@ -2169,7 +2202,7 @@ export default {
         const rid = Number(id);
         // Si un UPDATE no tocó nada, se explica por qué (lectura solo para el mensaje).
         const motivo = async () => {
-          const f = await env.KUERRE_DB.prepare('SELECT asistencia, mesa, modificado_at FROM rsvp_responses WHERE id = ? AND slug = ?').bind(rid, slug).first();
+          const f = await env.KUERRE_DB.prepare('SELECT asistencia, mesa, modificado_at FROM rsvp_responses WHERE id = ? AND slug = ? AND borrado_at IS NULL').bind(rid, slug).first();
           if (!f) return json({ error: 'Not found' }, 404);
           if (prev && (f.asistencia !== prevArgs[0] || f.mesa !== prevArgs[1]))
             return json({ error: 'conflicto', mensaje: 'Otra persona cambió a este invitado mientras editabas', actual: f }, 409);
@@ -2179,7 +2212,7 @@ export default {
           return json({ error: 'mesa_llena', mensaje: 'La mesa ' + mesa + ' ya tiene ' + RSVP_CAPACIDAD_MESA + ' invitados' }, 409);
         };
         if (cambiaRestr) {
-          const r = await env.KUERRE_DB.prepare('UPDATE rsvp_responses SET restricciones = ? WHERE id = ? AND slug = ?')
+          const r = await env.KUERRE_DB.prepare('UPDATE rsvp_responses SET restricciones = ? WHERE id = ? AND slug = ? AND borrado_at IS NULL')
             .bind(body.restricciones.trim(), rid, slug).run();
           if (!r.meta || !r.meta.changes) return json({ error: 'Not found' }, 404);
         }
@@ -2189,7 +2222,7 @@ export default {
           // arranca sin mesa: no reaparece una asignada antes de cancelar.
           const r = await env.KUERRE_DB.prepare(
             "UPDATE rsvp_responses SET asistencia = ?1, mesa = CASE WHEN asistencia = 'si' AND ?1 = 'si' THEN mesa ELSE NULL END, " +
-            "modificado_at = CASE WHEN asistencia <> ?1 THEN datetime('now') ELSE modificado_at END WHERE id = ?2 AND slug = ?3" + condPrev
+            "modificado_at = CASE WHEN asistencia <> ?1 THEN datetime('now') ELSE modificado_at END WHERE id = ?2 AND slug = ?3 AND borrado_at IS NULL" + condPrev
           ).bind(body.asistencia, rid, slug, ...(prev ? [null, null, null, null, null, ...prevArgs] : [])).run();
           if (!r.meta || !r.meta.changes) return motivo();
         }
@@ -2199,8 +2232,8 @@ export default {
           // lugar a la vez no pueden entrar las dos (D1 serializa las escrituras).
           const condPrevMesa = prev && !cambiaAsistencia ? condPrev : '';
           const r = await env.KUERRE_DB.prepare(
-            "UPDATE rsvp_responses SET mesa = ?1 WHERE id = ?2 AND slug = ?3 AND (?1 IS NULL OR (asistencia = 'si' AND ?1 <= " + SQL_MESAS + " AND " +
-            "(SELECT COUNT(*) FROM rsvp_responses WHERE slug = ?3 AND mesa = ?1 AND asistencia = 'si' AND id <> ?2) < ?4))" + condPrevMesa
+            "UPDATE rsvp_responses SET mesa = ?1 WHERE id = ?2 AND slug = ?3 AND borrado_at IS NULL AND (?1 IS NULL OR (asistencia = 'si' AND ?1 <= " + SQL_MESAS + " AND " +
+            "(SELECT COUNT(*) FROM rsvp_responses WHERE slug = ?3 AND mesa = ?1 AND asistencia = 'si' AND borrado_at IS NULL AND id <> ?2) < ?4))" + condPrevMesa
           ).bind(mesa, rid, slug, RSVP_CAPACIDAD_MESA, ...(condPrevMesa ? [null, null, null, null, ...prevArgs] : [])).run();
           if (!r.meta || !r.meta.changes) return motivo();
         }
@@ -2274,5 +2307,9 @@ export default {
 
   async scheduled(event, env, ctx) {
     ctx.waitUntil(resetDemoEvent(env).catch(e => console.error('[DEMO RESET]', e.message)));
+    // Papelera del RSVP: lo eliminado hace más de RSVP_PAPELERA_DIAS se borra de verdad.
+    ctx.waitUntil(env.KUERRE_DB.prepare(
+      "DELETE FROM rsvp_responses WHERE borrado_at IS NOT NULL AND borrado_at < datetime('now', ?)"
+    ).bind('-' + RSVP_PAPELERA_DIAS + ' days').run().catch(e => console.error('[RSVP PAPELERA]', e.message)));
   },
 };

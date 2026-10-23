@@ -109,3 +109,5 @@ CREATE INDEX idx_rsvp_slug ON rsvp_responses(slug);
 
 -- pendiente de aplicar en producción junto con este cambio: worker/migrate_rsvp_config.sql
 CREATE TABLE IF NOT EXISTS rsvp_config (slug TEXT PRIMARY KEY, mesas INTEGER NOT NULL);
+-- pendiente de aplicar en producción junto con este cambio: worker/migrate_rsvp_papelera.sql
+ALTER TABLE rsvp_responses ADD COLUMN borrado_at TEXT;

@@ -26,11 +26,18 @@ export function serve(extra = {}) {
 }
 
 export async function openBrowser({ mobile = false } = {}) {
-  const port = 9400 + Math.floor(Math.random() * 500);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kuerre-chrome-'));
-  const proc = spawn(CHROME, ['--headless=new', '--disable-gpu', '--remote-debugging-port=' + port, '--user-data-dir=' + dir, 'about:blank'], { stdio: 'ignore' });
-  let targets;
-  for (let i = 0; i < 50; i++) { try { targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json(); break; } catch { await sleep(100); } }
+  // Puerto 0: Chrome elige uno libre y lo escribe en DevToolsActivePort (sin choques
+  // cuando node --test corre varios archivos en paralelo).
+  const proc = spawn(CHROME, ['--headless=new', '--disable-gpu', '--remote-debugging-port=0', '--user-data-dir=' + dir, 'about:blank'], { stdio: 'ignore' });
+  let port, targets;
+  for (let i = 0; i < 100 && !targets; i++) {
+    try {
+      port = port || fs.readFileSync(path.join(dir, 'DevToolsActivePort'), 'utf8').split('\n')[0].trim();
+      targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
+    } catch { await sleep(100); }
+  }
+  if (!targets) { proc.kill(); throw new Error('Chrome no arrancó'); }
   const ws = new WebSocket(targets.find(t => t.type === 'page').webSocketDebuggerUrl);
   await new Promise(r => ws.onopen = r);
   let id = 0; const pend = {};

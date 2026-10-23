@@ -31,6 +31,8 @@ export function makeEnv({ kv = {}, limiterOk = () => true } = {}) {
   db.exec(fs.readFileSync(path.join(WORKER_DIR, '../tests/fixtures/schema-prod.sql'), 'utf8'));
   const store = { ...kv };
   const D1 = {
+    // batch de D1: corre en orden dentro de una transacción
+    batch: async stmts => { db.exec('BEGIN'); try { const out = []; for (const st of stmts) out.push(await st.run()); db.exec('COMMIT'); return out; } catch (e) { db.exec('ROLLBACK'); throw e; } },
     prepare: sql => ({
       bind: (...a) => ({
         run: async () => { const r = db.prepare(sql).run(...a); return { meta: { changes: Number(r.changes) } }; },
@@ -59,4 +61,12 @@ export async function call(env, method, url, body, headers = {}) {
   const r = await mod.fetch(new Request('https://w' + url, init), env, { waitUntil() {} });
   let data = null; try { data = await r.json(); } catch {}
   return { status: r.status, data };
+}
+
+// Corre la tarea programada (cron) y espera todo lo que dejó en waitUntil.
+export async function runScheduled(env) {
+  const mod = await loadWorker();
+  const pend = [];
+  await mod.scheduled({ cron: '0 8 * * *' }, env, { waitUntil: p => pend.push(p) });
+  await Promise.allSettled(pend);
 }
