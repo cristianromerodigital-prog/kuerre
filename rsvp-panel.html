@@ -75,6 +75,18 @@ th.sortable{cursor:pointer;user-select:none}
 #del-texto{font-size:12px;color:#ccc;line-height:1.6;margin-bottom:10px}
 #del-lista{font-size:12px;color:#888;line-height:1.7;margin-bottom:16px;max-height:200px;overflow-y:auto;white-space:pre-line}
 #del-modal .acciones{display:flex;gap:10px;justify-content:flex-end}
+/* Papelera */
+#undo-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:none;align-items:center;gap:14px;background:#0a1416;border:1px solid #00c89660;color:#ccc;padding:12px 16px;border-radius:8px;font-size:12px;z-index:60;box-shadow:0 6px 24px rgba(0,0,0,.5);max-width:calc(100% - 32px)}
+#undo-toast.on{display:flex}
+#undo-msg{white-space:nowrap}
+#undo-toast{width:max-content}
+#undo-btn{background:none;border:1px solid #00c896;color:#00c896;border-radius:4px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+#elim-wrap{margin:32px auto 0;max-width:900px}
+#elim-wrap summary{text-align:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;cursor:pointer;list-style-position:inside}
+.elim-head{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:#666;margin:12px 0}
+.elim-fila{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #0e1718;font-size:12px;color:#aaa}
+.elim-fila .elim-nombre{flex:1;color:#ccc}
+.elim-rest{background:none;border:1px solid #1e2c2e;color:#00c896;border-radius:4px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px}
 #restr-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;align-items:center;justify-content:center;padding:16px}
 #restr-modal.open{display:flex}
 #restr-modal .box{background:#0a1416;border:1px solid #15201f;border-radius:8px;padding:20px;width:100%;max-width:360px}
@@ -160,6 +172,15 @@ footer small a{color:inherit}
   </div>
 </div>
 <div id="table-wrap"></div>
+<details id="elim-wrap">
+  <summary id="elim-titulo">Eliminados (0)</summary>
+  <div class="elim-head">
+    <span>Se borran definitivamente a los 30 días.</span>
+    <button class="btn" id="elim-todos" style="padding:6px 14px" onclick="restaurar(_eliminados.map(r => r.id))">Restaurar todos</button>
+  </div>
+  <div id="elim-lista"></div>
+</details>
+<div id="undo-toast"><span id="undo-msg"></span><button id="undo-btn" onclick="deshacerBorrado()">Deshacer</button></div>
 <footer>
   <p id="footer-names"></p>
   <img id="footer-logo" alt="Logo">
@@ -179,6 +200,8 @@ let _sort = { col: null, dir: 1 };
 let _selected = new Set();   // ids elegidos para borrar
 let _visibles = [];          // ids que muestra la tabla ahora (filtros aplicados)
 let _porBorrar = [];
+let _eliminados = [];        // papelera (se restaura durante 30 días)
+let _undoIds = [], _undoTimer = null;
 
 // ── Marca (white-label) — mismo código que invite.html ─────────────────────
 function brandIgUrl(v) { return /^https?:/.test(v) ? v : 'https://www.instagram.com/' + String(v).replace(/^@/, ''); }
@@ -252,6 +275,7 @@ async function loadData() {
     if (!res.ok) { document.getElementById('table-wrap').innerHTML = '<div class="empty">Acceso denegado o invitación no encontrada.</div>'; return; }
     const data = await res.json();
     _all = data.responses || [];
+    _eliminados = data.eliminados || [];
     _mesas = data.mesas || 20;
     _capacidad = data.capacidad || 10;
     if (_mesaFilter > _mesas) _mesaFilter = null;
@@ -261,6 +285,7 @@ async function loadData() {
     renderMesas();
     renderCatering();
     renderTable();
+    renderEliminados();
   } catch(e) {
     document.getElementById('table-wrap').innerHTML = '<div class="empty">Error al cargar. Intentá de nuevo.</div>';
   }
@@ -397,7 +422,7 @@ function pedirBorrar(ids) {
   _porBorrar = ids.filter(id => _all.some(r => r.id === id));
   if (!_porBorrar.length) return;
   const n = _porBorrar.length;
-  document.getElementById('del-texto').textContent = 'Vas a eliminar ' + n + (n === 1 ? ' invitado' : ' invitados') + '. Esta acción no se puede deshacer.';
+  document.getElementById('del-texto').textContent = 'Vas a eliminar ' + n + (n === 1 ? ' invitado' : ' invitados') + '. Van a quedar en "Eliminados" (abajo de todo) y se pueden restaurar durante 30 días.';
   const quienes = _porBorrar.map(id => _all.find(r => r.id === id)).map(r => '#' + numero(r) + ' · ' + r.nombre + ' ' + r.apellido);
   document.getElementById('del-lista').textContent = quienes.slice(0, 10).join('\n') + (n > 10 ? '\n…y ' + (n - 10) + ' más' : '');
   document.getElementById('del-modal').classList.add('open');
@@ -415,6 +440,8 @@ async function confirmarBorrar() {
     });
     if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.mensaje || d.error || 'HTTP ' + res.status); }
     const borrar = new Set(ids);
+    const ahora = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    _eliminados = _all.filter(r => borrar.has(r.id)).map(r => ({ ...r, borrado_at: ahora })).concat(_eliminados);
     _all = _all.filter(r => !borrar.has(r.id));
     ids.forEach(id => _selected.delete(id));
     cerrarBorrar();
@@ -422,11 +449,54 @@ async function confirmarBorrar() {
     renderMesas();
     renderCatering();
     renderTable();
+    renderEliminados();
+    mostrarDeshacer(ids);
   } catch (e) {
     cerrarBorrar();
     alert('No se pudo eliminar: ' + e.message);
   } finally {
     btn.disabled = false;
+  }
+}
+
+// ── Papelera ──
+function renderEliminados() {
+  document.getElementById('elim-titulo').textContent = 'Eliminados (' + _eliminados.length + ')';
+  document.getElementById('elim-todos').style.display = _eliminados.length ? '' : 'none';
+  document.getElementById('elim-lista').replaceChildren(..._eliminados.map(r => {
+    const f = document.createElement('div'); f.className = 'elim-fila';
+    const n = document.createElement('span'); n.className = 'elim-nombre'; n.textContent = r.nombre + ' ' + r.apellido;
+    const d = document.createElement('span'); d.textContent = 'Eliminado el ' + fmtDate(r.borrado_at);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'elim-rest'; b.textContent = 'Restaurar';
+    b.onclick = () => restaurar([r.id]);
+    f.append(n, d, b);
+    return f;
+  }));
+}
+function mostrarDeshacer(ids) {
+  _undoIds = ids;
+  document.getElementById('undo-msg').textContent = ids.length === 1 ? 'Se eliminó 1 invitado' : 'Se eliminaron ' + ids.length + ' invitados';
+  document.getElementById('undo-toast').classList.add('on');
+  clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(ocultarDeshacer, 10000);
+}
+function ocultarDeshacer() { document.getElementById('undo-toast').classList.remove('on'); _undoIds = []; clearTimeout(_undoTimer); }
+function deshacerBorrado() { const ids = _undoIds; ocultarDeshacer(); if (ids.length) restaurar(ids); }
+// El Worker decide la mesa al restaurar (si se llenó o ya no existe, vuelve sin mesa):
+// por eso se recarga la lista en vez de reponer la fila local.
+async function restaurar(ids) {
+  if (!ids.length) return;
+  try {
+    const res = await fetch(WORKER + '/rsvp/' + slug + '/restore?t=' + encodeURIComponent(token), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.mensaje || d.error || 'HTTP ' + res.status); }
+    ocultarDeshacer();
+    await loadData();
+  } catch (e) {
+    alert('No se pudo restaurar: ' + e.message);
   }
 }
 
