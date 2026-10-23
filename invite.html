@@ -562,6 +562,11 @@ function startAeroParticles() {
   tick();
 }
 
+function heroVideoPlay() {
+  const vid = document.getElementById('hero-media');
+  if (vid && vid.tagName === 'VIDEO' && vid.paused) vid.play().catch(() => {});
+}
+
 function toggleSound() {
   const vid = document.getElementById('hero-media');
   const btn = document.getElementById('btn-sound');
@@ -1195,6 +1200,11 @@ function renderHero(c) {
   if (c.media_url) {
     if (c.media_type === 'video') {
       wrap.innerHTML = `<video id="hero-media" autoplay muted loop playsinline><source src="${c.media_url}"></video><button id="btn-sound" onclick="toggleSound()" style="position:absolute;bottom:80px;right:24px;z-index:10;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.3);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)" title="Activar sonido">🔇</button>`;
+      // iOS no siempre respeta el autoplay (ahorro de batería, navegador de WhatsApp):
+      // se pide play() explícito y, si lo bloquea, arranca con el primer toque.
+      document.getElementById('hero-media').muted = true;
+      heroVideoPlay();
+      ['touchstart', 'click'].forEach(ev => document.addEventListener(ev, heroVideoPlay, { once: true, passive: true }));
     } else {
       wrap.innerHTML = `<img id="hero-media" src="${c.media_url}" alt="">`;
     }
@@ -1607,6 +1617,7 @@ function openEnvelope() {
   const scene  = document.getElementById('env-scene');
   const flap   = document.getElementById('env-flap');
   screen.style.pointerEvents = 'none';
+  heroVideoPlay(); // el click del sobre es gesto válido: arranca el video aunque iOS haya bloqueado el autoplay
 
   // Iniciar audio — dentro del click del sobre → unmute inmediato
   if (cfg.youtube_audio) {
