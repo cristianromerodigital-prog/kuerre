@@ -97,7 +97,8 @@ CREATE TABLE IF NOT EXISTS rsvp_responses (
   restricciones TEXT DEFAULT '',
   mensaje     TEXT DEFAULT '',
   mesa        INTEGER,
-  created_at  TEXT DEFAULT (datetime('now'))
+  created_at  TEXT DEFAULT (datetime('now')),
+  modificado_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_rsvp_slug ON rsvp_responses(slug);
 

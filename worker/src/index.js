@@ -2007,7 +2007,7 @@ export default {
           const admin = await isAdmin(request, coreEnv);
           if (!validToken && !admin) return json({ error: 'Unauthorized' }, 401);
           const rows = await env.KUERRE_DB.prepare(
-            'SELECT id, nombre, apellido, asistencia, restricciones, mensaje, mesa, created_at FROM rsvp_responses WHERE slug = ? ORDER BY created_at ASC'
+            'SELECT id, nombre, apellido, asistencia, restricciones, mensaje, mesa, created_at, modificado_at FROM rsvp_responses WHERE slug = ? ORDER BY created_at ASC'
           ).bind(slug).all();
           const responses = rows.results || [];
           return json({ responses, total_si: responses.filter(r => r.asistencia === 'si').length, total_no: responses.filter(r => r.asistencia === 'no').length, total: responses.length });
@@ -2039,13 +2039,34 @@ export default {
         if (!validToken && !admin) return json({ error: 'Unauthorized' }, 401);
         let body;
         try { body = await request.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
-        let mesa = body.mesa;
-        if (mesa === '' || mesa === undefined) mesa = null;
+        const cambiaAsistencia = body.asistencia !== undefined;
+        const cambiaMesa = body.mesa !== undefined;
+        if (!cambiaAsistencia && !cambiaMesa) return json({ error: 'Nada para actualizar' }, 400);
+        if (cambiaAsistencia && !['si', 'no'].includes(body.asistencia)) return json({ error: 'Asistencia inválida' }, 400);
+        let mesa = cambiaMesa ? body.mesa : null;
+        if (mesa === '') mesa = null;
         if (mesa !== null) {
           mesa = Number(mesa);
           if (!Number.isInteger(mesa) || mesa < 1 || mesa > 20) return json({ error: 'Mesa inválida' }, 400);
         }
-        await env.KUERRE_DB.prepare('UPDATE rsvp_responses SET mesa = ? WHERE id = ? AND slug = ?').bind(mesa, Number(id), slug).run();
+        if (cambiaAsistencia) {
+          // La mesa solo sobrevive si ya asistía y sigue asistiendo (en el SET, "asistencia"
+          // es el valor previo). Pasar a "no asiste" la libera, y quien vuelve a asistir
+          // arranca sin mesa: no reaparece una asignada antes de cancelar.
+          const r = await env.KUERRE_DB.prepare(
+            "UPDATE rsvp_responses SET asistencia = ?1, mesa = CASE WHEN asistencia = 'si' AND ?1 = 'si' THEN mesa ELSE NULL END, " +
+            "modificado_at = CASE WHEN asistencia <> ?1 THEN datetime('now') ELSE modificado_at END WHERE id = ?2 AND slug = ?3"
+          ).bind(body.asistencia, Number(id), slug).run();
+          if (!r.meta || !r.meta.changes) return json({ error: 'Not found' }, 404);
+        }
+        if (cambiaMesa) {
+          // Solo quien asiste puede tener mesa: la condición va en el WHERE, no en un
+          // SELECT previo, para que no haya ventana entre leer y escribir.
+          const r = await env.KUERRE_DB.prepare(
+            "UPDATE rsvp_responses SET mesa = ?1 WHERE id = ?2 AND slug = ?3 AND (asistencia = 'si' OR ?1 IS NULL)"
+          ).bind(mesa, Number(id), slug).run();
+          if (!r.meta || !r.meta.changes) return json({ error: 'Solo se puede asignar mesa a quien asiste' }, 409);
+        }
         return json({ ok: true });
       }
 
