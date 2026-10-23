@@ -2085,6 +2085,25 @@ export default {
         return json({ token });
       }
 
+      // Borrar respuestas desde el panel RSVP (token del evento, o admin). Siempre
+      // acotado al slug: un id de otro evento no se toca aunque venga en la lista.
+      const rsvpBorrarMatch = path.match(/^\/rsvp\/([a-z0-9-]+)\/delete$/);
+      if (rsvpBorrarMatch && method === 'POST') {
+        const slug = rsvpBorrarMatch[1];
+        const tokenParam = url.searchParams.get('t') || '';
+        const storedToken = await env.KUERRE_KV.get('rsvp_token:' + slug);
+        if (!(storedToken && tokenParam === storedToken) && !await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        const body = await request.json().catch(() => ({}));
+        const ids = body.ids;
+        if (!Array.isArray(ids) || !ids.length || ids.length > RSVP_MAX_POR_EVENTO || !ids.every(n => Number.isInteger(n) && n > 0))
+          return json({ error: 'ids inválidos' }, 400);
+        // Los ids van como un solo parámetro JSON: D1 admite pocos parámetros por sentencia.
+        const r = await env.KUERRE_DB.prepare(
+          'DELETE FROM rsvp_responses WHERE slug = ?1 AND id IN (SELECT value FROM json_each(?2))'
+        ).bind(slug, JSON.stringify(ids)).run();
+        return json({ ok: true, borrados: (r.meta && r.meta.changes) || 0 });
+      }
+
       // Cantidad de mesas del evento (panel RSVP con su token, o admin)
       const rsvpCfgMatch = path.match(/^\/rsvp\/([a-z0-9-]+)\/config$/);
       if (rsvpCfgMatch && method === 'PUT') {

@@ -134,3 +134,32 @@ test('restricciones: token inválido → 401; fila de otro evento → 404', asyn
   assert.equal((await patch(env, 1, { restricciones: 'Vegano/a' }, '?t=MAL')).status, 401);
   assert.equal((await patch(env, 2, { restricciones: 'Vegano/a' })).status, 404);
 });
+
+// ── borrar respuestas desde el panel ──
+const borrar = (env, ids, t = T, slug = 'ev-1') => call(env, 'POST', `/rsvp/${slug}/delete${t}`, { ids });
+const quedan = db => db.prepare('SELECT id FROM rsvp_responses ORDER BY id').all().map(r => r.id);
+test('borrar varias respuestas del evento', async () => {
+  const { env, db } = evento({ invitados: [{}, {}, {}] });
+  const r = await borrar(env, [1, 3]);
+  assert.equal(r.status, 200); assert.equal(r.data.borrados, 2);
+  assert.deepEqual(quedan(db), [2]);
+});
+test('borrar nunca toca respuestas de otro evento', async () => {
+  const { env, db } = evento({ invitados: [{}, { slug: 'otro' }] });
+  const r = await borrar(env, [1, 2]);
+  assert.equal(r.data.borrados, 1);
+  assert.deepEqual(quedan(db), [2]);
+});
+test('borrar: token inválido → 401; ids inválidos → 400', async () => {
+  const { env, db } = evento({ invitados: [{}] });
+  assert.equal((await borrar(env, [1], '?t=MAL')).status, 401);
+  for (const ids of [[], 'todo', [1, 'x'], [1.5], Array.from({ length: 2001 }, (_, i) => i + 1)])
+    assert.equal((await borrar(env, ids)).status, 400, JSON.stringify(ids).slice(0, 30));
+  assert.deepEqual(quedan(db), [1]);
+});
+test('borrar 300 de una (más que el límite de parámetros de D1)', async () => {
+  const { env, db } = evento({ invitados: Array.from({ length: 300 }, () => ({})) });
+  const r = await borrar(env, Array.from({ length: 300 }, (_, i) => i + 1));
+  assert.equal(r.data.borrados, 300);
+  assert.deepEqual(quedan(db), []);
+});
