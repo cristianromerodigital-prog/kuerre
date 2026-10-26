@@ -531,7 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <span class="sidebar-user">Admin</span>
         <button class="logout-btn" onclick="doLogout()">Salir</button>
       </div>
-      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V1.99</div>
+      <div style="font-size:10px;color:var(--gray2);margin-top:8px;text-align:center;">V2.00</div>
     </div>
   </aside>
 
@@ -11223,6 +11223,7 @@ function ctRenderHistorial(data) {
       <td style="padding:8px 10px;white-space:nowrap">
         ${c.docUrl ? `<a href="${c.docUrl}" target="_blank" style="font-size:10px;color:var(--gold);text-decoration:none;margin-right:8px">DOC</a>` : ''}
         ${c.pdfUrl ? `<a href="${c.pdfUrl}" target="_blank" style="font-size:10px;color:var(--red);text-decoration:none;margin-right:8px">PDF</a>` : ''}
+        <button onclick="ctVincularArchivos('${c.numero}')" title="Vincular el PDF o Doc que modificaste a mano" style="font-size:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:var(--white);padding:3px 8px;cursor:pointer;margin-right:4px">Vincular</button>
         <button onclick="ctCargarContrato(${idx})" style="font-size:10px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);color:var(--gold);padding:3px 8px;cursor:pointer;margin-right:4px">Cargar</button>
         <button onclick="ctDeleteContrato('${c.numero}')" style="font-size:10px;background:rgba(224,85,85,0.1);border:1px solid rgba(224,85,85,0.3);color:var(--red);padding:3px 8px;cursor:pointer">Borrar</button>
       </td>
@@ -11257,6 +11258,33 @@ async function ctDeleteContrato(numero) {
     const res  = await fetch(url, { method: 'POST', body: JSON.stringify(Object.assign({ action: 'deleteContrato', numero }, ctExtra())) });
     const json = await res.json();
     if (json.ok) { toast('Contrato ' + numero + ' eliminado'); ctHistLoaded = false; ctLoadHistorial(); }
+    else toast('Error: ' + json.error, 'error');
+  } catch(e) { toast('Error de conexión', 'error'); }
+}
+
+// Vincula a mano el PDF y/o Doc de un contrato (D1). Vacío = no cambia ese archivo.
+async function ctVincularArchivos(numero) {
+  if (!CT_USE_D1) { toast('Vincular requiere contratos en D1', 'error'); return; }
+  const c = ctHistData.find(function(x) { return String(x.numero) === String(numero); });
+  if (!c) return;
+  const body = {};
+  const pdfIn = prompt('Contrato ' + numero + ' — pegá el link de Drive del PDF (vacío = no cambiar):', c.pdfUrl || '');
+  if (pdfIn === null) return;
+  const docIn = prompt('Contrato ' + numero + ' — pegá el link de Drive del Doc (vacío = no cambiar):', c.docUrl || '');
+  if (docIn === null) return;
+  const pdfId = driveExtractId(pdfIn), docId = driveExtractId(docIn);
+  if (pdfIn.trim() && !/^[a-zA-Z0-9_-]{10,}$/.test(pdfId)) { toast('Link de PDF inválido', 'error'); return; }
+  if (docIn.trim() && !/^[a-zA-Z0-9_-]{10,}$/.test(docId)) { toast('Link de Doc inválido', 'error'); return; }
+  if (pdfIn.trim() && pdfIn.trim() !== (c.pdfUrl || '')) body.pdf_url = 'https://drive.google.com/file/d/' + pdfId + '/view';
+  if (docIn.trim() && docIn.trim() !== (c.docUrl || '')) body.doc_url = docIn.includes('/document/') ? 'https://docs.google.com/document/d/' + docId + '/edit' : 'https://drive.google.com/file/d/' + docId + '/view';
+  if (!Object.keys(body).length) { toast('Sin cambios'); return; }
+  try {
+    const res = await fetch(CLIENTES_WORKER + '/contratos/' + encodeURIComponent(numero) + '/links', {
+      method: 'PATCH', headers: { Authorization: 'Bearer ' + getAdminJWT(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const json = await res.json();
+    if (json.ok) { toast('Archivos del contrato ' + numero + ' vinculados'); ctHistLoaded = false; ctLoadHistorial(); }
     else toast('Error: ' + json.error, 'error');
   } catch(e) { toast('Error de conexión', 'error'); }
 }

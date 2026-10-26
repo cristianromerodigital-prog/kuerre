@@ -736,6 +736,22 @@ async function handleContratosUpsert(request, env) {
   return json({ ok: true });
 }
 
+// Reapunta solo los links de Drive de un contrato (PDF/Doc modificados a mano), sin tocar el resto de campos
+async function handleContratosLinks(numero, request, env) {
+  const body = await request.json().catch(() => ({}));
+  const valido = u => typeof u === 'string' && /^https:\/\/(drive\.google\.com\/file\/d\/|docs\.google\.com\/document\/d\/)[a-zA-Z0-9_-]{10,}\/(view|edit)$/.test(u);
+  const sets = [], vals = [];
+  for (const campo of ['doc_url', 'pdf_url']) {
+    if (body[campo] === undefined) continue;
+    if (!valido(body[campo])) return json({ error: campo + ' inválido' }, 400);
+    sets.push(campo + '=?'); vals.push(body[campo]);
+  }
+  if (!sets.length) return json({ error: 'nada para actualizar' }, 400);
+  const r = await env.KUERRE_DB.prepare('UPDATE contratos SET ' + sets.join(', ') + ' WHERE numero=?').bind(...vals, numero).run();
+  if (!r.meta.changes) return json({ error: 'Contrato no encontrado' }, 404);
+  return json({ ok: true });
+}
+
 async function handleContratosDelete(numero, env) {
   const row = await env.KUERRE_DB.prepare('SELECT doc_url, pdf_url FROM contratos WHERE numero=?').bind(numero).first();
   if (!row) return json({ error: 'Contrato no encontrado' }, 404);
@@ -2326,6 +2342,11 @@ export default {
       if (path === '/contratos' && method === 'POST') {
         if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
         return await handleContratosUpsert(request, env);
+      }
+      const contratosLinksMatch = path.match(/^\/contratos\/(\d+)\/links$/);
+      if (contratosLinksMatch && method === 'PATCH') {
+        if (!await isAdmin(request, coreEnv)) return json({ error: 'Unauthorized' }, 401);
+        return await handleContratosLinks(Number(contratosLinksMatch[1]), request, env);
       }
       const contratosDelMatch = path.match(/^\/contratos\/(\d+)$/);
       if (contratosDelMatch && method === 'DELETE') {
